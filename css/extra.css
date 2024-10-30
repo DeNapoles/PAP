@@ -17,3 +17,26 @@
 .logo img:hover {
     transform: scale(1.05); /* Amplia ligeiramente o logo ao passar o rato */
 }
+
+#backToTopBtn {
+    display: none; /* Oculto por defeito */
+    position: fixed; /* Fixo na tela */
+    bottom: 20px; /* Distância do fundo */
+    right: 20px; /* Distância da direita */
+    z-index: 99; /* Fica acima de outros elementos */
+    border: none; /* Sem borda */
+    outline: none; /* Sem contorno */
+    background-color: #FF6B2C; /* Cor de fundo de acordo com o botão "Login" */
+    color: white; /* Cor do texto */
+    cursor: pointer; /* Cursor de mãozinha */
+    padding: 15px 20px; /* Espaçamento interno */
+    border-radius: 50px; /* Bordas arredondadas para um aspeto moderno */
+    font-size: 16px; /* Tamanho do texto */
+    font-weight: bold; /* Texto em negrito */
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2); /* Sombra subtil */
+    transition: all 0.3s ease-in-out; /* Transição suave */
+  }
+  
+  #backToTopBtn:hover {
+    background-color: #f95a17; /* Cor ao passar o cursor, mais escura para efeito */
+  }

@@ -1,0 +1,19 @@
+/* CSS para Logo */
+.logo {
+    width: 200px; /* Define a largura do logo */
+    height: auto; /* Mantém a proporção do logo */
+    display: block; /* Garante que o logo é tratado como um bloco 
+    margin: 0 auto;  Centraliza o logo horizontalmente 
+    padding: 10px; Adiciona algum espaço ao redor do logo */
+}
+
+.logo img {
+    max-width: 100%; /* Garante que a imagem do logo não ultrapassa a largura definida */
+    height: auto; /* Mantém a proporção da imagem 
+    border-radius: 8px;  Bordas arredondadas, se quiser */
+    transition: transform 0.3s ease; /* Animação de transição suave */
+}
+
+.logo img:hover {
+    transform: scale(1.05); /* Amplia ligeiramente o logo ao passar o rato */
+}

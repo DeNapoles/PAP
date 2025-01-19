@@ -40,3 +40,101 @@
   #backToTopBtn:hover {
     background-color: #f95a17; /* Cor ao passar o cursor, mais escura para efeito */
   }
+
+/* Ajustes gerais da Navbar */
+.navbar {
+    padding: 0.5rem 1rem;
+    background-color: transparent; /* Fundo transparente */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Linha inferior sutil */
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand img {
+    max-height: 40px; /* Altura do logótipo */
+}
+
+.navbar-brand span {
+    font-size: 1.25rem; /* Tamanho do texto */
+    font-weight: 600;
+    color: #fff;
+}
+
+.navbar-nav .nav-link {
+    margin-right: 1rem; /* Espaçamento entre links */
+    font-weight: 500;
+    color: #fff !important; /* Cor do texto */
+    transition: color 0.3s ease; /* Animação suave no hover */
+}
+
+.navbar-nav .nav-link:hover {
+    color: #adb5bd !important; /* Cor ao passar o rato */
+}
+
+.navbar-nav .dropdown-menu {
+    background-color: #343a40; /* Cor de fundo do dropdown */
+    border: none;
+}
+
+.navbar-nav .dropdown-item {
+    color: #fff;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-nav .dropdown-item:hover {
+    background-color: #495057; /* Cor de fundo ao passar o rato */
+    color: #fff;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 991px) {
+    .navbar-nav .nav-link {
+        margin-right: 0; /* Remover espaçamento em dispositivos menores */
+        text-align: center;
+    }
+}
+
+/* Modal de Login */
+.modal-content {
+    border-radius: 0.5rem; /* Bordas arredondadas */
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #343a40;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.form-floating label {
+    color: #6c757d;
+}
+
+.form-floating input {
+    border-radius: 0.25rem;
+    box-shadow: none;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.form-floating input:focus {
+    border-color: #0d6efd; /* Cor azul padrão do Bootstrap */
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+button[type="submit"] {
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}

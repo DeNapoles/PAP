@@ -36,69 +36,72 @@
 
 <body>
 	<header id="header" id="home">
-        <div class="container">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
-                <a class="navbar-brand d-flex align-items-center" href="index.html">
-                    <img src="img/logo1AEBConecta.png" alt="logo" class="me-2" style="height: 40px;">
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.html">Início</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="FAQs-home.html">FAQ's</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Ligações úteis
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-                                <li><a class="dropdown-item" href="http://193.236.85.189/">GIAE</a></li>
-                                <li><a class="dropdown-item" href="https://moodle.agbatalha.pt/">Moodle</a></li>
-                                <li><a class="dropdown-item" href="https://agbatalha.pt/eusoupro/">Eu Sou Pro</a></li>
-                                <li><a class="dropdown-item" href="https://www.facebook.com/aebatalha/?locale=pt_PT">Facebook do AEB</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="Ajuda_index.html">Ajuda</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </div>
-    </header>
+		<div class="container">
+			<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+				<a class="navbar-brand d-flex align-items-center" href="index.html">
+					<img src="img/logo1AEBConecta.png" alt="logo" class="me-2" style="height: 40px;">
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="index.html">Início</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="FAQs-home.html">FAQ's</a>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
+								data-bs-toggle="dropdown" aria-expanded="false">
+								Ligações úteis
+							</a>
+							<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+								<li><a class="dropdown-item" href="http://193.236.85.189/">GIAE</a></li>
+								<li><a class="dropdown-item" href="https://moodle.agbatalha.pt/">Moodle</a></li>
+								<li><a class="dropdown-item" href="https://agbatalha.pt/eusoupro/">Eu Sou Pro</a></li>
+								<li><a class="dropdown-item"
+										href="https://www.facebook.com/aebatalha/?locale=pt_PT">Facebook do AEB</a></li>
+							</ul>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="Ajuda_index.html">Ajuda</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+						</li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+	</header>
 
-    <!-- Modal de Login -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Iniciar Sessão</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                            <label for="email">Email</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="password" class="form-control" id="password" placeholder="Password" required>
-                            <label for="password">Palavra-passe</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Entrar</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+	<!-- Modal de Login -->
+	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content shadow">
+				<div class="modal-header">
+					<h5 class="modal-title" id="loginModalLabel">Iniciar Sessão</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+				</div>
+				<div class="modal-body">
+					<form id="loginForm">
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+							<label for="email">Email</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="password" class="form-control" id="password" placeholder="Password" required>
+							<label for="password">Palavra-passe</label>
+						</div>
+						<button type="submit" class="btn btn-primary w-100">Entrar</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!-- start banner Area -->
 	<section class="banner-area relative" id="home">
@@ -113,7 +116,7 @@
 						O portal que liga a comunidade escolar com informações úteis, respostas rápidas e apoio
 						especializado.
 					</p>
-					<a href="#" id="banner-login-button" class="primary-btn text-uppercase" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+					<a href="contact.html" id="banner-login-button" class="primary-btn text-uppercase">Regista-te!</a>
 				</div>
 			</div>
 		</div>
@@ -716,20 +719,17 @@
 
 	<!-- ------------------------------------------ Start CTA LOGIN Index Area ------------------------------------------ -->
 	<section class="cta-one-area relative section-gap">
-		<div class="container">
-			<div class="overlay overlay-bg"></div>
-			<div class="row justify-content-center">
-				<div class="wrap">
-					<h1 class="text-white">Bem-vindo à Plataforma Escolar</h1>
-					<p>
-						Faça login para acessar informações sobre suporte técnico, guias de uso e agendar serviços de
-						manutenção. Facilite a gestão e obtenha soluções rápidas para problemas tecnológicos.
-					</p>
-					<a class="primary-btn wh" href="contact.html">Entrar</a>
-				</div>
-			</div>
+		<div class="overlay overlay-bg"></div>
+		<div class="wrap">
+			<h1 class="text-white">Bem-vindo ao AEBConecta</h1>
+			<p class="text-white">
+				Regista-te para agendar serviços de manutenção. Obtenha soluções rápidas para problemas tecnológicos.
+			</p>
+			<a class="primary-btn wh" href="#" id="cta-login-button" data-bs-toggle="modal"
+				data-bs-target="#loginModal">Entrar</a>
 		</div>
 	</section>
+
 	<!-- ------------------------------------------ End LOGIN Index Area ------------------------------------------ -->
 
 	<!-- ------------------------------------------ Start blog Area ------------------------------------------ -->
@@ -914,9 +914,6 @@
 				</div>
 			</div>
 		</div>
-
-
-
 	</footer>
 	<!-- End footer Area -->
 

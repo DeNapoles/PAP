@@ -1,0 +1,84 @@
+.edit-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.edit-form {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: #4D13D1;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    margin-right: 10px;
+}
+
+.logo-preview {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px dashed #ddd;
+    text-align: center;
+}
+
+.links-container {
+    margin-bottom: 20px;
+}
+
+.image-preview, .logo-preview {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px dashed #ddd;
+    text-align: center;
+}
+
+.image-actions {
+    margin-top: 10px;
+}
+
+.image-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.image-actions .btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.image-preview img, .logo-preview img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+} 

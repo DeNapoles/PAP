@@ -5,6 +5,7 @@ $inicioData = getInicioInicio();
 $sobreNos = getSobreNos();
 $separadores = getSeparadores();
 $ligacoesUteis = getLigacoesUteis();
+$avisolaranjaInicio = getAvisolaranjaInicio();
 ?>
 
 <!DOCTYPE html>
@@ -812,16 +813,15 @@ $ligacoesUteis = getLigacoesUteis();
 	<!-- ------------------------------------------ End blog Area ------------------------------------------ -->
 
 
-	<!-- ------------------------------------------ Start cta-two Area ------------------------------------------ -->
+	<!-- ------------------------------------------ Start AVISO LARANJA Area ------------------------------------------ -->
 	<section class="cta-two-area">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-8 cta-left">
-					<h1>Tens alguma reclamação sobre o site?</h1>
-
+					<h1 style="font-size: 35px;"><?php echo $avisolaranjaInicio['Texto']; ?></h1>
 				</div>
 				<div class="col-lg-4 cta-right">
-					<a class="primary-btn wh" href="#">Faz a tua reclamação</a>
+					<a class="primary-btn wh" href="#""><?php echo $avisolaranjaInicio['Textobtn']; ?></a>
 				</div>
 			</div>
 		</div>
@@ -829,9 +829,9 @@ $ligacoesUteis = getLigacoesUteis();
 
 	<button onclick="topFunction()" id="backToTopBtn" title="Voltar ao topo">⬆</button>
 
-	<!--  ------------------------------------------ End cta-two Area ------------------------------------------ -->
+	<!--  ------------------------------------------ End AVISO LARANJA Area ------------------------------------------ -->
 
-	<!-- ------------------------------------------ start footer Area ------------------------------------------ -->
+	<!-- ------------------------------------------ start FOOTER Area ------------------------------------------ -->
 	<footer class="footer-area section-gap">
 		<div class="container">
 			<div class="row">
@@ -922,7 +922,7 @@ $ligacoesUteis = getLigacoesUteis();
 			</div>
 		</div>
 	</footer>
-	<!-- End footer Area -->
+	<!-- ------------------------------------------ End FOOTER Area ------------------------------------------ -->
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="js/vendor/jquery-2.2.4.min.js"></script>

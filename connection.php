@@ -11,8 +11,11 @@ if ($conn->connect_error) {
     die("Falha na conexão: " . $conn->connect_error);
 }
 
+
 // Definir charset para UTF-8
 $conn->set_charset("utf8mb4");
+
+
 
 // Função para buscar dados do Sobre Nós
 function getSobreNos() {
@@ -44,6 +47,14 @@ function getLigacoesUteis() {
     $sql = "SELECT * FROM LigacoesUteis ORDER BY id";
     $result = $conn->query($sql);
     return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+// Função para buscar dados do Aviso Laranja
+function getAvisolaranjaInicio() {
+    global $conn;
+    $sql = "SELECT * FROM AvisolaranjaInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
 }
 
 // echo "Conectado com sucesso!";

@@ -119,14 +119,18 @@ $ligacoesUteis = getLigacoesUteis();
 		<div class="container">
 			<div class="row fullscreen d-flex align-items-center justify-content-between">
 				<div class="banner-content col-lg-9 col-md-12">
-					<h1 class="text-uppercase">
-						Bem-vindo ao AEBConecta
+					<h2 class="text-uppercase" style="font-size: 32px; margin-bottom: 10px; color: white;">
+						<?php echo $inicioData['TextoInicial']; ?>
+					</h2>
+					<h1 class="text-uppercase" style="font-size: 23px;">
+						<?php echo $inicioData['TextoBemvindo']; ?>
 					</h1>
-					<p class="pt-10 pb-10">
-						O portal que liga a comunidade escolar com informações úteis, respostas rápidas e apoio
-						especializado.
+					<p class="pt-10 pb-10" style="font-size: 15px;">
+						<?php echo $inicioData['TextoInicial2']; ?>
 					</p>
-					<a href="contact.html" id="banner-login-button" class="primary-btn text-uppercase">Regista-te!</a>
+					<a href="contact.html" id="banner-login-button" class="primary-btn text-uppercase">
+						<?php echo $inicioData['BotaoInicial']; ?>
+					</a>
 				</div>
 			</div>
 		</div>

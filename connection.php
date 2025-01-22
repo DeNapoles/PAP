@@ -21,5 +21,30 @@ function getSobreNos() {
     $result = $conn->query($sql);
     return $result->fetch_assoc();
 }
+
+// Função para buscar dados do InicioInicio
+function getInicioInicio() {
+    global $conn;
+    $sql = "SELECT * FROM InicioInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
+// Função para buscar separadores da navbar
+function getSeparadores() {
+    global $conn;
+    $sql = "SELECT * FROM SeparadoresNavBar ORDER BY id";
+    $result = $conn->query($sql);
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+// Função para buscar ligações úteis
+function getLigacoesUteis() {
+    global $conn;
+    $sql = "SELECT * FROM LigacoesUteis ORDER BY id";
+    $result = $conn->query($sql);
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
 // echo "Conectado com sucesso!";
 ?>

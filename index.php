@@ -1,7 +1,10 @@
 <?php
 header('Content-Type: text/html; charset=utf-8');
 include 'connection.php';
+$inicioData = getInicioInicio();
 $sobreNos = getSobreNos();
+$separadores = getSeparadores();
+$ligacoesUteis = getLigacoesUteis();
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +14,7 @@ $sobreNos = getSobreNos();
 	<!-- Mobile Specific Meta -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<!-- Favicon-->
-	<link rel="shortcut icon" href="img/logo2AEBConecta.png">
+	<link rel="shortcut icon" href="<?php echo $inicioData['LogoSeparador']; ?>">
 	<!-- Author Meta -->
 	<meta name="author" content="colorlib">
 	<!-- Meta Description -->
@@ -44,8 +47,8 @@ $sobreNos = getSobreNos();
 	<header id="header" id="home">
 		<div class="container">
 			<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
-				<a class="navbar-brand d-flex align-items-center" href="index.html">
-					<img src="img/logo1AEBConecta.png" alt="logo" class="me-2" style="height: 40px;">
+				<a class="navbar-brand d-flex align-items-center" href="index.php">
+					<img src="<?php echo $inicioData['LogoPrincipal']; ?>" alt="logo" class="me-2" style="height: 40px;">
 				</a>
 				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
 					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,38 +56,39 @@ $sobreNos = getSobreNos();
 				</button>
 				<div class="collapse navbar-collapse" id="navbarNav">
 					<ul class="navbar-nav ms-auto">
-						<li class="nav-item">
-							<a class="nav-link" href="index.html">Início</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="FAQs-home.html">FAQ's</a>
-						</li>
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
-								data-bs-toggle="dropdown" aria-expanded="false">
-								Ligações úteis
-							</a>
-							<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
-								<li><a class="dropdown-item" href="http://193.236.85.189/">GIAE</a></li>
-								<li><a class="dropdown-item" href="https://moodle.agbatalha.pt/">Moodle</a></li>
-								<li><a class="dropdown-item" href="https://agbatalha.pt/eusoupro/">Eu Sou Pro</a></li>
-								<li><a class="dropdown-item"
-										href="https://www.facebook.com/aebatalha/?locale=pt_PT">Facebook do AEB</a></li>
-							</ul>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="Ajuda_index.html">Ajuda</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
-						</li>
+						<?php foreach ($separadores as $separador): ?>
+							<?php if ($separador['separador'] === 'Ligações úteis'): ?>
+								<li class="nav-item dropdown">
+									<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
+										data-bs-toggle="dropdown" aria-expanded="false">
+										<?php echo $separador['separador']; ?>
+									</a>
+									<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+										<?php foreach ($ligacoesUteis as $ligacao): ?>
+											<li>
+												<a class="dropdown-item" href="<?php echo $ligacao['link']; ?>" target="_blank">
+													<?php echo $ligacao['texto']; ?>
+												</a>
+											</li>
+										<?php endforeach; ?>
+									</ul>
+								</li>
+							<?php else: ?>
+								<li class="nav-item">
+									<a class="nav-link" href="<?php echo $separador['link']; ?>" 
+									   <?php echo ($separador['separador'] === 'Login') ? 'data-bs-toggle="modal" data-bs-target="#loginModal"' : ''; ?>>
+										<?php echo $separador['separador']; ?>
+									</a>
+								</li>
+							<?php endif; ?>
+						<?php endforeach; ?>
 					</ul>
 				</div>
 			</nav>
 		</div>
 	</header>
 
-	<!-- Modal de Login -->
+	<!-- ----------------------------------- Modal de Login ----------------------------------- -->
 	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content shadow">
@@ -109,7 +113,7 @@ $sobreNos = getSobreNos();
 		</div>
 	</div>
 
-	<!-- start banner Area -->
+	<!-- ----------------------------------- start Texto Incial Area ----------------------------------- -->
 	<section class="banner-area relative" id="home">
 		<div class="overlay overlay-bg"></div>
 		<div class="container">
@@ -127,7 +131,7 @@ $sobreNos = getSobreNos();
 			</div>
 		</div>
 	</section>
-	<!-- End banner Area -->
+	<!-- ----------------------------------- End Texto Incial Area ----------------------------------- -->
 
 	</section>
 	<!-- End banner Area -->

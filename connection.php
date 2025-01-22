@@ -10,5 +10,16 @@ $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
     die("Falha na conexão: " . $conn->connect_error);
 }
-echo "Conectado com sucesso!";
+
+// Definir charset para UTF-8
+$conn->set_charset("utf8mb4");
+
+// Função para buscar dados do Sobre Nós
+function getSobreNos() {
+    global $conn;
+    $sql = "SELECT * FROM SobreNosInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+// echo "Conectado com sucesso!";
 ?>

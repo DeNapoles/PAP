@@ -1,3 +1,9 @@
+<?php
+header('Content-Type: text/html; charset=utf-8');
+include 'connection.php';
+$sobreNos = getSobreNos();
+?>
+
 <!DOCTYPE html>
 <html lang="zxx" class="no-js">
 
@@ -175,34 +181,27 @@
 	</section>
 	<!-- ----------------------------------- End Links Escolares Area ----------------------------------- -->
 
-
-	<!-- Start info Area -->
+	<!-- ----------------------------------- Start Sobre Nós ----------------------------------- -->
 	<section class="info-area pb-120">
-		<div class="container-fluid">
-			<div class="row align-items-center">
-				<div class="col-lg-6 no-padd4ing info-area-left">
-					<img class="img-fluid" src="img/about-img.png" alt="">
-				</div>
-				<div class="col-lg-6 info-area-right" style="color: #000; text-align: justify; font-size: 19px;">
-					<h1>Sobre Nós</h1>
-					<p>Somos alunos do Agrupamento de Escolas da Batalha, comprometidos com a inovação e otimização dos
-						processos tecnológicos nas escolas. No âmbito da nossa PAP, desenvolvemos esta plataforma com o
-						objetivo de apoiar a gestão de conteúdo informativo e a administração dos kits tecnológicos da
-						Escola Digital.</p>
-					<br>
-					<p>Esta plataforma destina-se a toda a comunidade escolar, oferecendo uma solução para a resolução
-						de problemas técnicos, disponibilização de guias de utilizador e agendamento de serviços de
-						manutenção. A nossa intenção é facilitar o acesso à informação e melhorar a comunicação entre a
-						equipa de apoio tecnológico e os utilizadores.</p>
-					<br>
-				</div>
-			</div>
-		</div>
-	</section>
-	<!-- End info Area -->
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-lg-6 no-padd4ing info-area-left">
+                <img class="img-fluid" src="<?php echo $sobreNos['Imagem']; ?>" alt="Sobre Nós">
+            </div>
+            <div class="col-lg-6 info-area-right" style="color: #000; text-align: justify; font-size: 19px;">
+                <h1>Sobre Nós</h1>
+                <p><?php echo $sobreNos['Texto1']; ?></p>
+                <br>
+                <p><?php echo $sobreNos['Texto2']; ?></p>
+                <br>
+            </div>
+        </div>
+    </div>
+</section>
+	<!-- ----------------------------------- End Sobre Nós ----------------------------------- -->
 
 
-	<!-- Start popular-course Area 
+	<!-- ----------------------------------- Start popular-course Area ----------------------------------- 
 			<section class="popular-course-area section-gap">
 				<div class="container">
 					<div class="row d-flex justify-content-center">
@@ -409,7 +408,7 @@
 								during this Summer!
 							</h1>
 							<p>
-								inappropriate behavior is often laughed off as “boys will be boys,” women face higher conduct standards especially in the workplace. That’s why it’s crucial that, as women, our behavior on the job is beyond reproach.
+								inappropriate behavior is often laughed off as "boys will be boys," women face higher conduct standards especially in the workplace. That's why it's crucial that, as women, our behavior on the job is beyond reproach.
 							</p>
 							<div class="row details-content">
 								<div class="col single-detials">
@@ -474,7 +473,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>
@@ -487,7 +486,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>	
@@ -500,7 +499,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>	
@@ -513,7 +512,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>
@@ -526,7 +525,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>	
@@ -539,7 +538,7 @@
 									<a href="#"><h4>The Universe Through
 									A Child S Eyes</h4></a>
 									<p>
-										For most of us, the idea of astronomy is something we directly connect to “stargazing”, telescopes and seeing magnificent displays in the heavens.
+										For most of us, the idea of astronomy is something we directly connect to "stargazing", telescopes and seeing magnificent displays in the heavens.
 									</p>
 								</div>
 							</div>																						

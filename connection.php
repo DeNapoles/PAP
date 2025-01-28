@@ -57,5 +57,21 @@ function getAvisolaranjaInicio() {
     return $result->fetch_assoc();
 }
 
+// Função para buscar ligações rápidas
+function getLigacoesRapidas() {
+    global $conn;
+    $sql = "SELECT * FROM LigacoesRapidasInicio ORDER BY id";
+    $result = $conn->query($sql);
+    $ligacoesRapidas = array();
+    
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $ligacoesRapidas[] = $row;
+        }
+    }
+    
+    return $ligacoesRapidas;
+}
+
 // echo "Conectado com sucesso!";
 ?>

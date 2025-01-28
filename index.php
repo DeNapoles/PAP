@@ -6,6 +6,7 @@ $sobreNos = getSobreNos();
 $separadores = getSeparadores();
 $ligacoesUteis = getLigacoesUteis();
 $avisolaranjaInicio = getAvisolaranjaInicio();
+$ligacoesRapidas = getLigacoesRapidas();
 ?>
 
 <!DOCTYPE html>
@@ -145,46 +146,29 @@ $avisolaranjaInicio = getAvisolaranjaInicio();
 	<section class="feature-area" style="margin-bottom: 50px;">
 		<div class="container">
 			<div class="row">
-				<div class="col-lg-4">
-					<div class="single-feature">
-						<div class="title">
-							<h4>GIAE</h4>
-						</div>
-						<div class="desc-wrap">
-							<p>
-								<img src="img/giae_img.jpeg" alt="img_giae" style="width: 150px;">
-							</p>
-							<a href="http://193.236.85.189/" target="_blank">Aceda Já</a>
-						</div>
-					</div>
-				</div>
-				<div class="col-lg-4">
-					<div class="single-feature">
-						<div class="title">
-							<h4>Moodle</h4>
-						</div>
-						<div class="desc-wrap">
-							<p>
-								<img src="img/moodle.png" alt="img_moodle">
-
-							</p>
-							<a href="https://moodle.agbatalha.pt/" target="_blank">Aceda Já</a>
+				<?php foreach ($ligacoesRapidas as $ligacao): ?>
+					<div class="col-lg-4">
+						<div class="single-feature">
+							<div class="title">
+								<a href="<?php echo $ligacao['Link']; ?>" target="_blank" style="color: inherit;">
+									<h4><?php echo $ligacao['Nome']; ?></h4>
+								</a>
+							</div>
+							<div class="desc-wrap">
+								<p>
+									<a href="<?php echo $ligacao['Link']; ?>" target="_blank">
+										<img src="<?php echo $ligacao['Imagem']; ?>" 
+											 alt="<?php echo $ligacao['Nome']; ?>" 
+											 style="width: <?php echo $ligacao['Largura'] ?? 200; ?>px; 
+													height: <?php echo $ligacao['Altura'] ?? 200; ?>px; 
+													object-fit: contain;">
+									</a>
+								</p>
+								<a href="<?php echo $ligacao['Link']; ?>" target="_blank">Aceda Já</a>
+							</div>
 						</div>
 					</div>
-				</div>
-				<div class="col-lg-4">
-					<div class="single-feature">
-						<div class="title">
-							<h4>Eu Sou PRO</h4>
-						</div>
-						<div class="desc-wrap">
-							<p>
-								<img src="img/eusoupro.jpeg" alt="img_eusoupro" style="width: 150px;">
-							</p>
-							<a href="https://agbatalha.pt/eusoupro/" target="_blank">Aceda Já</a>
-						</div>
-					</div>
-				</div>
+				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>

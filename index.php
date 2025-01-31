@@ -8,6 +8,35 @@ $ligacoesUteis = getLigacoesUteis();
 $avisolaranjaInicio = getAvisolaranjaInicio();
 $ligacoesRapidas = getLigacoesRapidas();
 $avaliacoes = getAvaliacoes();
+
+function getFooterLinks($secao) {
+    global $conn;
+    $sql = "SELECT nome, link FROM FooterLinks WHERE secao = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $secao);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $links = array();
+    
+    while ($row = $result->fetch_assoc()) {
+        $links[] = $row;
+    }
+    
+    return $links;
+}
+
+function getContactos() {
+    global $conn;
+    $sql = "SELECT nome FROM FooterLinks WHERE secao = 'Contactos'";
+    $result = $conn->query($sql);
+    $contactos = array();
+    
+    while ($row = $result->fetch_assoc()) {
+        $contactos[] = $row['nome'];
+    }
+    
+    return $contactos;
+}
 ?>
 
 <!DOCTYPE html>
@@ -680,7 +709,7 @@ $avaliacoes = getAvaliacoes();
 					<h1 style="font-size: 35px;"><?php echo $avisolaranjaInicio['Texto']; ?></h1>
 				</div>
 				<div class="col-lg-4 cta>-right">
-					<a class="primary-btn wh" href="#""><?php echo $avisolaranjaInicio['Textobtn']; ?></a>
+					<a class="primary-btn wh" href="#"><?php echo $avisolaranjaInicio['Textobtn']; ?></a>
 				</div>
 			</div>
 		</div>
@@ -698,10 +727,9 @@ $avaliacoes = getAvaliacoes();
 					<div class="single-footer-widget">
 						<h4>Ligações úteis</h4>
 						<ul>
-							<li><a href="http://193.236.85.189/">GIAE</a></li>
-							<li><a href="https://moodle.agbatalha.pt/">Moodle</a></li>
-							<li><a href="https://agbatalha.pt/eusoupro/">Eu Sou Pro</a></li>
-							<li><a href="https://www.facebook.com/aebatalha/?locale=pt_PT">Facebook do AEB</a></li>
+							<?php foreach (getFooterLinks('LigacoesUteis') as $link): ?>
+								<li><a href="<?php echo $link['link']; ?>"><?php echo $link['nome']; ?></a></li>
+							<?php endforeach; ?>
 						</ul>
 					</div>
 				</div>
@@ -709,10 +737,9 @@ $avaliacoes = getAvaliacoes();
 					<div class="single-footer-widget">
 						<h4>Contactos</h4>
 						<ul>
-							<li>Escola Básica e Secundária da Batalha</a></li>
-							<li>Estrada da Freiria</a></li>
-							<li>2440-062 Batalha Portugal</a></li>
-							<li>Telefone: 244 769 290</a></li>
+							<?php foreach (getContactos() as $contacto): ?>
+								<li><?php echo $contacto; ?></li>
+							<?php endforeach; ?>
 						</ul>
 					</div>
 				</div>
@@ -720,43 +747,22 @@ $avaliacoes = getAvaliacoes();
 					<div class="single-footer-widget">
 						<h4>FAQ's</h4>
 						<ul>
-							<li><a href="#">GIAE</a></li>
-							<li><a href="#">Moodle</a></li>
-							<li><a href="#">Computador</a></li>
-							<li><a href="#">Acessórios do kit</a></li>
+							<?php foreach (getFooterLinks('Faqs') as $link): ?>
+								<li><a href="<?php echo $link['link']; ?>"><?php echo $link['nome']; ?></a></li>
+							<?php endforeach; ?>
 						</ul>
 					</div>
 				</div>
 				<div class="col-lg-2 col-md-6 col-sm-6">
 					<div class="single-footer-widget">
-						<h4>Resources</h4>
+						<h4>Tickets</h4>
 						<ul>
-							<li><a href="#">Guides</a></li>
-							<li><a href="#">Research</a></li>
-							<li><a href="#">Experts</a></li>
-							<li><a href="#">Agencies</a></li>
+							<?php foreach (getFooterLinks('Tickets') as $link): ?>
+								<li><a href="<?php echo $link['link']; ?>"><?php echo $link['nome']; ?></a></li>
+							<?php endforeach; ?>
 						</ul>
 					</div>
 				</div>
-				<!--<div class="col-lg-4  col-md-6 col-sm-6">
-							<div class="single-footer-widget">
-								<h4>Newsletter</h4>
-								<p>Stay update with our latest</p>
-								<div class="" id="mc_embed_signup">
-									 <form target="_blank" action="https://spondonit.us12.list-manage.com/subscribe/post?u=1462626880ade1ac87bd9c93a&amp;id=92a4423d01" method="get">
-									  <div class="input-group">
-									    <input type="text" class="form-control" name="EMAIL" placeholder="Enter Email Address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Email Address '" required="" type="email">
-									    <div class="input-group-btn">
-									      <button class="btn btn-default" type="submit">
-									        <span class="lnr lnr-arrow-right"></span>
-									      </button>    
-									    </div>
-									    	<div class="info"></div>  
-									  </div>
-									</form> 
-								</div>
-							</div>
-						</div>	-->
 			</div>
 			<div class="footer-bottom row align-items-center justify-content-between">
 				<div class="col-lg-8 col-md-12">

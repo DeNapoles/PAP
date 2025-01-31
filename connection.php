@@ -73,5 +73,21 @@ function getLigacoesRapidas() {
     return $ligacoesRapidas;
 }
 
+// Função para buscar avaliações
+function getAvaliacoes() {
+    global $conn;
+    $sql = "SELECT * FROM TabelaAvaliacoesInicio ORDER BY id";
+    $result = $conn->query($sql);
+    $avaliacoes = array();
+    
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $avaliacoes[] = $row;
+        }
+    }
+    
+    return $avaliacoes;
+}
+
 // echo "Conectado com sucesso!";
 ?>

@@ -37,6 +37,16 @@ function getContactos() {
     
     return $contactos;
 }
+
+// Função para buscar dados da tabela CTAInicio
+function getCTAInicio() {
+    global $conn;
+    $sql = "SELECT Titulo, Texto, BtnText, Fundo FROM CTAInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
+$ctaInicio = getCTAInicio();
 ?>
 
 <!DOCTYPE html>
@@ -614,15 +624,15 @@ function getContactos() {
 
 
 	<!-- ------------------------------------------ Start CTA LOGIN Index Area ------------------------------------------ -->
-	<section class="cta-one-area relative section-gap">
+	<section class="cta-one-area relative section-gap" style="background-image: url('<?php echo $ctaInicio['Fundo']; ?>');">
 		<div class="overlay overlay-bg"></div>
 		<div class="wrap">
-			<h1 class="text-white">Bem-vindo ao AEBConecta</h1>
+			<h1 class="text-white"><?php echo $ctaInicio['Titulo']; ?></h1>
 			<p class="text-white">
-				Regista-te para agendar serviços de manutenção. Obtenha soluções rápidas para problemas tecnológicos.
+				<?php echo $ctaInicio['Texto']; ?>
 			</p>
 			<a class="primary-btn wh" href="#" id="cta-login-button" data-bs-toggle="modal"
-				data-bs-target="#loginModal">Entrar</a>
+				data-bs-target="#loginModal"><?php echo $ctaInicio['BtnText']; ?></a>
 		</div>
 	</section>
 

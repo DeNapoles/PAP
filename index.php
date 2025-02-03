@@ -46,7 +46,15 @@ function getCTAInicio() {
     return $result->fetch_assoc();
 }
 
+function getFooterData() {
+    global $conn;
+    $sql = "SELECT * FROM Footer LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
 $ctaInicio = getCTAInicio();
+$footerData = getFooterData();
 ?>
 
 <!DOCTYPE html>
@@ -777,22 +785,17 @@ $ctaInicio = getCTAInicio();
 			<div class="footer-bottom row align-items-center justify-content-between">
 				<div class="col-lg-8 col-md-12">
 					<p class="footer-text m-0">
-						<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. https://colorlib.com-->
-						Copyright &copy;
-						<script>document.write(new Date().getFullYear());</script> Todos os direitos reservados | Criado
-						com <i class="fa fa-heart-o" aria-hidden="true"></i> por <a
-							href="https://www.linkedin.com/in/tom%C3%A1s-n%C3%A1poles-087517233/" target="_blank">Tomás
-							Nápoles</a> &amp; <a href="https://themewagon.com" target="_blank">Salvador Coimbras</a>
-						<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. https://colorlib.com-->
+						<?php echo $footerData['copyright_prefix']; ?>
+						<?php echo $footerData['copyright_year_script']; ?>
+						<?php echo $footerData['copyright_suffix']; ?>
+						<?php echo $footerData['created_by']; ?>
 					</p>
 				</div>
 				<div class="col-lg-4 col-sm-12 footer-social">
-					<a target="_blank" href="https://www.facebook.com/aebatalha/?locale=pt_PT"><i
-							class="fa fa-facebook"></i></a>
-					<a target="_blank" href="https://www.instagram.com/agrupamento_escolas_batalha/"><img
-							class="favinsta" src="img/fa-intagram.png"></i></a>
-					<a target="_blank" href="#"><i class="fa fa-dribbble"></i></a>
-					<a target="_blank" href="#"><i class="fa fa-behance"></i></a>
+					<a target="_blank" href="<?php echo $footerData['link1']; ?>"><i class="<?php echo $footerData['icon1']; ?>"></i></a>
+					<a target="_blank" href="<?php echo $footerData['link2']; ?>"><img class="favinsta" src="<?php echo $footerData['icon2']; ?>"></a>
+					<a target="_blank" href="<?php echo $footerData['link3']; ?>"><i class="<?php echo $footerData['icon3']; ?>"></i></a>
+					<a target="_blank" href="<?php echo $footerData['link4']; ?>"><i class="<?php echo $footerData['icon4']; ?>"></i></a>
 				</div>
 			</div>
 		</div>

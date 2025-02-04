@@ -89,5 +89,21 @@ function getAvaliacoes() {
     return $avaliacoes;
 }
 
+// Função para buscar dados da tabela FaqPrevisualizacaoInicio
+function getFaqPrevisualizacao() {
+    global $conn;
+    $sql = "SELECT * FROM FaqPrevisualizacaoInicio ORDER BY id";
+    $result = $conn->query($sql);
+    $faqs = array();
+    
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $faqs[] = $row;
+        }
+    }
+    
+    return $faqs;
+}
+
 // echo "Conectado com sucesso!";
 ?>

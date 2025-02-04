@@ -8,6 +8,7 @@ $ligacoesUteis = getLigacoesUteis();
 $avisolaranjaInicio = getAvisolaranjaInicio();
 $ligacoesRapidas = getLigacoesRapidas();
 $avaliacoes = getAvaliacoes();
+$faqs = getFaqPrevisualizacao();
 
 function getFooterLinks($secao) {
     global $conn;
@@ -657,62 +658,20 @@ $footerData = getFooterData();
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-lg-3 col-md-6 single-blog">
-					<div class="thumb">
-						<img class="img-fluid" src="img/b1.jpg" alt="">
+				<?php foreach ($faqs as $faq): ?>
+					<div class="col-lg-3 col-md-6 single-blog">
+						<div class="thumb">
+							<img class="img-fluid" src="<?php echo $faq['imagemfaq']; ?>" alt="">
+						</div>
+						<p class="meta"><!--25 April, 2018  |  By--> <a href="<?php echo $faq['Link']; ?>"><!--Mark Wiens--></a></p>
+						<a href="<?php echo $faq['Link']; ?>">
+							<h5><?php echo $faq['titulofaq']; ?></h5>
+						</a>
+						<p>
+							<?php echo $faq['textofaq']; ?>
+						</p>
 					</div>
-					<p class="meta"><!--25 April, 2018  |  By--> <a href="FAQs-GIAE.html"><!--Mark Wiens--></a></p>
-					<a href="blog-single.html">
-						<h5>FAQ's relacionadas com o GIAE
-						</h5>
-					</a>
-					<p>
-						Clica aqui para aceder as perguntas mais frequêntes relacionadas com o GIAE.
-					<p> </p>
-					</p>
-				</div>
-				<div class="col-lg-3 col-md-6 single-blog">
-					<div class="thumb">
-						<img class="img-fluid" src="img/b2.jpg" alt="">
-					</div>
-					<p class="meta"><!--25 April, 2018  |  By--> <a href="FAQs-Moodle.html"><!--Mark Wiens--></a></p>
-					<a href="blog-single.html">
-						<h5>FAQ's relacionadas com o Moodle</h5>
-					</a>
-					<p>
-						Clica aqui para aceder as perguntas mais frequêntes relacionadas com o Moodle
-					</p>
-				</div>
-				<div class="col-lg-3 col-md-6 single-blog">
-					<div class="thumb">
-						<img class="img-fluid" src="img/b3.jpg" alt="">
-					</div>
-					<p class="meta"><!--25 April, 2018  |  By--> <a href="FAQs-CompEscolar.html"><!--Mark Wiens--></a>
-					</p>
-					<a href="blog-single.html">
-						<h5>FAQ's relacionadas com os Computadores do kit digital
-							 
-						</h5>
-					</a>
-					<p>
-						Clica aqui para aceder as perguntas mais frequêntes relacionadas com os Computadores do kit
-						digital.
-					</p>
-				</div>
-				<div class="col-lg-3 col-md-6 single-blog">
-					<div class="thumb">
-						<img class="img-fluid" src="img/b4.jpg" alt="">
-					</div>
-					<p class="meta"><!--25 April, 2018  |  By--> <a href="FAQs-AcessoriosKit.html"><!--Mark Wiens--></a>
-					</p>
-					<a href="blog-single.html">
-						<h5>FAQ's relacionadas com os acessórios do kit digital</h5>
-					</a>
-					<p>
-						Clica aqui para aceder as perguntas mais frequêntes relacionadas com os acessórios do kit
-						digital.
-					</p>
-				</div>
+				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>

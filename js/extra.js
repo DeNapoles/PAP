@@ -36,4 +36,29 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+// Configurar o modal de login para abrir ao clicar no botão de login
+document.addEventListener("DOMContentLoaded", function () {
+  const loginButton = document.getElementById("login-button"); // Botão Login
+  const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), {}); // Instância do modal
 
+  // Abrir o modal ao clicar no botão
+  if (loginButton) {
+      loginButton.addEventListener("click", function () {
+          loginModal.show();
+      });
+  }
+});
+
+
+// Configurar o modal de login para abrir ao clicar no botão de login
+document.addEventListener("DOMContentLoaded", function () {
+  const loginButton = document.getElementById("login-button"); // Botão Login
+  const loginModal = new bootstrap.Modal(document.getElementById("loginModal"), {}); // Instância do modal
+
+  // Abrir o modal ao clicar no botão
+  if (loginButton) {
+      loginButton.addEventListener("click", function () {
+          loginModal.show();
+      });
+  }
+});

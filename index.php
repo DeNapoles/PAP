@@ -141,29 +141,33 @@ $footerData = getFooterData();
 
 	<!-- ----------------------------------- Modal de Login ----------------------------------- -->
 	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content shadow">
-				<div class="modal-header">
-					<h5 class="modal-title" id="loginModalLabel">Iniciar Sessão</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-				</div>
-				<div class="modal-body">
-					<form id="loginForm">
-						<div class="form-floating mb-3">
-							<input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-							<label for="email">Email</label>
-						</div>
-						<div class="form-floating mb-3">
-							<input type="password" class="form-control" id="password" placeholder="Password" required>
-							<label for="password">Palavra-passe</label>
-						</div>
-						<button type="submit" class="btn btn-primary w-100">Entrar</button>
-					</form>
-				</div>
-			</div>
-		</div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">Iniciar Sessão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" id="loginError" style="display: none;"></div>
+                <form id="loginForm">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <label for="password">Palavra-passe</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+                <hr>
+                <button id="google-login-b" class="btn btn-danger w-100">
+                    <i class="fa fa-google me-2"></i> Entrar com o Google
+                </button>
+            </div>
+        </div>
+    </div>
 	</div>
-
 	<!-- ----------------------------------- start Texto Incial Area ----------------------------------- -->
 	<section class="banner-area relative" id="home">
 		<div class="overlay overlay-bg"></div>
@@ -760,7 +764,7 @@ $footerData = getFooterData();
 		</div>
 	</footer>
 	<!-- ------------------------------------------ End FOOTER Area ------------------------------------------ -->
-
+	<script src="js/google-login.js" type="module"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="js/vendor/jquery-2.2.4.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"

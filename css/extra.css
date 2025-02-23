@@ -170,3 +170,50 @@ button[type="submit"] {
     text-align: center;
 }
 
+.logged-in-user {
+    display: flex;
+    align-items: center;
+    color: #fff;
+}
+
+.logged-in-user:hover {
+    color: #fff;
+    opacity: 0.8;
+}
+
+.logged-in-user i {
+    margin-right: 8px;
+}
+
+.dropdown-menu {
+    background-color: #fff;
+    border: none;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.dropdown-item {
+    padding: 8px 20px;
+    color: #333;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+#logout-btn {
+    color: #dc3545;
+}
+
+#logout-btn:hover {
+    background-color: #dc3545;
+    color: #fff;
+}

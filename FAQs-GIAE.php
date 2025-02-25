@@ -1,3 +1,6 @@
+<?php
+require_once 'functions.php';
+?>
 	<!DOCTYPE html>
 	<html lang="zxx" class="no-js">
 	<head>
@@ -14,68 +17,67 @@
 		<!-- meta character set -->
 		<meta charset="UTF-8">
 		<!-- Site Title -->
-		<title>FAQ's</title>
+		<title>FAQ's GIAE</title>
 
 		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet"> 
 			<!--
 			CSS
 			============================================= -->
 			<link rel="stylesheet" href="css/linearicons.css">
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
 			<link rel="stylesheet" href="css/font-awesome.min.css">
 			<link rel="stylesheet" href="css/bootstrap.css">
 			<link rel="stylesheet" href="css/magnific-popup.css">
-			<link rel="stylesheet" href="css/nice-select.css">							
+			<link rel="stylesheet" href="css/nice-select.css">
 			<link rel="stylesheet" href="css/animate.min.css">
-			<link rel="stylesheet" href="css/owl.carousel.css">			
-			<link rel="stylesheet" href="css/jquery-ui.css">			
+			<link rel="stylesheet" href="css/owl.carousel.css">
+			<link rel="stylesheet" href="css/jquery-ui.css">
 			<link rel="stylesheet" href="css/main.css">
 			<link rel="stylesheet" href="css/extra.css">
 		</head>
 		<body>	
-		  <header id="header" id="home">
-	  		<!--<div class="header-top">
-	  			<div class="container">
-			  		<div class="row">
-			  			<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
-			  				<ul>
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance"></i></a></li>
-			  				</ul>			
-			  			</div>
-			  			<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
-			  				<a href="tel:+953 012 3654 896"><span class="lnr lnr-phone-handset"></span> <span class="text">+953 012 3654 896</span></a>
-			  				<a href="mailto:support@colorlib.com"><span class="lnr lnr-envelope"></span> <span class="text">support@colorlib.com</span></a>			
-			  			</div>
-			  		</div>			  					
-	  			</div>
-			</div> -->
-		    <div class="container main-menu">
-		    	<div class="row align-items-center justify-content-between d-flex">
-			      <div class="logo">
-			        <a href="index.php"><img src="img/logo1AEBConecta.png" alt="logo" title="" /></a>
-			      </div>
-			      <nav id="nav-menu-container">
-			        <ul class="nav-menu">
-						<li><a href="index.php">Início</a></li>
-						<li><a href="FAQs-home.html">FAQ's</a>
-						</li>	
-						<li class="menu-has-children"><a href="">Ligações úteis</a>
-						  <ul>
-							  <li><a href="http://193.236.85.189/">GIAE</a></li>
-							  <li><a href="https://moodle.agbatalha.pt/">Moodle</a></li>
-							  <li><a href="https://agbatalha.pt/eusoupro/">Eu Sou Pro</a></li>
-							  <li><a href="https://www.facebook.com/aebatalha/?locale=pt_PT">Facebook do AEB</a></li>					                		
-						  </ul>
-						</li>			
-						<li><a href="Ajuda_index.php">Ajuda</a>
-						</li>		          					          		          
-						<li><a href="contact.html">Login</a></li>
-			        </ul>
-			      </nav><!-- #nav-menu-container -->		    		
-		    	</div>
-		    </div>
+		<header id="header" id="home">
+		    <div class="container">
+				<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+					<a class="navbar-brand d-flex align-items-center logo" href="index.php">
+						<img src="<?php echo $inicioData['LogoPrincipal']; ?>" alt="logo" class="me-2" style="height: 40px;">
+					</a>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+						aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbarNav">
+						<ul class="navbar-nav ms-auto">
+							<?php foreach ($separadores as $separador): ?>
+								<?php if ($separador['separador'] === 'Ligações úteis'): ?>
+									<li class="nav-item dropdown">
+										<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
+											data-bs-toggle="dropdown" aria-expanded="false">
+											<?php echo $separador['separador']; ?>
+										</a>
+										<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+											<?php foreach ($ligacoesUteis as $ligacao): ?>
+												<li>
+													<a class="dropdown-item" href="<?php echo $ligacao['link']; ?>" target="_blank">
+														<?php echo $ligacao['texto']; ?>
+													</a>
+												</li>
+											<?php endforeach; ?>
+										</ul>
+									</li>
+								<?php else: ?>
+									<li class="nav-item">
+										<a class="nav-link" href="<?php echo $separador['link']; ?>" 
+										   <?php echo ($separador['separador'] === 'Login') ? 'data-bs-toggle="modal" data-bs-target="#loginModal"' : ''; ?>>
+											<?php echo $separador['separador']; ?>
+										</a>
+									</li>
+								<?php endif; ?>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				</nav>
+			</div>
 		  </header><!-- #header -->
 
 			<!-- start banner Area -->
@@ -85,10 +87,10 @@
 					<div class="row d-flex align-items-center justify-content-center">
 						<div class="about-content blog-header-content col-lg-12">
 							<h1 class="text-white">
-								FAQ'S
+								FAQ'S sobre o GIAE
 							</h1>	
 							<p class="text-white">
-								Acesse respostas para as dúvidas mais comuns sobre suporte técnico e o uso dos kits da escola digital.
+								Procura respostas para as tuas dúvidas sobre o GIAE aqui fácilmente.
 							</p>
 						</div>	
 					</div>
@@ -97,6 +99,7 @@
 			<!-- End banner Area -->				  
 
 			<!-- Start top-category-widget Area -->
+			<!-- Start top-category-widget Area -->
 			<section class="top-category-widget-area pt-90 pb-90 ">
 				<div class="container">
 					<div class="row">		
@@ -104,7 +107,7 @@
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-GIAE.html">
+								    <a href="FAQs-GIAE.php">
 								      <div class="thumb">
 								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget1.jpg" alt="">
 								  	  </div>
@@ -121,7 +124,7 @@
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-Moodle.html">
+								    <a href="FAQs-Moodle.php">
 								      <div class="thumb">
 								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget2.jpg" alt="">
 								  	  </div>
@@ -138,7 +141,7 @@
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-CompEscolar.html" >
+								    <a href="FAQs-CompEscolar.php">
 								      <div class="thumb">
 								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
 								  	  </div>
@@ -155,7 +158,7 @@
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-AcessoriosKit.html" >
+								    <a href="FAQs-AcessoriosKit.php">
 								      <div class="thumb">
 								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
 								  	  </div>
@@ -514,10 +517,10 @@
 							<div class="single-footer-widget">
 								<h4>Contactos</h4>
 								<ul>
-									<li>Escola Básica e Secundária da Batalha</a></li>
-									<li>Estrada da Freiria</a></li>
-									<li>2440-062 Batalha Portugal</a></li>
-									<li>Telefone: 244 769 290</a></li>
+									<li><a href="#">Escola Básica e Secundária da Batalha</a></li>
+									<li><a href="#">Estrada da Freiria</a></li>
+									<li><a href="#">2440-062 Batalha Portugal</a></li>
+									<li><a href="#">Telefone: 244 769 290</a></li>
 								</ul>								
 							</div>
 						</div>
@@ -525,10 +528,10 @@
 							<div class="single-footer-widget">
 								<h4>FAQ's</h4>
 								<ul>
-									<li><a href="FAQs-GIAE.html">GIAE</a></li>
-									<li><a href="FAQs-Moodle.html">Moodle</a></li>
-									<li><a href="FAQs-CompEscolar.html">Computador</a></li>
-									<li><a href="FAQs-AcessoriosKit.html">Acessórios do kit</a></li>
+									<li><a href="#">GIAE</a></li>
+									<li><a href="#">Moodle</a></li>
+									<li><a href="#">Computador</a></li>
+									<li><a href="#">Acessórios do kit</a></li>
 								</ul>								
 							</div>
 						</div>

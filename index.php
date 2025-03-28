@@ -200,7 +200,7 @@ $footerData = getFooterData();
 		<div class="container">
 			<div class="row">
 				<?php foreach ($ligacoesRapidas as $ligacao): ?>
-					<div class="col-lg-4">
+					<div class="col-lg-3">
 						<div class="single-feature">
 							<div class="title">
 								<a href="<?php echo $ligacao['Link']; ?>" target="_blank" style="color: inherit;">

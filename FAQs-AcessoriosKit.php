@@ -17,7 +17,7 @@ require_once 'functions.php';
 		<!-- meta character set -->
 		<meta charset="UTF-8">
 		<!-- Site Title -->
-		<title>FAQ's Accessórios</title>
+		<title>FAQ's Acessórios</title>
 
 		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet"> 
 			<!--
@@ -100,78 +100,31 @@ require_once 'functions.php';
 			<!-- End banner Area -->				  
 
 			<!-- Start top-category-widget Area -->
-			<!-- Start top-category-widget Area -->
 			<section class="top-category-widget-area pt-90 pb-90 ">
 				<div class="container">
 					<div class="row">		
+						<?php 
+						$variedadeFAQs = getVariedadeFAQs();
+						foreach ($variedadeFAQs as $faq): 
+						?>
 						<div class="col-lg-3">
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-GIAE.php">
+								    <a href="<?php echo $faq['link']; ?>">
 								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget1.jpg" alt="">
+								  		 <img class="content-image img-fluid d-block mx-auto" src="<?php echo $faq['imagem']; ?>" alt="">
 								  	  </div>
 								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">GIAE</h4>
+								        <h4 class="content-title mx-auto text-uppercase"><?php echo $faq['nome']; ?></h4>
 								        <span></span>								        
-								        <p>Precisas de ajuda no GIAE?</p>
+								        <p><?php echo $faq['texto']; ?></p>
 								      </div>
 								    </a>
 								</div>
 							</div>
 						</div>
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-Moodle.php">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget2.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Moodle</h4>
-								        <span></span>								        
-								        <p>Precisas de ajuda no Moodle?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-CompEscolar.php">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Computador escolar</h4>
-								        <span></span>
-								        <p>Precisas de ajuda com o teu computador da escola?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>		
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-AcessoriosKit.php">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Acessórios do kit</h4>
-								        <span></span>
-								        <p>Precisas de ajuda com algum acessório do kit digital?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>												
+						<?php endforeach; ?>												
 					</div>
 				</div>	
 			</section>
@@ -499,8 +452,8 @@ require_once 'functions.php';
 			
 			<button onclick="topFunction()" id="backToTopBtn" title="Voltar ao topo">⬆</button>
 
-			<!-- start footer Area -->		
-			<footer class="footer-area section-gap">
+			<!-- ------------------------------------------ start FOOTER Area ------------------------------------------ -->
+	<footer class="footer-area section-gap">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-2 col-md-6 col-sm-6">
@@ -561,8 +514,7 @@ require_once 'functions.php';
 				</div>
 			</div>
 		</div>
-	</footer>	
-			<!-- End footer Area -->	
+	</footer>
 
 
 			<script src="js/vendor/jquery-2.2.4.min.js"></script>

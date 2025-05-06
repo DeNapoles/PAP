@@ -25,75 +25,60 @@ require_once 'functions.php';
 			CSS
 			============================================= -->
 			<link rel="stylesheet" href="css/linearicons.css">
+			<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
 			<link rel="stylesheet" href="css/font-awesome.min.css">
 			<link rel="stylesheet" href="css/bootstrap.css">
 			<link rel="stylesheet" href="css/magnific-popup.css">
-			<link rel="stylesheet" href="css/nice-select.css">							
+			<link rel="stylesheet" href="css/nice-select.css">
 			<link rel="stylesheet" href="css/animate.min.css">
-			<link rel="stylesheet" href="css/owl.carousel.css">			
-			<link rel="stylesheet" href="css/jquery-ui.css">			
+			<link rel="stylesheet" href="css/owl.carousel.css">
+			<link rel="stylesheet" href="css/jquery-ui.css">
 			<link rel="stylesheet" href="css/main.css">
 			<link rel="stylesheet" href="css/extra.css">
 		</head>
 		<body>	
-		  <header id="header" id="home">
-	  		<!--<div class="header-top">
-	  			<div class="container">
-			  		<div class="row">
-			  			<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
-			  				<ul>
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance"></i></a></li>
-			  				</ul>			
-			  			</div>
-			  			<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
-			  				<a href="tel:+953 012 3654 896"><span class="lnr lnr-phone-handset"></span> <span class="text">+953 012 3654 896</span></a>
-			  				<a href="mailto:support@colorlib.com"><span class="lnr lnr-envelope"></span> <span class="text">support@colorlib.com</span></a>			
-			  			</div>
-			  		</div>			  					
-	  			</div>
-			</div> -->
-		    <div class="container main-menu">
-		    	<div class="row align-items-center justify-content-between d-flex">
-			      <div class="logo">
-			        <a href="index.html"><img src="img/logo1AEBConecta.png" alt="logo" title="" /></a>
-			      </div>
-			      <nav id="nav-menu-container">
-			        <ul class="nav-menu">
-			          <li><a href="index.php">Home</a></li>
-			          <li><a href="courses.html">Courses</a></li>
-			          <li><a href="events.html">Events</a></li>
-			          <li><a href="gallery.html">Gallery</a></li>
-					  <li class="menu-has-children"><a href="FAQs-home.html">FAQ'S</a>
-						<ul>
-						  <li><a href="FAQs-GIAE.html">GIAE</a></li>
-						  <li><a href="FAQs-Moodle.html">Moodle</a></li>
-						  <li><a href="FAQs-CompEscolar.html">Computador Escolar</a></li>
-						  <li><a href="FAQs-AcessoriosKit.html">Acessórios do kit</a></li>
+		<header id="header" id="home">
+		    <div class="container">
+				<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+					<a class="navbar-brand d-flex align-items-center logo" href="index.php">
+						<img src="<?php echo $inicioData['LogoPrincipal']; ?>" alt="logo" class="me-2" style="height: 40px;">
+					</a>
+					<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+						aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+					<div class="collapse navbar-collapse" id="navbarNav">
+						<ul class="navbar-nav ms-auto">
+							<?php foreach ($separadores as $separador): ?>
+								<?php if ($separador['separador'] === 'Ligações úteis'): ?>
+									<li class="nav-item dropdown">
+										<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
+											data-bs-toggle="dropdown" aria-expanded="false">
+											<?php echo $separador['separador']; ?>
+										</a>
+										<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+											<?php foreach ($ligacoesUteis as $ligacao): ?>
+												<li>
+													<a class="dropdown-item" href="<?php echo $ligacao['link']; ?>" target="_blank">
+														<?php echo $ligacao['texto']; ?>
+													</a>
+												</li>
+											<?php endforeach; ?>
+										</ul>
+									</li>
+								<?php else: ?>
+									<li class="nav-item">
+										<a class="nav-link" href="<?php echo $separador['link']; ?>" 
+										   <?php echo ($separador['separador'] === 'Login') ? 'data-bs-toggle="modal" data-bs-target="#loginModal"' : ''; ?>>
+											<?php echo $separador['separador']; ?>
+										</a>
+									</li>
+								<?php endif; ?>
+							<?php endforeach; ?>
 						</ul>
-					  </li>	
-				      </li>	
-			          </li>	
-			          <li class="menu-has-children"><a href="">Pages</a>
-			            <ul>
-		              		<li><a href="course-details.html">Course Details</a></li>		
-		              		<li><a href="event-details.html">Event Details</a></li>		
-			                <li><a href="elements.html">Elements</a></li>
-					          <li class="menu-has-children"><a href="">Level 2 </a>
-					            <ul>
-					              <li><a href="#">Item One</a></li>
-					              <li><a href="#">Item Two</a></li>
-					            </ul>
-					          </li>					                		
-			            </ul>
-			          </li>					          					          		          
-			          <li><a href="contact.html">Contact</a></li>
-			        </ul>
-			      </nav><!-- #nav-menu-container -->		    		
-		    	</div>
-		    </div>
+					</div>
+				</nav>
+			</div>
 		  </header><!-- #header -->
 
 			<!-- start banner Area -->
@@ -118,74 +103,28 @@ require_once 'functions.php';
 			<section class="top-category-widget-area pt-90 pb-90 ">
 				<div class="container">
 					<div class="row">		
+						<?php 
+						$variedadeFAQs = getVariedadeFAQs();
+						foreach ($variedadeFAQs as $faq): 
+						?>
 						<div class="col-lg-3">
 							<div class="single-cat-widget">
 								<div class="content relative">
 									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-GIAE.html">
+								    <a href="<?php echo $faq['link']; ?>">
 								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget1.jpg" alt="">
+								  		 <img class="content-image img-fluid d-block mx-auto" src="<?php echo $faq['imagem']; ?>" alt="">
 								  	  </div>
 								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">GIAE</h4>
+								        <h4 class="content-title mx-auto text-uppercase"><?php echo $faq['nome']; ?></h4>
 								        <span></span>								        
-								        <p>Precisas de ajuda no GIAE?</p>
+								        <p><?php echo $faq['texto']; ?></p>
 								      </div>
 								    </a>
 								</div>
 							</div>
 						</div>
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-Moodle.html">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget2.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Moodle</h4>
-								        <span></span>								        
-								        <p>Precisas de ajuda no Moodle?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-CompEscolar.html">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Computador escolar</h4>
-								        <span></span>
-								        <p>Precisas de ajuda com o teu computador da escola?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>		
-						<div class="col-lg-3">
-							<div class="single-cat-widget">
-								<div class="content relative">
-									<div class="overlay overlay-bg"></div>
-								    <a href="FAQs-AcessoriosKit.html">
-								      <div class="thumb">
-								  		 <img class="content-image img-fluid d-block mx-auto" src="img/blog/cat-widget3.jpg" alt="">
-								  	  </div>
-								      <div class="content-details">
-								        <h4 class="content-title mx-auto text-uppercase">Acessórios do kit</h4>
-								        <span></span>
-								        <p>Precisas de ajuda com algum acessório do kit digital?</p>
-								      </div>
-								    </a>
-								</div>
-							</div>
-						</div>												
+						<?php endforeach; ?>												
 					</div>
 				</div>	
 			</section>
@@ -513,8 +452,9 @@ require_once 'functions.php';
 			
 			<button onclick="topFunction()" id="backToTopBtn" title="Voltar ao topo">⬆</button>
 
-			<!-- start footer Area -->		
-			<footer class="footer-area section-gap">
+			
+<!-- ------------------------------------------ start FOOTER Area ------------------------------------------ -->
+<footer class="footer-area section-gap">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-2 col-md-6 col-sm-6">
@@ -576,7 +516,6 @@ require_once 'functions.php';
 			</div>
 		</div>
 	</footer>	
-			<!-- End footer Area -->	
 
 
 			<script src="js/vendor/jquery-2.2.4.min.js"></script>

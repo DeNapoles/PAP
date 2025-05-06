@@ -114,6 +114,21 @@ function getFooterData() {
     return $result->fetch_assoc();
 }
 
+function getVariedadeFAQs() {
+    global $conn;
+    $sql = "SELECT * FROM VariedadeFAQs";
+    $result = $conn->query($sql);
+    $faqs = array();
+    
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $faqs[] = $row;
+        }
+    }
+    
+    return $faqs;
+}
+
 // Carregar todos os dados necessários
 $inicioData = getInicioInicio();
 $sobreNos = getSobreNos();

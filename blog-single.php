@@ -1,92 +1,123 @@
-	<!DOCTYPE html>
-	<html lang="zxx" class="no-js">
-	<head>
-		<!-- Mobile Specific Meta -->
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<!-- Favicon-->
-		<link rel="shortcut icon" href="img/fav.png">
-		<!-- Author Meta -->
-		<meta name="author" content="colorlib">
-		<!-- Meta Description -->
-		<meta name="description" content="">
-		<!-- Meta Keyword -->
-		<meta name="keywords" content="">
-		<!-- meta character set -->
-		<meta charset="UTF-8">
-		<!-- Site Title -->
-		<title>Education</title>
+<?php
+require_once 'functions.php';
+require_once 'functions_posts.php';
 
-		<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet"> 
-			<!--
+// Verificar se foi fornecido um ID
+if (!isset($_GET['id'])) {
+    header('Location: FAQs-home.php');
+    exit;
+}
+
+$id = (int)$_GET['id'];
+$post = getPostById($id);
+
+if (!$post) {
+    header('Location: FAQs-home.php');
+    exit;
+}
+
+// Processar comentário
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
+    $comentario = trim($_POST['comentario']);
+    $user_id = $_SESSION['user_id'] ?? null;
+    
+    if (!empty($comentario) && $user_id) {
+        $sql = "INSERT INTO comentarios (post_id, utilizador_id, texto, data_criacao) VALUES (?, ?, ?, NOW())";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("iis", $id, $user_id, $comentario);
+        $stmt->execute();
+        
+        // Redirecionar para evitar reenvio do formulário
+        header("Location: blog-single.php?id=$id#comentarios");
+        exit;
+    }
+}
+
+?>
+
+
+<!DOCTYPE html>
+<html lang="zxx" class="no-js">
+
+<head>
+	<!-- Mobile Specific Meta -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<!-- Favicon-->
+	<link rel="shortcut icon" href="<?php echo $inicioData['LogoSeparador']; ?>">
+	<!-- Author Meta -->
+	<meta name="author" content="colorlib">
+	<!-- Meta Description -->
+	<meta name="description" content="">
+	<!-- Meta Keyword -->
+	<meta name="keywords" content="">
+	<!-- meta character set -->
+	<meta charset="UTF-8">
+	<!-- Site Title -->
+	<title>AEB Conecta</title>
+
+	<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet">
+	<!--
 			CSS
 			============================================= -->
-			<link rel="stylesheet" href="css/linearicons.css">
-			<link rel="stylesheet" href="css/font-awesome.min.css">
-			<link rel="stylesheet" href="css/bootstrap.css">
-			<link rel="stylesheet" href="css/magnific-popup.css">
-			<link rel="stylesheet" href="css/nice-select.css">							
-			<link rel="stylesheet" href="css/animate.min.css">
-			<link rel="stylesheet" href="css/owl.carousel.css">			
-			<link rel="stylesheet" href="css/jquery-ui.css">			
-			<link rel="stylesheet" href="css/main.css">
-		</head>
-		<body>	
-		  --<header id="header" id="home">
-	  		<!-- <div class="header-top">
-	  			<div class="container">
-			  		<div class="row">
-			  			<div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
-			  				<ul>
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance"></i></a></li>
-			  				</ul>			
-			  			</div>
-			  			<div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
-			  				<a href="tel:+953 012 3654 896"><span class="lnr lnr-phone-handset"></span> <span class="text">+953 012 3654 896</span></a>
-			  				<a href="mailto:support@colorlib.com"><span class="lnr lnr-envelope"></span> <span class="text">support@colorlib.com</span></a>			
-			  			</div>
-			  		</div>			  					
-	  			</div>
-			</div>-->
-		    <div class="container main-menu">
-		    	<div class="row align-items-center justify-content-between d-flex">
-			      <div id="logo">
-			        <a href="index.php"><img src="img/logo.png" alt="" title="" /></a>
-			      </div>
-			      <nav id="nav-menu-container">
-			        <ul class="nav-menu">
-			          <li><a href="index.php">Home</a></li>
-			          <li><a href="about.html">About</a></li>
-			          <li><a href="courses.html">Courses</a></li>
-			          <li><a href="events.html">Events</a></li>
-			          <li><a href="gallery.html">Gallery</a></li>
-			          <li class="menu-has-children"><a href="">Blog</a>
-			            <ul>
-			              <li><a href="blog-home.html">Blog Home</a></li>
-			              <li><a href="blog-single.html">Blog Single</a></li>
-			            </ul>
-			          </li>	
-			          <li class="menu-has-children"><a href="">Pages</a>
-			            <ul>
-		              		<li><a href="course-details.html">Course Details</a></li>		
-		              		<li><a href="event-details.html">Event Details</a></li>		
-			                <li><a href="elements.html">Elements</a></li>
-					          <li class="menu-has-children"><a href="">Level 2 </a>
-					            <ul>
-					              <li><a href="#">Item One</a></li>
-					              <li><a href="#">Item Two</a></li>
-					            </ul>
-					          </li>					                		
-			            </ul>
-			          </li>					          					          		          
-			          <li><a href="contact.html">Contact</a></li>
-			        </ul>
-			      </nav><!-- #nav-menu-container -->		    		
-		    	</div>
-		    </div>
-		  </header><!-- #header -->
+	<link rel="stylesheet" href="css/linearicons.css">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="css/font-awesome.min.css">
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<link rel="stylesheet" href="css/magnific-popup.css">
+	<link rel="stylesheet" href="css/nice-select.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/owl.carousel.css">
+	<link rel="stylesheet" href="css/jquery-ui.css">
+	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="css/extra.css">
+</head>
+
+<body>
+	<header id="header" id="home">
+		<div class="container">
+			<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+				<a class="navbar-brand d-flex align-items-center logo" href="index.php">
+					<img src="<?php echo $inicioData['LogoPrincipal']; ?>" alt="logo" class="me-2" style="height: 40px;">
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+					aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<?php foreach ($separadores as $separador): ?>
+							<?php if ($separador['separador'] === 'Ligações úteis'): ?>
+								<li class="nav-item dropdown">
+									<a class="nav-link dropdown-toggle" href="#" id="dropdownMenu" role="button"
+										data-bs-toggle="dropdown" aria-expanded="false">
+										<?php echo $separador['separador']; ?>
+									</a>
+									<ul class="dropdown-menu" aria-labelledby="dropdownMenu">
+										<?php foreach ($ligacoesUteis as $ligacao): ?>
+											<li>
+												<a class="dropdown-item" href="<?php echo $ligacao['link']; ?>" target="_blank">
+													<?php echo $ligacao['texto']; ?>
+												</a>
+											</li>
+										<?php endforeach; ?>
+									</ul>
+								</li>
+							<?php else: ?>
+								<li class="nav-item">
+									<a class="nav-link" href="<?php echo $separador['link']; ?>" 
+									   <?php echo ($separador['separador'] === 'Login') ? 'data-bs-toggle="modal" data-bs-target="#loginModal"' : ''; ?>>
+										<?php echo $separador['separador']; ?>
+									</a>
+								</li>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+			</nav>
+		</div>
+	</header>
+
+
 			<!-- start banner Area -->
 			<section class="banner-area relative" id="home">	
 				<div class="overlay overlay-bg"></div>
@@ -94,9 +125,8 @@
 					<div class="row d-flex align-items-center justify-content-center">
 						<div class="about-content col-lg-12">
 							<h1 class="text-white">
-								Blog Details Page				
-							</h1>	
-							<p class="text-white link-nav"><a href="index.php">Home </a>  <span class="lnr lnr-arrow-right"></span><a href="blog-home.html">Blog </a> <span class="lnr lnr-arrow-right"></span> <a href="blog-single.html"> Blog Details Page</a></p>
+								FAQ				
+							</h1>					
 						</div>	
 					</div>
 				</div>
@@ -111,63 +141,71 @@
 							<div class="single-post row">
 								<div class="col-lg-12">
 									<div class="feature-img">
-										<img class="img-fluid" src="img/blog/feature-img1.jpg" alt="">
+										<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_principal']); ?>" alt="">
 									</div>									
 								</div>
 								<div class="col-lg-3  col-md-3 meta-details">
 									<ul class="tags">
-										<li><a href="#">Food,</a></li>
-										<li><a href="#">Technology,</a></li>
-										<li><a href="#">Politics,</a></li>
-										<li><a href="#">Lifestyle</a></li>
+										<?php foreach ($post['tags'] as $tag): ?>
+											<li><a href="FAQs-home.php?tag=<?php echo urlencode($tag); ?>"><?php echo htmlspecialchars($tag); ?>,</a></li>
+										<?php endforeach; ?>
 									</ul>
 									<div class="user-details row">
-										<p class="user-name col-lg-12 col-md-12 col-6"><a href="#">Mark wiens</a> <span class="lnr lnr-user"></span></p>
-										<p class="date col-lg-12 col-md-12 col-6"><a href="#">12 Dec, 2017</a> <span class="lnr lnr-calendar-full"></span></p>
-										<p class="view col-lg-12 col-md-12 col-6"><a href="#">1.2M Views</a> <span class="lnr lnr-eye"></span></p>
-										<p class="comments col-lg-12 col-md-12 col-6"><a href="#">06 Comments</a> <span class="lnr lnr-bubble"></span></p>
-										<ul class="social-links col-lg-12 col-md-12 col-6">
-											<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-											<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-											<li><a href="#"><i class="fa fa-github"></i></a></li>
-											<li><a href="#"><i class="fa fa-behance"></i></a></li>
-										</ul>																				
+										<p class="user-name col-lg-12 col-md-12 col-6">
+											<a href="#"><?php echo htmlspecialchars($post['autor_nome']); ?></a> 
+											<span class="lnr lnr-user"></span>
+										</p>
+										<p class="date col-lg-12 col-md-12 col-6">
+											<a href="#"><?php echo formatDate($post['data_criacao']); ?></a> 
+											<span class="lnr lnr-calendar-full"></span>
+										</p>
+										<p class="comments col-lg-12 col-md-12 col-6">
+											<a href="#comentarios"><?php echo $post['num_comentarios']; ?> Comments</a> 
+											<span class="lnr lnr-bubble"></span>
+										</p>
 									</div>
 								</div>
 								<div class="col-lg-9 col-md-9">
-									<h3 class="mt-20 mb-20">Astronomy Binoculars A Great Alternative</h3>
+									<h3 class="mt-20 mb-20"><?php echo htmlspecialchars($post['titulo']); ?></h3>
 									<p class="excert">
-										MCSE boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction.
-									</p>
-									<p>
-										Boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction of the camp price. However, who has the willpower to actually sit through a self-imposed MCSE training. who has the willpower to actually sit through a self-imposed
-									</p>
-									<p>
-										Boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction of the camp price. However, who has the willpower to actually sit through a self-imposed MCSE training. who has the willpower to actually sit through a self-imposed
+										<?php echo nl2br(htmlspecialchars($post['texto'])); ?>
 									</p>
 								</div>
+								<?php if (!empty($post['img_1']) || !empty($post['img_2']) || !empty($post['img_3']) || !empty($post['img_4']) || !empty($post['img_5'])): ?>
 								<div class="col-lg-12">
-									<div class="quotes">
-										MCSE boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction of the camp price. However, who has the willpower to actually sit through a self-imposed MCSE training.										
-									</div>
 									<div class="row mt-30 mb-30">
-										<div class="col-6">
-											<img class="img-fluid" src="img/blog/post-img1.jpg" alt="">
+										<?php if (!empty($post['img_1'])): ?>
+										<div class="col-12 mb-4">
+											<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_1']); ?>" alt="">
 										</div>
-										<div class="col-6">
-											<img class="img-fluid" src="img/blog/post-img2.jpg" alt="">
-										</div>	
-										<div class="col-lg-12 mt-30">
-											<p>
-												MCSE boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction of the camp price. However, who has the willpower.
-											</p>
-											<p>
-												MCSE boot camps have its supporters and its detractors. Some people do not understand why you should have to spend money on boot camp when you can get the MCSE study materials yourself at a fraction of the camp price. However, who has the willpower.
-											</p>											
-										</div>									
+										<?php endif; ?>
+										<?php if (!empty($post['img_2'])): ?>
+										<div class="col-12 mb-4">
+											<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_2']); ?>" alt="">
+										</div>
+										<?php endif; ?>
+										<?php if (!empty($post['img_3'])): ?>
+										<div class="col-12 mb-4">
+											<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_3']); ?>" alt="">
+										</div>
+										<?php endif; ?>
+										<?php if (!empty($post['img_4'])): ?>
+										<div class="col-12 mb-4">
+											<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_4']); ?>" alt="">
+										</div>
+										<?php endif; ?>
+										<?php if (!empty($post['img_5'])): ?>
+										<div class="col-12 mb-4">
+											<img class="img-fluid" src="<?php echo htmlspecialchars($post['img_5']); ?>" alt="">
+										</div>
+										<?php endif; ?>
 									</div>
 								</div>
+								<?php endif; ?>
 							</div>
+
+                            <!-- ------------------------------------------ start Comentários Area ------------------------------------------ -->
+
 							<div class="navigation-area">
 								<div class="row">
 									<div class="col-lg-6 col-md-6 col-12 nav-left flex-row d-flex justify-content-start align-items-center">

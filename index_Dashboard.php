@@ -88,7 +88,7 @@
                             <a href="pages.html">Capa</a>
                         </li>
                         <li>
-                            <a href="new-page.html">FAQ's</a>
+                            <a href="manage_posts.php">FAQ's</a>
                         </li>
                     </ul>
                 </li>

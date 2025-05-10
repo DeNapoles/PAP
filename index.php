@@ -611,7 +611,7 @@ require_once 'functions.php';
 						<div class="thumb">
 							<img class="img-fluid" src="<?php echo $faq['imagemfaq']; ?>" alt="">
 						</div>
-						<p class="meta"><!--25 April, 2018  |  By--> <a href="<?php echo $faq['Link']; ?>"><!--Mark Wiens--></a></p>
+						<p class="meta"><a href="<?php echo $faq['Link']; ?>"></a></p>
 						<a href="<?php echo $faq['Link']; ?>">
 							<h5><?php echo $faq['titulofaq']; ?></h5>
 						</a>

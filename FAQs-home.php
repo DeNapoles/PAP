@@ -6,9 +6,17 @@ require_once 'functions_posts.php';
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $posts_per_page = 4;
 
+// Get category from URL parameter
+$category = isset($_GET['category']) ? $_GET['category'] : null;
+
 // Get posts for current page
-$posts = getPaginatedPosts($current_page, $posts_per_page);
-$total_posts = getTotalPosts();
+if ($category) {
+    $posts = getPostsByTag($category);
+    $total_posts = count($posts);
+} else {
+    $posts = getPaginatedPosts($current_page, $posts_per_page);
+    $total_posts = getTotalPosts();
+}
 $total_pages = ceil($total_posts / $posts_per_page);
 
 ?>
@@ -112,7 +120,6 @@ $total_pages = ceil($total_posts / $posts_per_page);
         </div>
     </section>
     <!-- End banner Area -->
-
     <!-- ------------------------------ Start Variantes FAQs Area ------------------------------ -->
     <section class="top-category-widget-area pt-90 pb-90 ">
         <div class="container">
@@ -125,7 +132,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                     <div class="single-cat-widget">
                         <div class="content relative">
                             <div class="overlay overlay-bg"></div>
-                            <a href="<?php echo $faq['link']; ?>">
+                            <a href="?category=<?php echo urlencode($faq['nome']); ?>">
                                 <div class="thumb">
                                     <img class="content-image img-fluid d-block mx-auto"
                                         src="<?php echo $faq['imagem']; ?>" alt="">
@@ -150,9 +157,22 @@ $total_pages = ceil($total_posts / $posts_per_page);
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 posts-list">
+                    <?php if ($category): ?>
+                    <div class="mb-4">
+                        <h3>Posts da categoria: <?php echo htmlspecialchars($category); ?></h3>
+                        <a href="FAQs-home.php" class="btn btn-outline-primary">Ver todos os posts</a>
+                    </div>
+                    <?php endif; ?>
+
                     <?php 
-							foreach ($posts as $post): 
-							?>
+                    if (empty($posts)): 
+                    ?>
+                    <div class="alert alert-info">
+                        Nenhum post encontrado para esta categoria.
+                    </div>
+                    <?php else: 
+                        foreach ($posts as $post): 
+                    ?>
                     <div class="single-post row">
                         <div class="col-lg-3 col-md-3 meta-details">
                             <ul class="tags">
@@ -191,8 +211,9 @@ $total_pages = ceil($total_posts / $posts_per_page);
                             <a href="blog-single.php?id=<?php echo $post['id']; ?>" class="primary-btn">View More</a>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php endforeach; endif; ?>
 
+                    <?php if (!$category): ?>
                     <nav class="blog-pagination justify-content-center d-flex">
                         <ul class="pagination">
                             <?php if ($current_page > 1): ?>
@@ -223,6 +244,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                             <?php endif; ?>
                         </ul>
                     </nav>
+                    <?php endif; ?>
                 </div>
                 <div class="col-lg-4 sidebar-widgets">
                     <div class="widget-wrap">

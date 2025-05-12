@@ -217,3 +217,173 @@ button[type="submit"] {
     background-color: #dc3545;
     color: #fff;
 }
+
+.left-padding {
+    padding-left: 50px;
+    margin-top: 20px;
+    border-left: 2px solid #f8f9fa;
+}
+
+.single-comment {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.single-comment .user {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.reply-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: flex-end;
+    min-width: 200px;
+}
+
+.reply-buttons .genric-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 28px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: "Roboto", sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    outline: none;
+    border-width: 1px;
+    border-style: solid;
+    cursor: pointer;
+}
+
+.reply-buttons .genric-btn.primary {
+    background: linear-gradient(to right, #ff6b6b, #ff8e8e);
+    border-color: #ff6b6b;
+    color: #fff;
+}
+
+.reply-buttons .genric-btn.primary:hover {
+    background: linear-gradient(to right, #ff8e8e, #ff6b6b);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+.reply-buttons .genric-btn.primary-border {
+    background: transparent;
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.reply-buttons .genric-btn.primary-border:hover {
+    background: rgba(255, 107, 107, 0.1);
+    box-shadow: 0 4px 8px rgba(255, 107, 107, 0.2);
+}
+
+.reply-buttons .genric-btn.circle {
+    border-radius: 8px;
+}
+
+.btn-show-replies,
+.btn-respond {
+    display: inline-block;
+    border-radius: 25px;
+    padding: 8px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Poppins', Arial, sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(247,99,27,0.08);
+    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+    outline: none;
+    border-width: 2px;
+    border-style: solid;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.btn-show-replies {
+    background: #fff;
+    color: #f7631b;
+    border-color: #f7631b;
+}
+
+.btn-show-replies:hover {
+    background: linear-gradient(90deg, #f7631b 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #f7631b;
+    box-shadow: 0 4px 16px rgba(247,99,27,0.18);
+}
+
+.btn-respond {
+    background: linear-gradient(90deg, #f7631b 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #f7631b;
+}
+
+.btn-respond:hover {
+    background: linear-gradient(90deg, #e55a16 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #e55a16;
+    box-shadow: 0 4px 16px rgba(247,99,27,0.18);
+}
+
+.replies-container {
+    margin-top: 15px;
+}
+
+.comment-list {
+    margin-bottom: 30px;
+}
+
+.comment-list .comment-list {
+    margin-bottom: 15px;
+}
+
+.btn-orange, .btn-orange-outline {
+    display: inline-block;
+    border-radius: 25px;
+    padding: 8px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Poppins', Arial, sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(247,99,27,0.08);
+    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+    outline: none;
+    border-width: 2px;
+    border-style: solid;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.btn-orange {
+    background: linear-gradient(90deg, #f7631b 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #f7631b;
+}
+.btn-orange:hover, .btn-orange:focus {
+    background: linear-gradient(90deg, #e55a16 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #e55a16;
+    box-shadow: 0 4px 16px rgba(247,99,27,0.18);
+}
+
+.btn-orange-outline {
+    background: #fff;
+    color: #f7631b;
+    border-color: #f7631b;
+}
+.btn-orange-outline:hover, .btn-orange-outline:focus {
+    background: linear-gradient(90deg, #f7631b 60%, #ff944d 100%);
+    color: #fff;
+    border-color: #f7631b;
+    box-shadow: 0 4px 16px rgba(247,99,27,0.18);
+}

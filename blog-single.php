@@ -206,153 +206,237 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 
                             <!-- ------------------------------------------ start Comentários Area ------------------------------------------ -->
 
-							<div class="navigation-area">
-								<div class="row">
-									<div class="col-lg-6 col-md-6 col-12 nav-left flex-row d-flex justify-content-start align-items-center">
-										<div class="thumb">
-											<a href="#"><img class="img-fluid" src="img/blog/prev.jpg" alt=""></a>
-										</div>
-										<div class="arrow">
-											<a href="#"><span class="lnr text-white lnr-arrow-left"></span></a>
-										</div>
-										<div class="detials">
-											<p>Prev Post</p>
-											<a href="#"><h4>Space The Final Frontier</h4></a>
-										</div>
-									</div>
-									<div class="col-lg-6 col-md-6 col-12 nav-right flex-row d-flex justify-content-end align-items-center">
-										<div class="detials">
-											<p>Next Post</p>
-											<a href="#"><h4>Telescopes 101</h4></a>
-										</div>
-										<div class="arrow">
-											<a href="#"><span class="lnr text-white lnr-arrow-right"></span></a>
-										</div>
-										<div class="thumb">
-											<a href="#"><img class="img-fluid" src="img/blog/next.jpg" alt=""></a>
-										</div>										
-									</div>									
-								</div>
-							</div>
+						
 							<div class="comments-area">
-								<h4>05 Comments</h4>
-								<div class="comment-list">
-                                    <div class="single-comment justify-content-between d-flex">
-                                        <div class="user justify-content-between d-flex">
-                                            <div class="thumb">
-                                                <img src="img/blog/c1.jpg" alt="">
-                                            </div>
-                                            <div class="desc">
-                                                <h5><a href="#">Emilly Blunt</a></h5>
-                                                <p class="date">December 4, 2017 at 3:12 pm </p>
-                                                <p class="comment">
-                                                    Never say goodbye till the end comes!
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="reply-btn">
-                                               <a href="" class="btn-reply text-uppercase">reply</a> 
-                                        </div>
-                                    </div>
-                                </div>	
-								<div class="comment-list left-padding">
-                                    <div class="single-comment justify-content-between d-flex">
-                                        <div class="user justify-content-between d-flex">
-                                            <div class="thumb">
-                                                <img src="img/blog/c2.jpg" alt="">
-                                            </div>
-                                            <div class="desc">
-                                                <h5><a href="#">Elsie Cunningham</a></h5>
-                                                <p class="date">December 4, 2017 at 3:12 pm </p>
-                                                <p class="comment">
-                                                    Never say goodbye till the end comes!
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="reply-btn">
-                                               <a href="" class="btn-reply text-uppercase">reply</a> 
-                                        </div>
-                                    </div>
-                                </div>	
-								<div class="comment-list left-padding">
-                                    <div class="single-comment justify-content-between d-flex">
-                                        <div class="user justify-content-between d-flex">
-                                            <div class="thumb">
-                                                <img src="img/blog/c3.jpg" alt="">
-                                            </div>
-                                            <div class="desc">
-                                                <h5><a href="#">Annie Stephens</a></h5>
-                                                <p class="date">December 4, 2017 at 3:12 pm </p>
-                                                <p class="comment">
-                                                    Never say goodbye till the end comes!
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="reply-btn">
-                                               <a href="" class="btn-reply text-uppercase">reply</a> 
-                                        </div>
-                                    </div>
-                                </div>	
-								<div class="comment-list">
-                                    <div class="single-comment justify-content-between d-flex">
-                                        <div class="user justify-content-between d-flex">
-                                            <div class="thumb">
-                                                <img src="img/blog/c4.jpg" alt="">
-                                            </div>
-                                            <div class="desc">
-                                                <h5><a href="#">Maria Luna</a></h5>
-                                                <p class="date">December 4, 2017 at 3:12 pm </p>
-                                                <p class="comment">
-                                                    Never say goodbye till the end comes!
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="reply-btn">
-                                               <a href="" class="btn-reply text-uppercase">reply</a> 
-                                        </div>
-                                    </div>
-                                </div>	
-								<div class="comment-list">
-                                    <div class="single-comment justify-content-between d-flex">
-                                        <div class="user justify-content-between d-flex">
-                                            <div class="thumb">
-                                                <img src="img/blog/c5.jpg" alt="">
-                                            </div>
-                                            <div class="desc">
-                                                <h5><a href="#">Ina Hayes</a></h5>
-                                                <p class="date">December 4, 2017 at 3:12 pm </p>
-                                                <p class="comment">
-                                                    Never say goodbye till the end comes!
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="reply-btn">
-                                               <a href="" class="btn-reply text-uppercase">reply</a> 
-                                        </div>
-                                    </div>
-                                </div>	                                             				
+								<h4><?php echo $post['num_comentarios']; ?> Comments</h4>
+								<?php
+								// Função para exibir comentários e suas respostas
+								function displayComments($post_id, $parent_id = null, $level = 0) {
+									global $conn;
+									
+									$sql = "SELECT c.*, u.Nome as autor_nome,
+											(SELECT COUNT(*) FROM comentarios WHERE comentario_pai_id = c.id) as num_respostas
+											FROM comentarios c 
+											JOIN Utilizadores u ON c.utilizador_id = u.ID_Utilizador 
+											WHERE c.post_id = ? AND c.comentario_pai_id " . ($parent_id === null ? "IS NULL" : "= ?") . "
+											ORDER BY c.data_criacao ASC";
+									
+									$stmt = $conn->prepare($sql);
+									if ($parent_id === null) {
+										$stmt->bind_param("i", $post_id);
+									} else {
+										$stmt->bind_param("ii", $post_id, $parent_id);
+									}
+									$stmt->execute();
+									$result = $stmt->get_result();
+									
+									while ($comment = $result->fetch_assoc()) {
+										$padding_class = $level > 0 ? 'left-padding' : '';
+										?>
+										<div class="comment-list <?php echo $padding_class; ?>">
+											<div class="single-comment justify-content-between d-flex">
+												<div class="user justify-content-between d-flex">
+													<div class="thumb">
+														<img src="img/blog/img_profilepic.png" alt="">
+													</div>
+													<div class="desc">
+														<h5><a href="#"><?php echo htmlspecialchars($comment['autor_nome']); ?></a></h5>
+														<p class="date"><?php echo formatDate($comment['data_criacao']); ?></p>
+														<?php if (!empty($comment['assunto'])): ?>
+															<h6><?php echo htmlspecialchars($comment['assunto']); ?></h6>
+														<?php endif; ?>
+														<p class="comment">
+															<?php echo nl2br(htmlspecialchars($comment['texto'])); ?>
+														</p>
+													</div>
+												</div>
+												<div class="reply-buttons">
+													<?php if ($comment['num_respostas'] > 0): ?>
+														<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="<?php echo $comment['id']; ?>">
+															<?php echo $comment['num_respostas']; ?> Resposta<?php echo $comment['num_respostas'] > 1 ? 's' : ''; ?>
+														</button>
+													<?php endif; ?>
+													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
+														Responder
+													</button>
+												</div>
+											</div>
+											<div class="replies-container" id="replies-<?php echo $comment['id']; ?>" style="display: none;">
+												<?php displayComments($post_id, $comment['id'], $level + 1); ?>
+											</div>
+										</div>
+										<?php
+									}
+								}
+								
+								// Exibir comentários principais
+								displayComments($id);
+								?>
 							</div>
+							
+							<script>
+							document.addEventListener('DOMContentLoaded', function() {
+								// Adicionar evento de clique para os botões de responder
+								document.querySelectorAll('.btn-respond').forEach(button => {
+									button.addEventListener('click', function(e) {
+										e.preventDefault();
+										const commentId = this.dataset.commentId;
+										const author = this.dataset.author;
+										const text = this.dataset.text;
+
+										// Atualizar formulário para resposta
+										document.getElementById('comentario_pai_id').value = commentId;
+										document.getElementById('replyToAuthor').textContent = author;
+										document.getElementById('replyToText').textContent = text;
+										document.getElementById('replyTo').style.display = 'block';
+										document.getElementById('commentForm').scrollIntoView({ behavior: 'smooth' });
+									});
+								});
+
+								// Adicionar evento de clique para os botões de mostrar respostas
+								document.querySelectorAll('.btn-show-replies').forEach(button => {
+									button.addEventListener('click', function(e) {
+										e.preventDefault();
+										const commentId = this.dataset.commentId;
+										const repliesContainer = document.getElementById('replies-' + commentId);
+										
+										if (repliesContainer) {
+											if (repliesContainer.style.display === 'none') {
+												repliesContainer.style.display = 'block';
+												this.textContent = 'Ver Respostas';
+											} else {
+												repliesContainer.style.display = 'none';
+												this.textContent = this.textContent.replace('Ocultar', 'Ver');
+											}
+										}
+									});
+								});
+							});
+							</script>
 							<div class="comment-form">
-								<h4>Leave a Comment</h4>
-								<form>
+								<h4>Deixar um Comentário</h4>
+								<div id="replyTo" style="display: none;" class="alert alert-info mb-3">
+									<strong>Respondendo a:</strong> <span id="replyToAuthor"></span>
+									<p class="mb-0"><small id="replyToText"></small></p>
+									<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
+								</div>
+								<form id="commentForm" method="POST">
+									<input type="hidden" name="post_id" value="<?php echo $id; ?>">
+									<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
 									<div class="form-group form-inline">
-									  <div class="form-group col-lg-6 col-md-12 name">
-									    <input type="text" class="form-control" id="name" placeholder="Enter Name" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Name'">
-									  </div>
-									  <div class="form-group col-lg-6 col-md-12 email">
-									    <input type="email" class="form-control" id="email" placeholder="Enter email address" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter email address'">
-									  </div>										
+										<div class="form-group col-lg-6 col-md-12 name">
+											<input type="text" class="form-control" name="assunto" placeholder="Assunto" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Assunto'">
+										</div>
 									</div>
 									<div class="form-group">
-										<input type="text" class="form-control" id="subject" placeholder="Subject" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Subject'">
+										<textarea class="form-control mb-10" rows="5" name="texto" placeholder="Mensagem" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mensagem'" required></textarea>
 									</div>
-									<div class="form-group">
-										<textarea class="form-control mb-10" rows="5" name="message" placeholder="Messege" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Messege'" required=""></textarea>
-									</div>
-									<a href="#" class="primary-btn text-uppercase">Post Comment</a>	
+									<button type="submit" class="primary-btn text-uppercase">Publicar Comentário</button>
 								</form>
 							</div>
+
+							<script>
+							document.addEventListener('DOMContentLoaded', function() {
+								const commentForm = document.getElementById('commentForm');
+								const replyToDiv = document.getElementById('replyTo');
+								const replyToAuthor = document.getElementById('replyToAuthor');
+								const replyToText = document.getElementById('replyToText');
+								let currentReplyTo = null;
+
+								// Função para cancelar resposta
+								window.cancelReply = function() {
+									document.getElementById('comentario_pai_id').value = '';
+									replyToDiv.style.display = 'none';
+									currentReplyTo = null;
+								}
+
+								// Função para adicionar novo comentário ao DOM
+								function addCommentToDOM(comment) {
+									const commentHTML = `
+										<div class="comment-list ${comment.comentario_pai_id ? 'left-padding' : ''}">
+											<div class="single-comment justify-content-between d-flex">
+												<div class="user justify-content-between d-flex">
+													<div class="thumb">
+														<img src="img/blog/img_profilepic.png" alt="">
+													</div>
+													<div class="desc">
+														<h5><a href="#">${comment.autor_nome}</a></h5>
+														<p class="date">${comment.data_formatada}</p>
+														${comment.assunto ? `<h6>${comment.assunto}</h6>` : ''}
+														<p class="comment">${comment.texto}</p>
+													</div>
+												</div>
+												<div class="reply-buttons">
+													<a href="#" class="btn-respond text-uppercase" data-comment-id="${comment.id}">Ver Respostas</a>
+													<a href="#" class="btn-respond text-uppercase" data-comment-id="${comment.id}" data-author="${comment.autor_nome}" data-text="${comment.texto}">Responder</a>
+												</div>
+											</div>
+											<div class="replies-container" id="replies-${comment.id}" style="display: none;"></div>
+										</div>
+									`;
+
+									if (comment.comentario_pai_id) {
+										const repliesContainer = document.getElementById('replies-' + comment.comentario_pai_id);
+										if (repliesContainer) {
+											repliesContainer.insertAdjacentHTML('beforeend', commentHTML);
+										}
+									} else {
+										document.querySelector('.comments-area').insertAdjacentHTML('beforeend', commentHTML);
+									}
+								}
+
+								// Manipular envio do formulário
+								commentForm.addEventListener('submit', function(e) {
+									e.preventDefault();
+									
+									const formData = new FormData(this);
+									
+									fetch('process_comment.php', {
+										method: 'POST',
+										body: formData
+									})
+									.then(response => response.json())
+									.then(data => {
+										if (data.success) {
+											addCommentToDOM(data.comment);
+											commentForm.reset();
+											document.getElementById('comentario_pai_id').value = '';
+											replyToDiv.style.display = 'none';
+											currentReplyTo = null;
+										} else {
+											alert(data.message || 'Erro ao publicar comentário');
+										}
+									})
+									.catch(error => {
+										console.error('Erro:', error);
+										alert('Erro ao publicar comentário');
+									});
+								});
+
+								// Manipular cliques nos botões de resposta
+								document.addEventListener('click', function(e) {
+									// Botão para ver/esconder respostas
+									if (e.target.classList.contains('btn-respond')) {
+										e.preventDefault();
+										const commentId = e.target.dataset.commentId;
+										const repliesContainer = document.getElementById('replies-' + commentId);
+										
+										if (repliesContainer) {
+											if (repliesContainer.style.display === 'none') {
+												repliesContainer.style.display = 'block';
+											} else {
+												repliesContainer.style.display = 'none';
+											}
+										}
+									}
+								});
+							});
+							</script>
+							
 						</div>
+
+						<!-- ------------------------------------------ END Comentários Area ------------------------------------------ -->
+
 						<div class="col-lg-4 sidebar-widgets">
 							<div class="widget-wrap">
 								<div class="single-sidebar-widget search-widget">

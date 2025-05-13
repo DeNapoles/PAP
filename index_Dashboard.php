@@ -431,25 +431,28 @@ $capaData = getCapaData();
                                             </div>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label for="TextoBemvindo" class="form-label">Texto de Boas-vindas</label>
-                                            <textarea class="form-control" id="TextoBemvindo" name="TextoBemvindo" rows="2"><?php echo htmlspecialchars($capaData['TextoBemvindo']); ?></textarea>
-                                        </div>
+                                        <div class="text-input-container">
+                                            <div class="form-group">
+                                                <label for="TextoBemvindo" class="form-label">Texto de Boas-vindas</label>
+                                                <textarea class="form-control" id="TextoBemvindo" name="TextoBemvindo" rows="3" placeholder="Digite o texto de boas-vindas..."><?php echo htmlspecialchars($capaData['TextoBemvindo']); ?></textarea>
+                                            </div>
 
-                                        <div class="mb-3">
-                                            <label for="TextoInicial" class="form-label">Texto Inicial</label>
-                                            <textarea class="form-control" id="TextoInicial" name="TextoInicial" rows="2"><?php echo htmlspecialchars($capaData['TextoInicial']); ?></textarea>
-                                        </div>
+                                            <div class="form-group">
+                                                <label for="TextoInicial" class="form-label">Texto Inicial</label>
+                                                <textarea class="form-control" id="TextoInicial" name="TextoInicial" rows="3" placeholder="Digite o texto inicial..."><?php echo htmlspecialchars($capaData['TextoInicial']); ?></textarea>
+                                            </div>
 
-                                        <div class="mb-3">
-                                            <label for="TextoInicial2" class="form-label">Texto Inicial 2</label>
-                                            <textarea class="form-control" id="TextoInicial2" name="TextoInicial2" rows="3"><?php echo htmlspecialchars($capaData['TextoInicial2']); ?></textarea>
-                                        </div>
+                                            <div class="form-group">
+                                                <label for="TextoInicial2" class="form-label">Texto Inicial 2</label>
+                                                <textarea class="form-control" id="TextoInicial2" name="TextoInicial2" rows="4" placeholder="Digite o texto inicial 2..."><?php echo htmlspecialchars($capaData['TextoInicial2']); ?></textarea>
+                                            </div>
 
-                                        <div class="mb-3">
-                                            <label for="BotaoInicial" class="form-label">Texto do Botão</label>
-                                            <input type="text" class="form-control" id="BotaoInicial" name="BotaoInicial" 
-                                                   value="<?php echo htmlspecialchars($capaData['BotaoInicial']); ?>">
+                                            <div class="form-group">
+                                                <label for="BotaoInicial" class="form-label">Texto do Botão</label>
+                                                <input type="text" class="form-control" id="BotaoInicial" name="BotaoInicial" 
+                                                       value="<?php echo htmlspecialchars($capaData['BotaoInicial']); ?>"
+                                                       placeholder="Digite o texto do botão...">
+                                            </div>
                                         </div>
 
                                         <div class="mb-3">
@@ -524,18 +527,6 @@ $capaData = getCapaData();
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="confirmRename">Confirmar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para mensagem de confirmação -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center p-4">
-                <i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>
-                <h4 class="mt-3" id="confirmationMessage"></h4>
             </div>
         </div>
     </div>
@@ -645,18 +636,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.show();
     }
 
-    // Função para mostrar mensagem de confirmação
-    function showConfirmationMessage(message) {
-        const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-        document.getElementById('confirmationMessage').textContent = message;
-        modal.show();
-        
-        // Fecha o modal após 2 segundos
-        setTimeout(() => {
-            modal.hide();
-        }, 2000);
-    }
-
     // Função para fazer upload do arquivo
     async function handleFileUpload(file, inputId, customName = null) {
         if (file && file.type.startsWith('image/')) {
@@ -686,14 +665,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById(inputId).value = data.url;
                     updateImagePreview(inputId);
                     
-                    // Mostra mensagem de confirmação centralizada
-                    showConfirmationMessage('Imagem enviada com sucesso!');
+                    // Mostra mensagem de sucesso
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+                    alert.innerHTML = `
+                        ${data.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    document.getElementById(inputId).parentNode.appendChild(alert);
+                    
+                    // Remove a mensagem após 3 segundos
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
                 } else {
                     throw new Error(data.message);
                 }
             } catch (error) {
-                // Mostra mensagem de erro centralizada
-                showConfirmationMessage('Erro ao fazer upload: ' + error.message);
+                // Mostra mensagem de erro
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show mt-2';
+                alert.innerHTML = `
+                    Erro ao fazer upload: ${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.getElementById(inputId).parentNode.appendChild(alert);
+                
+                // Remove a mensagem após 5 segundos
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
             }
         }
     }

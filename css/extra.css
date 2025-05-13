@@ -409,3 +409,55 @@ button[type="submit"] {
 #register-password-container .form-control {
   padding-right: 40px;
 }
+
+/* Estilos para as caixas de texto do Dashboard */
+.form-group {
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-control {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa !important;
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: #ff6b2c;
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 44, 0.15);
+    background-color: #f8f9fa !important;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+    background-color: #f8f9fa !important;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 16px;
+    display: inline-block;
+}
+
+/* Estilo específico para o botão */
+input[type="text"].form-control {
+    height: 45px;
+    background-color: #f8f9fa !important;
+}
+
+/* Container das caixas de texto */
+.text-input-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}

@@ -88,7 +88,7 @@ require_once 'functions.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow">
             <div class="modal-header">
-                <h5 class="modal-title" id="loginModalLabel">Iniciar Sessão</h5>
+                <h5 class="modal-title fw-bold" id="loginModalLabel">Iniciar Sessão</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <div class="modal-body">
@@ -96,21 +96,61 @@ require_once 'functions.php';
                 <form id="loginForm">
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-                        <label for="email">Email</label>
+                        <label for="email" class="fw-bold">Email</label>
                     </div>
-                    <div class="form-floating mb-3">
+                    <div class="form-floating mb-3" id="login-password-container" style="position: relative;">
                         <input type="password" class="form-control" id="password" placeholder="Password" required>
-                        <label for="password">Palavra-passe</label>
+                        <label for="password" class="fw-bold">Palavra-passe</label>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Entrar</button>
                 </form>
                 <hr>
-                <button id="google-login-b" class="btn btn-danger w-100">
+                <button id="google-login-b" class="btn btn-danger w-100 fw-bold">
                     <i class="fa fa-google me-2"></i> Entrar com o Google
                 </button>
             </div>
         </div>
     </div>
+	</div>
+	<!-- ----------------------------------- Modal de Registo ----------------------------------- -->
+	<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content shadow">
+				<div class="modal-header">
+					<h5 class="modal-title fw-bold" id="registerModalLabel">Criar conta</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-danger" id="registerError" style="display: none;"></div>
+					<div class="alert alert-success" id="registerSuccess" style="display: none;"></div>
+					<form id="registerForm">
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="reg_nome" placeholder="Nome" required>
+							<label for="reg_nome" class="fw-bold">Nome</label>
+						</div>
+						<div class="form-floating mb-3">
+							<input type="email" class="form-control" id="reg_email" placeholder="Email" required>
+							<label for="reg_email" class="fw-bold">Email</label>
+						</div>
+						<div class="form-floating mb-3" id="register-password-container" style="position: relative;">
+							<input type="password" class="form-control" id="reg_password" placeholder="Palavra-passe" required>
+							<label for="reg_password" class="fw-bold">Palavra-passe</label>
+						</div>
+						<div class="form-floating mb-3">
+							<select class="form-select" id="reg_tipo" required>
+								<option value="">Selecione o tipo de utilizador</option>
+								<option value="Aluno">Aluno</option>
+								<option value="Professor">Professor</option>
+								<option value="Encarregado de Educação">Encarregado de Educação</option>
+								<option value="Outro">Outro</option>
+							</select>
+							<label for="reg_tipo" class="fw-bold">Tipo de Utilizador</label>
+						</div>
+						<button type="submit" class="btn btn-primary w-100 fw-bold">Registar</button>
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 	<!-- ----------------------------------- start Texto Incial Area ----------------------------------- -->
 	<section class="banner-area relative" id="home">
@@ -127,7 +167,7 @@ require_once 'functions.php';
 					<p class="pt-10 pb-10" style="font-size: 15px;">
 						<?php echo $inicioData['TextoInicial2']; ?>
 					</p>
-					<a href="contact.html" id="banner-login-button" class="primary-btn text-uppercase">
+					<a href="#" class="primary-btn text-uppercase" data-bs-toggle="modal" data-bs-target="#registerModal">
 						<?php echo $inicioData['BotaoInicial']; ?>
 					</a>
 				</div>

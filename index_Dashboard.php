@@ -503,6 +503,44 @@ $capaData = getCapaData();
   </div>
 </div>
 
+<!-- Modal para renomear imagem -->
+<div class="modal fade" id="renameImageModal" tabindex="-1" aria-labelledby="renameImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameImageModalLabel">Renomear Imagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="imageName" class="form-label">Nome da Imagem</label>
+                    <input type="text" class="form-control" id="imageName" placeholder="Digite o nome da imagem">
+                    <small class="text-muted">Não inclua a extensão do arquivo</small>
+                </div>
+                <div class="image-preview text-center mb-3">
+                    <img id="modalImagePreview" src="" alt="Preview" style="max-width: 200px; max-height: 200px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmRename">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mensagem de confirmação -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center p-4">
+                <i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>
+                <h4 class="mt-3" id="confirmationMessage"></h4>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- jQuery primeiro -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -573,19 +611,111 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Adiciona listeners para os inputs de imagem
-    ['LogoSeparador', 'LogoPrincipal', 'Fundo'].forEach(id => {
-        const input = document.getElementById(id);
-        input.addEventListener('input', () => updateImagePreview(id));
+    // Variáveis globais para armazenar o arquivo e input atual
+    let currentFile = null;
+    let currentInputId = null;
+
+    // Função para lidar com upload de arquivo
+    function handleFileSelect(e, inputId) {
+        const file = e.target.files[0];
+        if (file) {
+            currentFile = file;
+            currentInputId = inputId;
+            showRenameModal(file);
+        }
+    }
+
+    // Função para mostrar o modal de renomeação
+    function showRenameModal(file) {
+        const modal = new bootstrap.Modal(document.getElementById('renameImageModal'));
+        const preview = document.getElementById('modalImagePreview');
+        const nameInput = document.getElementById('imageName');
         
-        // Configura drag and drop para cada zona
-        const dropZone = document.querySelector(`[data-target="${id}"]`);
+        // Mostra preview da imagem
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        
+        // Define o nome padrão (nome do arquivo sem extensão)
+        const defaultName = file.name.replace(/\.[^/.]+$/, "");
+        nameInput.value = defaultName;
+        
+        modal.show();
+    }
+
+    // Função para mostrar mensagem de confirmação
+    function showConfirmationMessage(message) {
+        const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        document.getElementById('confirmationMessage').textContent = message;
+        modal.show();
+        
+        // Fecha o modal após 2 segundos
+        setTimeout(() => {
+            modal.hide();
+        }, 2000);
+    }
+
+    // Função para fazer upload do arquivo
+    async function handleFileUpload(file, inputId, customName = null) {
+        if (file && file.type.startsWith('image/')) {
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            // Adiciona a imagem antiga ao FormData
+            const oldImageInput = document.getElementById(inputId);
+            if (oldImageInput && oldImageInput.value) {
+                formData.append('old_image', oldImageInput.value);
+            }
+
+            // Adiciona o nome personalizado se fornecido
+            if (customName) {
+                formData.append('custom_name', customName);
+            }
+            
+            try {
+                const response = await fetch('upload_image.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById(inputId).value = data.url;
+                    updateImagePreview(inputId);
+                    
+                    // Mostra mensagem de confirmação centralizada
+                    showConfirmationMessage('Imagem enviada com sucesso!');
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                // Mostra mensagem de erro centralizada
+                showConfirmationMessage('Erro ao fazer upload: ' + error.message);
+            }
+        }
+    }
+
+    // Configura o evento de confirmação do modal
+    document.getElementById('confirmRename').addEventListener('click', function() {
+        const customName = document.getElementById('imageName').value.trim();
+        if (customName && currentFile && currentInputId) {
+            handleFileUpload(currentFile, currentInputId, customName);
+            bootstrap.Modal.getInstance(document.getElementById('renameImageModal')).hide();
+        }
+    });
+
+    // Configura drag and drop para cada zona
+    document.querySelectorAll('.drop-zone').forEach(dropZone => {
+        const inputId = dropZone.getAttribute('data-target');
         
         dropZone.addEventListener('click', () => {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = 'image/*';
-            fileInput.onchange = (e) => handleFileSelect(e, id);
+            fileInput.onchange = (e) => handleFileSelect(e, inputId);
             fileInput.click();
         });
 
@@ -602,67 +732,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             dropZone.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
-            handleFileUpload(file, id);
+            if (file) {
+                currentFile = file;
+                currentInputId = inputId;
+                showRenameModal(file);
+            }
         });
     });
-
-    // Função para lidar com upload de arquivo
-    function handleFileSelect(e, inputId) {
-        const file = e.target.files[0];
-        handleFileUpload(file, inputId);
-    }
-
-    // Função para fazer upload do arquivo
-    async function handleFileUpload(file, inputId) {
-        if (file && file.type.startsWith('image/')) {
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const response = await fetch('upload_image.php', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById(inputId).value = data.url;
-                    updateImagePreview(inputId);
-                    
-                    // Mostra mensagem de sucesso
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
-                    alert.innerHTML = `
-                        ${data.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    `;
-                    document.getElementById(inputId).parentNode.appendChild(alert);
-                    
-                    // Remove a mensagem após 3 segundos
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 3000);
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                // Mostra mensagem de erro
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show mt-2';
-                alert.innerHTML = `
-                    Erro ao fazer upload: ${error.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.getElementById(inputId).parentNode.appendChild(alert);
-                
-                // Remove a mensagem após 5 segundos
-                setTimeout(() => {
-                    alert.remove();
-                }, 5000);
-            }
-        }
-    }
 
     // Função para limpar todos os campos
     window.clearAllFields = function() {

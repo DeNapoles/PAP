@@ -1,176 +1,113 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Seleciona todos os links do submenu
-    const submenuLinks = document.querySelectorAll('.cat-sub-menu a');
-    const mainContentArea = document.getElementById('main-content-area');
-
-    // Adiciona evento de clique para cada link
-    submenuLinks.forEach(link => {
+    console.log('Dashboard JS carregado');
+    
+    // Adiciona event listeners para todos os links com data-section
+    document.querySelectorAll('[data-section]').forEach(link => {
+        console.log('Encontrado link com data-section:', link.getAttribute('data-section'));
+        
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const section = this.getAttribute('data-section');
+            console.log('Clicou em:', this.getAttribute('data-section'));
             
-            // Atualiza o título da página
-            document.querySelector('.container').firstElementChild.textContent = this.textContent;
+            // Remove a classe active de todos os links
+            document.querySelectorAll('.cat-sub-menu a').forEach(a => {
+                a.classList.remove('active');
+            });
             
-            // Carrega o conteúdo correspondente
-            loadSection(section);
+            // Adiciona a classe active ao link clicado
+            this.classList.add('active');
+            
+            // Obtém a seção a ser mostrada
+            const sectionToShow = this.getAttribute('data-section');
+            
+            // Oculta todas as seções
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostra a seção selecionada
+            const targetSection = document.getElementById(sectionToShow + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
         });
     });
+});
 
-    // Função para carregar o conteúdo da seção
-    function loadSection(section) {
-        const sectionContent = {
-            'logo': `
-                <div class="edit-section">
-                    <h3>Editar Logo</h3>
-                    <div class="logo-preview">
-                        <img src="get_image.php?type=logo" alt="Logo atual" style="max-width: 200px;">
-                        <div class="image-actions">
-                            <a href="get_image.php?type=logo&download=true" class="btn btn-secondary">
-                                <i data-feather="download"></i> Download Logo Atual
-                            </a>
-                        </div>
-                    </div>
-                    <form class="edit-form" id="logoForm" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label>Upload novo logo</label>
-                            <input type="file" class="form-control" name="logo" accept="image/*" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Salvar alterações</button>
-                        <div class="alert" style="display: none; margin-top: 10px;"></div>
-                    </form>
-                </div>
-            `,
-            'capa': `
-                <div class="edit-section">
-                    <h3>Editar Capa</h3>
-                    <div class="image-preview">
-                        <img src="img/banner-bg.jpg" alt="Imagem de capa atual" style="max-width: 100%;">
-                        <div class="image-actions">
-                            <a href="img/banner-bg.jpg" download class="btn btn-secondary">
-                                <i data-feather="download"></i> Download Imagem Atual
-                            </a>
-                        </div>
-                    </div>
-                    <form class="edit-form">
-                        <div class="form-group">
-                            <label>Título da Capa</label>
-                            <input type="text" class="form-control" value="Bem-vindo ao AEBConecta">
-                        </div>
-                        <div class="form-group">
-                            <label>Subtítulo</label>
-                            <textarea class="form-control" rows="3">O portal que liga a comunidade escolar com informações úteis, respostas rápidas e apoio especializado.</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Nova Imagem de Fundo</label>
-                            <input type="file" class="form-control" accept="image/*">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Salvar alterações</button>
-                    </form>
-                </div>
-            `,
-            'links': `
-                <div class="edit-section">
-                    <h3>Editar Ligações Rápidas</h3>
-                    <form class="edit-form">
-                        <div class="links-container">
-                            <div class="form-group">
-                                <label>GIAE</label>
-                                <input type="url" class="form-control" value="http://193.236.85.189/">
-                            </div>
-                            <div class="form-group">
-                                <label>Moodle</label>
-                                <input type="url" class="form-control" value="https://moodle.agbatalha.pt/">
-                            </div>
-                            <div class="form-group">
-                                <label>Eu Sou Pro</label>
-                                <input type="url" class="form-control" value="https://agbatalha.pt/eusoupro/">
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-secondary">Adicionar novo link</button>
-                        <button type="submit" class="btn btn-primary">Salvar alterações</button>
-                    </form>
-                </div>
-            `,
-            'sobre': `
-                <div class="edit-section">
-                    <h3>Editar Sobre Nós</h3>
-                    <div class="image-preview">
-                        <img src="img/about-img.png" alt="Imagem atual" style="max-width: 100%;">
-                        <div class="image-actions">
-                            <a href="img/about-img.png" download class="btn btn-secondary">
-                                <i data-feather="download"></i> Download Imagem Atual
-                            </a>
-                        </div>
-                    </div>
-                    <form class="edit-form">
-                        <div class="form-group">
-                            <label>Texto Sobre Nós</label>
-                            <textarea class="form-control" rows="6">Somos alunos do Agrupamento de Escolas da Batalha, comprometidos com a inovação e otimização dos processos tecnológicos nas escolas...</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Nova Imagem</label>
-                            <input type="file" class="form-control" accept="image/*">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Salvar alterações</button>
-                    </form>
-                </div>
-            `
-            // Adicione mais seções conforme necessário
-        };
+function showSection(section) {
+    // Oculta todas as seções
+    const sections = ['capa-section'];
+    sections.forEach(s => {
+        const element = document.getElementById(s);
+        if (element) {
+            element.style.display = 'none';
+        }
+    });
 
-        // Atualiza o conteúdo da área principal
-        mainContentArea.innerHTML = sectionContent[section] || '<p>Seção não encontrada</p>';
+    // Mostra a seção selecionada
+    if (section === 'capa') {
+        const capaSection = document.getElementById('capa-section');
+        if (capaSection) {
+            capaSection.style.display = 'block';
+        }
+    }
+    // Adicione mais condições para outras seções conforme necessário
+}
+
+function loadContent(section) {
+    console.log('Carregando seção:', section);
+    const contentArea = document.getElementById('main-content-area');
+    
+    // Mostra um indicador de carregamento
+    contentArea.innerHTML = '<div class="text-center mt-5"><div class="spinner-border" role="status"><span class="visually-hidden">Carregando...</span></div></div>';
+    
+    // Mapeia as seções para seus respectivos arquivos PHP
+    const sectionFiles = {
+        'capa': './capa_editor.php',
+        'links': './links_editor.php',
+        'sobre': './sobre_editor.php',
+        'avaliacoes': './avaliacoes_editor.php',
+        'login': './login_editor.php',
+        'faqs': './faqs_editor.php',
+        'aviso': './aviso_editor.php'
+    };
+
+    // Verifica se a seção existe no mapeamento
+    if (sectionFiles[section]) {
+        console.log('Fazendo fetch de:', sectionFiles[section]);
         
-        // Reinicializa os ícones do Feather após carregar o conteúdo
-        if (window.feather) {
-            feather.replace();
-        }
-
-        // Após carregar o conteúdo, configura os event listeners dos formulários
-        setupFormListeners();
-    }
-
-    // Função para configurar os event listeners dos formulários
-    function setupFormListeners() {
-        const logoForm = document.getElementById('logoForm');
-        if (logoForm) {
-            logoForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        fetch(sectionFiles[section])
+            .then(response => {
+                console.log('Status da resposta:', response.status);
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log('Conteúdo recebido, atualizando área principal');
+                contentArea.innerHTML = html;
                 
-                const formData = new FormData(this);
-                formData.append('action', 'update_logo');
-
-                fetch('process_image.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const alert = this.querySelector('.alert');
-                    if (data.success) {
-                        // Atualiza a imagem preview
-                        const img = document.querySelector('.logo-preview img');
-                        img.src = 'get_image.php?type=logo&t=' + new Date().getTime();
-                        
-                        // Mostra mensagem de sucesso
-                        alert.textContent = 'Logo atualizado com sucesso!';
-                        alert.className = 'alert alert-success';
-                    } else {
-                        // Mostra mensagem de erro
-                        alert.textContent = data.message || 'Erro ao atualizar o logo.';
-                        alert.className = 'alert alert-danger';
-                    }
-                    alert.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    const alert = this.querySelector('.alert');
-                    alert.textContent = 'Erro ao processar a requisição.';
-                    alert.className = 'alert alert-danger';
-                    alert.style.display = 'block';
-                });
+                // Recarrega os scripts do Bootstrap após inserir o novo conteúdo
+                if (typeof bootstrap !== 'undefined') {
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar conteúdo:', error);
+                contentArea.innerHTML = `
+                    <div class="alert alert-danger m-3" role="alert">
+                        <h4 class="alert-heading">Erro ao carregar o conteúdo</h4>
+                        <p>Ocorreu um erro ao tentar carregar a seção. Por favor, tente novamente.</p>
+                        <hr>
+                        <p class="mb-0">Detalhes técnicos: ${error.message}</p>
+                    </div>`;
             });
-        }
+    } else {
+        console.error('Seção não encontrada:', section);
+        contentArea.innerHTML = '<div class="alert alert-warning m-3">Seção não encontrada.</div>';
     }
-}); 
+} 

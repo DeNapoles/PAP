@@ -234,8 +234,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 										$padding_class = $level > 0 ? 'left-padding' : '';
 										?>
 										<div class="comment-list <?php echo $padding_class; ?>">
-											<div class="single-comment justify-content-between d-flex">
-												<div class="user justify-content-between d-flex">
+											<div class="single-comment d-flex">
+												<div class="user flex-grow-1 d-flex">
 													<div class="thumb">
 														<img src="img/blog/img_profilepic.png" alt="">
 													</div>
@@ -250,10 +250,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 														</p>
 													</div>
 												</div>
-												<div class="reply-buttons">
+												<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
 													<?php if ($comment['num_respostas'] > 0): ?>
 														<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="<?php echo $comment['id']; ?>">
-															<?php echo $comment['num_respostas']; ?> Resposta<?php echo $comment['num_respostas'] > 1 ? 's' : ''; ?>
+															Respostas
 														</button>
 													<?php endif; ?>
 													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
@@ -303,10 +303,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 										if (repliesContainer) {
 											if (repliesContainer.style.display === 'none') {
 												repliesContainer.style.display = 'block';
-												this.textContent = 'Ver Respostas';
+												this.textContent = 'Respostas';
 											} else {
 												repliesContainer.style.display = 'none';
-												this.textContent = this.textContent.replace('Ocultar', 'Ver');
+												this.textContent = 'Respostas';
 											}
 										}
 									});
@@ -354,8 +354,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 								function addCommentToDOM(comment) {
 									const commentHTML = `
 										<div class="comment-list ${comment.comentario_pai_id ? 'left-padding' : ''}">
-											<div class="single-comment justify-content-between d-flex">
-												<div class="user justify-content-between d-flex">
+											<div class="single-comment d-flex">
+												<div class="user flex-grow-1 d-flex">
 													<div class="thumb">
 														<img src="img/blog/img_profilepic.png" alt="">
 													</div>
@@ -366,9 +366,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 														<p class="comment">${comment.texto}</p>
 													</div>
 												</div>
-												<div class="reply-buttons">
-													<a href="#" class="btn-respond text-uppercase" data-comment-id="${comment.id}">Ver Respostas</a>
-													<a href="#" class="btn-respond text-uppercase" data-comment-id="${comment.id}" data-author="${comment.autor_nome}" data-text="${comment.texto}">Responder</a>
+												<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
+													<a href="#" class="genric-btn primary-border circle btn-show-replies" data-comment-id="${comment.id}">Ver Respostas</a>
+													<a href="#" class="genric-btn primary circle btn-respond" data-comment-id="${comment.id}" data-author="${comment.autor_nome}" data-text="${comment.texto}">Responder</a>
 												</div>
 											</div>
 											<div class="replies-container" id="replies-${comment.id}" style="display: none;"></div>

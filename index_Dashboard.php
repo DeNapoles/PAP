@@ -21,6 +21,14 @@ function getLigacoesRapidasData() {
     return $ligacoes;
 }
 
+// Função para buscar os dados da tabela SobreNosInicio
+function getSobreNosData() {
+    global $conn;
+    $sql = "SELECT * FROM SobreNosInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
 // Função para atualizar os dados
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
     $logoSeparador = $_POST['LogoSeparador'];
@@ -94,7 +102,36 @@ if (isset($_POST['update_links'])) {
     }
 }
 
+// Adicionar o processamento do formulário Sobre Nós
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
+    $texto1 = $_POST['Texto1'];
+    $texto2 = $_POST['Texto2'];
+    $imagem = $_POST['Imagem'];
+
+    $sql = "UPDATE SobreNosInicio SET 
+            Texto1 = ?,
+            Texto2 = ?,
+            Imagem = ?
+            WHERE id = 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", 
+        $texto1,
+        $texto2,
+        $imagem
+    );
+
+    if ($stmt->execute()) {
+        $updateMessage = "Dados atualizados com sucesso!";
+        $updateType = "success";
+    } else {
+        $updateMessage = "Erro ao atualizar dados: " . $conn->error;
+        $updateType = "danger";
+    }
+}
+
 $capaData = getCapaData();
+$sobreNos = getSobreNosData();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -405,11 +442,15 @@ $capaData = getCapaData();
                             <i class="fas fa-link"></i> Ligações Rápidas
                         </a>
                     </li>
-                    <li>
-                      <a href="javascript:void(0);" data-section="sobre">Sobre nós</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('sobre-section')">
+                            <i class="fas fa-info-circle"></i> Sobre nós
+                        </a>
                     </li>
-                    <li>
-                      <a href="javascript:void(0);" data-section="avaliacoes">Avaliações</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('avaliacoes-section')">
+                            <i class="fas fa-star"></i> Avaliações
+                        </a>
                     </li>
                     <li>
                       <a href="javascript:void(0);" data-section="login">Login rápido</a>
@@ -790,6 +831,152 @@ $capaData = getCapaData();
 
                                         <div class="d-flex justify-content-end mt-4">
                                             <button type="submit" name="update_links" class="btn btn-primary">
+                                                <i class="fas fa-save"></i> Salvar Alterações
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Sobre Nós (escondida por padrão) -->
+            <div id="sobre-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Editar Conteúdo Sobre Nós</h3>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <form method="POST" id="sobreForm">
+                                        <div class="text-input-container">
+                                            <div class="form-group">
+                                                <label for="Texto1" class="form-label">Primeiro Texto</label>
+                                                <textarea class="form-control" id="Texto1" name="Texto1" rows="4" 
+                                                          placeholder="Digite o primeiro texto..."><?php echo htmlspecialchars($sobreNos['Texto1']); ?></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="Texto2" class="form-label">Segundo Texto</label>
+                                                <textarea class="form-control" id="Texto2" name="Texto2" rows="4" 
+                                                          placeholder="Digite o segundo texto..."><?php echo htmlspecialchars($sobreNos['Texto2']); ?></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="Imagem" class="form-label">Imagem</label>
+                                            <div class="image-upload-container">
+                                                <input type="text" class="form-control" id="Imagem" name="Imagem" 
+                                                       value="<?php echo htmlspecialchars($sobreNos['Imagem']); ?>">
+                                                <div class="image-preview" id="ImagemPreview">
+                                                    <img src="<?php echo htmlspecialchars($sobreNos['Imagem']); ?>" alt="Imagem Preview" 
+                                                         onerror="this.style.display='none'" style="max-width: 200px; max-height: 150px;">
+                                                </div>
+                                                <div class="drop-zone" data-target="Imagem">
+                                                    Arraste uma imagem aqui ou clique para selecionar
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" name="update_sobre" class="btn btn-primary">Salvar Alterações</button>
+                                            <button type="button" class="btn btn-danger" onclick="clearSobreFields()">Apagar tudo</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Avaliações (escondida por padrão) -->
+            <div id="avaliacoes-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0">Editar Avaliações</h3>
+                                    <div>
+                                        <button type="button" class="btn btn-success me-2" onclick="addNewAvaliacao()">
+                                            <i class="fas fa-plus"></i> Nova Avaliação
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="clearAllAvaliacoes()">
+                                            <i class="fas fa-trash"></i> Apagar Tudo
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <?php 
+                                    // Processamento do formulário de avaliações
+                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_avaliacoes'])) {
+                                        $avaliacoes = $_POST['avaliacoes'] ?? [];
+                                        // Limpa a tabela
+                                        $conn->query("TRUNCATE TABLE TabelaAvaliacoesInicio");
+                                        // Insere as avaliações na nova ordem
+                                        $stmt = $conn->prepare("INSERT INTO TabelaAvaliacoesInicio (Nome, Estrelas, Texto) VALUES (?, ?, ?)");
+                                        foreach ($avaliacoes as $avaliacao) {
+                                            $nome = $avaliacao['Nome'] ?? '';
+                                            $estrelas = (int)($avaliacao['Estrelas'] ?? 0);
+                                            $texto = $avaliacao['Texto'] ?? '';
+                                            $stmt->bind_param("sis", $nome, $estrelas, $texto);
+                                            $stmt->execute();
+                                        }
+                                        $updateMessage = "Avaliações atualizadas com sucesso!";
+                                        $updateType = "success";
+                                    }
+                                    $avaliacoesData = [];
+                                    $result = $conn->query("SELECT * FROM TabelaAvaliacoesInicio ORDER BY id");
+                                    while($row = $result->fetch_assoc()) {
+                                        $avaliacoesData[] = $row;
+                                    }
+                                    ?>
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+                                    <form method="POST" id="avaliacoesForm">
+                                        <div id="avaliacoesContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
+                                            <?php foreach ($avaliacoesData as $index => $avaliacao): ?>
+                                            <div class="avaliacao-item" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
+                                                <button type="button" class="remove-link-btn" onclick="removeAvaliacao(this)" title="Remover avaliação" style="position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;"><i class="fas fa-trash"></i></button>
+                                                <h4 class="mb-2" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;">Avaliação <?php echo $index + 1; ?></h4>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Nome</label>
+                                                    <input type="text" class="form-control" name="avaliacoes[<?php echo $index; ?>][Nome]" value="<?php echo htmlspecialchars($avaliacao['Nome']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Estrelas</label>
+                                                    <div class="star-rating d-flex align-items-center gap-1 py-1" data-index="<?php echo $index; ?>">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <span class="fa fa-star star-select <?php echo ($i <= $avaliacao['Estrelas']) ? 'checked' : ''; ?>" data-value="<?php echo $i; ?>" style="font-size: 1.5rem; cursor:pointer;"></span>
+                                                        <?php endfor; ?>
+                                                        <input type="hidden" name="avaliacoes[<?php echo $index; ?>][Estrelas]" value="<?php echo $avaliacao['Estrelas']; ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Texto</label>
+                                                    <textarea class="form-control" name="avaliacoes[<?php echo $index; ?>][Texto]" rows="3" required><?php echo htmlspecialchars($avaliacao['Texto']); ?></textarea>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <button type="submit" name="update_avaliacoes" class="btn btn-primary">
                                                 <i class="fas fa-save"></i> Salvar Alterações
                                             </button>
                                         </div>
@@ -1238,6 +1425,139 @@ document.addEventListener('DOMContentLoaded', function() {
             var backdrop = document.querySelector('.modal-backdrop');
             if (backdrop) backdrop.remove();
         }
+    });
+
+    // Adicionar a função JavaScript para limpar os campos do formulário Sobre Nós
+    function clearSobreFields() {
+        if (confirm('Tem certeza que deseja apagar todos os campos?')) {
+            document.querySelectorAll('#sobreForm input[type="text"], #sobreForm textarea').forEach(input => {
+                input.value = '';
+            });
+            
+            document.querySelectorAll('#sobreForm .image-preview img').forEach(img => {
+                img.style.display = 'none';
+            });
+        }
+    }
+
+    // Funções para gerenciar avaliações
+    function addNewAvaliacao() {
+        const container = document.getElementById('avaliacoesContainer');
+        const index = container.children.length;
+        const newCard = document.createElement('div');
+        newCard.className = 'avaliacao-item';
+        newCard.style = 'background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;';
+        newCard.innerHTML = `
+            <button type=\"button\" class=\"remove-link-btn\" onclick=\"removeAvaliacao(this)\" title=\"Remover avaliação\" style=\"position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;\"><i class='fas fa-trash'></i></button>
+            <h4 class=\"mb-2\" style=\"font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;\">Avaliação ${index + 1}</h4>
+            <div class=\"mb-2\">
+                <label class=\"form-label\">Nome</label>
+                <input type=\"text\" class=\"form-control\" name=\"avaliacoes[${index}][Nome]\" required>
+            </div>
+            <div class=\"mb-2\">
+                <label class=\"form-label\">Estrelas</label>
+                <div class=\"star-rating d-flex align-items-center gap-1 py-1\" data-index=\"${index}\">${[1,2,3,4,5].map(i => `<span class='fa fa-star star-select' data-value='${i}' style='font-size:1.5rem;cursor:pointer;'></span>`).join('')}<input type=\"hidden\" name=\"avaliacoes[${index}][Estrelas]\" value=\"0\"></div>
+            </div>
+            <div class=\"mb-2\">
+                <label class=\"form-label\">Texto</label>
+                <textarea class=\"form-control\" name=\"avaliacoes[${index}][Texto]\" rows=\"3\" required></textarea>
+            </div>
+        `;
+        container.appendChild(newCard);
+        updateAvaliacaoNumbers();
+        initStarRating(newCard.querySelector('.star-rating'));
+        initDragAndDrop();
+    }
+    function removeAvaliacao(button) {
+        if (confirm('Tem certeza que deseja remover esta avaliação?')) {
+            button.closest('.avaliacao-item').remove();
+            updateAvaliacaoNumbers();
+        }
+    }
+    function clearAllAvaliacoes() {
+        if (confirm('Tem certeza que deseja apagar todas as avaliações? Esta ação não pode ser desfeita.')) {
+            document.getElementById('avaliacoesContainer').innerHTML = '';
+        }
+    }
+    function updateAvaliacaoNumbers() {
+        const items = document.querySelectorAll('.avaliacao-item');
+        items.forEach((item, index) => {
+            item.querySelector('h4').textContent = `Avaliação ${index + 1}`;
+            const nome = item.querySelector('input[type="text"]');
+            const estrelas = item.querySelector('input[type="hidden"]');
+            const texto = item.querySelector('textarea');
+            if (nome) nome.setAttribute('name', `avaliacoes[${index}][Nome]`);
+            if (estrelas) estrelas.setAttribute('name', `avaliacoes[${index}][Estrelas]`);
+            if (texto) texto.setAttribute('name', `avaliacoes[${index}][Texto]`);
+            const starDiv = item.querySelector('.star-rating');
+            if (starDiv) starDiv.setAttribute('data-index', index);
+            if (starDiv) initStarRating(starDiv); // Re-inicializa o rating ao reordenar
+        });
+    }
+    function initStarRating(container) {
+        if (!container) return;
+        const stars = container.querySelectorAll('.star-select');
+        const hiddenInput = container.querySelector('input[type="hidden"]');
+        // Inicializa visual
+        let currentValue = parseInt(hiddenInput.value) || 0;
+        stars.forEach((s, i) => {
+            if (i < currentValue) s.classList.add('checked');
+            else s.classList.remove('checked');
+        });
+        // Clique para selecionar
+        stars.forEach(star => {
+            star.onclick = function() {
+                const value = parseInt(this.getAttribute('data-value'));
+                hiddenInput.value = value;
+                stars.forEach((s, i) => {
+                    if (i < value) s.classList.add('checked');
+                    else s.classList.remove('checked');
+                });
+            };
+        });
+    }
+    // Inicializar rating em todos os cartões ao carregar
+    setTimeout(function() {
+        document.querySelectorAll('.star-rating').forEach(initStarRating);
+    }, 100);
+    // Drag and drop para reordenar avaliações
+    function initDragAndDrop() {
+        const container = document.getElementById('avaliacoesContainer');
+        let dragSrcEl = null;
+        container.querySelectorAll('.avaliacao-item').forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                dragSrcEl = this;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', this.outerHTML);
+                this.classList.add('dragElem');
+            });
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('over');
+            });
+            item.addEventListener('dragleave', function(e) {
+                this.classList.remove('over');
+            });
+            item.addEventListener('drop', function(e) {
+                e.stopPropagation();
+                if (dragSrcEl !== this) {
+                    this.parentNode.removeChild(dragSrcEl);
+                    this.insertAdjacentHTML('beforebegin', e.dataTransfer.getData('text/html'));
+                    updateAvaliacaoNumbers();
+                    document.querySelectorAll('.star-rating').forEach(initStarRating);
+                    initDragAndDrop();
+                }
+                this.classList.remove('over');
+                return false;
+            });
+            item.addEventListener('dragend', function(e) {
+                this.classList.remove('dragElem');
+                document.querySelectorAll('.avaliacao-item').forEach(i => i.classList.remove('over'));
+            });
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        initDragAndDrop();
     });
 });
 </script>

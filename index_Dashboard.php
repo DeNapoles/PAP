@@ -1225,6 +1225,20 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.drop-zone').forEach(initializeDropZone);
     });
+
+    // Garante que o modal de renomear imagem esteja sempre oculto ao carregar a página
+    // Always hide the rename image modal on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('renameImageModal');
+        if (modalEl) {
+            modalEl.classList.remove('show');
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            var backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    });
 });
 </script>
 

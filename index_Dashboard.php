@@ -9,6 +9,18 @@ function getCapaData() {
     return $result->fetch_assoc();
 }
 
+// Função para buscar os dados da tabela LigacoesRapidasInicio
+function getLigacoesRapidasData() {
+    global $conn;
+    $sql = "SELECT * FROM LigacoesRapidasInicio ORDER BY id";
+    $result = $conn->query($sql);
+    $ligacoes = array();
+    while($row = $result->fetch_assoc()) {
+        $ligacoes[] = $row;
+    }
+    return $ligacoes;
+}
+
 // Função para atualizar os dados
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
     $logoSeparador = $_POST['LogoSeparador'];
@@ -45,6 +57,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
         $updateType = "success";
     } else {
         $updateMessage = "Erro ao atualizar dados: " . $conn->error;
+        $updateType = "danger";
+    }
+}
+
+// Processar atualização das ligações rápidas
+if (isset($_POST['update_links'])) {
+    try {
+        // Limpar a tabela atual
+        $stmt = $conn->prepare("TRUNCATE TABLE LigacoesRapidasInicio");
+        $stmt->execute();
+
+        // Inserir as novas ligações
+        if (isset($_POST['links']) && is_array($_POST['links'])) {
+            $stmt = $conn->prepare("INSERT INTO LigacoesRapidasInicio (Nome, Link, Imagem, Largura, Altura) VALUES (?, ?, ?, ?, ?)");
+            
+            foreach ($_POST['links'] as $link) {
+                $largura = !empty($link['Largura']) ? $link['Largura'] : null;
+                $altura = !empty($link['Altura']) ? $link['Altura'] : null;
+                
+                $stmt->execute([
+                    $link['Nome'],
+                    $link['Link'],
+                    $link['Imagem'],
+                    $largura,
+                    $altura
+                ]);
+            }
+        }
+
+        $updateMessage = "Ligações rápidas atualizadas com sucesso!";
+        $updateType = "success";
+    } catch (PDOException $e) {
+        $updateMessage = "Erro ao atualizar ligações rápidas: " . $e->getMessage();
         $updateType = "danger";
     }
 }
@@ -137,19 +182,178 @@ $capaData = getCapaData();
     }
 
     .drop-zone {
-        border: 2px dashed #ccc;
-        border-radius: 4px;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
         padding: 20px;
         text-align: center;
-        background-color: #f8f9fa;
         cursor: pointer;
-        margin-top: 10px;
-        transition: border-color 0.3s ease;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
     }
 
-    .drop-zone:hover, .drop-zone.dragover {
-        border-color: #007bff;
+    .drop-zone:hover {
+        border-color: #0d6efd;
         background-color: #e9ecef;
+    }
+
+    .drop-zone.dragover {
+        border-color: #198754;
+        background-color: #d1e7dd;
+    }
+
+    .drop-zone i {
+        font-size: 24px;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .image-preview {
+        text-align: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 4px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+    }
+
+    .btn-success {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .btn-success:hover {
+        background-color: #157347;
+        border-color: #146c43;
+    }
+
+    /* Estilos para a seção de ligações rápidas */
+    .link-item {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        padding: 18px 18px 12px 18px;
+        margin: 0;
+        min-width: 270px;
+        max-width: 340px;
+        flex: 1 1 270px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s;
+    }
+
+    .link-item:hover {
+        box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+    }
+
+    .link-item .remove-link-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #dc3545;
+        border: none;
+        color: #fff;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        opacity: 0.85;
+        transition: background 0.2s, opacity 0.2s;
+        z-index: 2;
+    }
+
+    .link-item .remove-link-btn:hover {
+        background: #b02a37;
+        opacity: 1;
+    }
+
+    .link-item h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        margin-top: 0;
+        color: #0d6efd;
+        padding-right: 36px;
+    }
+
+    @media (max-width: 900px) {
+        #linksContainer {
+            flex-direction: column;
+            gap: 18px;
+        }
+        .link-item {
+            max-width: 100%;
+            min-width: 0;
+        }
+    }
+
+    .link-item .row.g-2 .form-control[type="number"] {
+        max-width: 90px;
+        min-width: 60px;
+        width: 100%;
+        display: inline-block;
+    }
+    .link-item .row.g-2 {
+        justify-content: flex-start;
+        gap: 0;
+    }
+    @media (max-width: 600px) {
+        .link-item .row.g-2 .form-control[type="number"] {
+            max-width: 100%;
+        }
     }
   </style>
 </head>
@@ -191,11 +395,15 @@ $capaData = getCapaData();
                       </span>
                   </a>
                   <ul class="cat-sub-menu">
-                    <li>
-                      <a href="javascript:void(0);" data-section="inicio">Início</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('inicio-section')">
+                            <i class="fas fa-home"></i> Início
+                        </a>
                     </li>
-                    <li>
-                        <a href="javascript:void(0);" data-section="links">Ligações rápidas</a>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showSection('links-section')">
+                            <i class="fas fa-link"></i> Ligações Rápidas
+                        </a>
                     </li>
                     <li>
                       <a href="javascript:void(0);" data-section="sobre">Sobre nós</a>
@@ -383,7 +591,25 @@ $capaData = getCapaData();
     <!-- ============================================ Start Main Content ============================================ -->
     <main class="main users chart-page" id="skip-target">
         <div class="container">
-            <!-- Seção de Início -->
+            <!-- Mensagem de Boas-vindas (visível por padrão) -->
+            <div id="welcome-section" class="content-section">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Bem-vindo ao Painel de Controlo</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>Selecione uma opção no menu "Página Principal" para começar a editar o conteúdo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Início (escondida por padrão) -->
             <div id="inicio-section" class="content-section" style="display: none;">
                 <div class="container-fluid">
                     <div class="row">
@@ -482,6 +708,99 @@ $capaData = getCapaData();
                 </div>
             </div>
 
+            <!-- Seção de Ligações Rápidas (escondida por padrão) -->
+            <div id="links-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0">Editar Ligações Rápidas</h3>
+                                    <div>
+                                        <button type="button" class="btn btn-success me-2" onclick="addNewLink()">
+                                            <i class="fas fa-plus"></i> Nova Ligação
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="clearAllLinks()">
+                                            <i class="fas fa-trash"></i> Apagar Tudo
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <form method="POST" id="linksForm">
+                                        <div id="linksContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
+                                            <?php 
+                                            $ligacoesRapidas = getLigacoesRapidasData();
+                                            foreach ($ligacoesRapidas as $index => $ligacao): 
+                                            ?>
+                                            <div class="link-item">
+                                                <button type="button" class="remove-link-btn" onclick="removeLink(this)" title="Remover ligação">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                <h4 class="mb-2">Ligação <?php echo $index + 1; ?></h4>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Nome</label>
+                                                    <input type="text" class="form-control" name="links[<?php echo $index; ?>][Nome]" 
+                                                           value="<?php echo htmlspecialchars($ligacao['Nome']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Link</label>
+                                                    <input type="url" class="form-control" name="links[<?php echo $index; ?>][Link]" 
+                                                           value="<?php echo htmlspecialchars($ligacao['Link']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Imagem</label>
+                                                    <div class="image-upload-container">
+                                                        <input type="text" class="form-control mb-2" name="links[<?php echo $index; ?>][Imagem]" 
+                                                               value="<?php echo htmlspecialchars($ligacao['Imagem']); ?>" required>
+                                                        <div class="image-preview mb-2">
+                                                            <img src="<?php echo htmlspecialchars($ligacao['Imagem']); ?>" alt="Preview" 
+                                                                 value="<?php echo htmlspecialchars($ligacao['Imagem']); ?>"
+                                                                 onerror="this.style.display='none'" style="max-width: 100px; max-height: 100px;">
+                                                        </div>
+                                                        <div class="drop-zone" data-target="link_<?php echo $index; ?>">
+                                                            <i class="fas fa-cloud-upload-alt mb-2"></i>
+                                                            <p class="mb-0">Arraste uma imagem aqui ou clique para selecionar</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-6 mb-2">
+                                                        <label class="form-label">Largura (px)</label>
+                                                        <input type="number" class="form-control" name="links[<?php echo $index; ?>][Largura]" 
+                                                               value="<?php echo htmlspecialchars($ligacao['Largura'] ?? ''); ?>"
+                                                               placeholder="Ex: 200">
+                                                    </div>
+                                                    <div class="col-6 mb-2">
+                                                        <label class="form-label">Altura (px)</label>
+                                                        <input type="number" class="form-control" name="links[<?php echo $index; ?>][Altura]" 
+                                                               value="<?php echo htmlspecialchars($ligacao['Altura'] ?? ''); ?>"
+                                                               placeholder="Ex: 200">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <button type="submit" name="update_links" class="btn btn-primary">
+                                                <i class="fas fa-save"></i> Salvar Alterações
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Outras seções serão adicionadas aqui -->
         </div>
     </main>
@@ -567,7 +886,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Mostra a seção selecionada
-        const selectedSection = document.getElementById(sectionId + '-section');
+        const selectedSection = document.getElementById(sectionId);
         if (selectedSection) {
             selectedSection.style.display = 'block';
             console.log('Seção mostrada:', sectionId);
@@ -577,17 +896,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Adiciona event listeners aos links do menu
-    document.querySelectorAll('a[data-section]').forEach(link => {
+    document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const sectionId = this.getAttribute('data-section');
+            const sectionId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
             showSection(sectionId);
             console.log('Link clicado:', sectionId);
         });
     });
 
-    // Mostra a seção "inicio" por padrão
-    showSection('inicio');
+    // Mostra a seção de boas-vindas por padrão
+    showSection('welcome-section');
 
     // Função para atualizar preview da imagem
     function updateImagePreview(inputId) {
@@ -753,6 +1072,159 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+
+    // Funções para gerenciar ligações rápidas
+    function addNewLink() {
+        const container = document.getElementById('linksContainer');
+        const index = container.children.length;
+        
+        const newLink = document.createElement('div');
+        newLink.className = 'link-item mb-4 p-3 border rounded';
+        newLink.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Ligação ${index + 1}</h4>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeLink(this)">Remover</button>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Nome</label>
+                <input type="text" class="form-control" name="links[${index}][Nome]" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Link</label>
+                <input type="url" class="form-control" name="links[${index}][Link]" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Imagem</label>
+                <div class="image-upload-container">
+                    <input type="text" class="form-control" name="links[${index}][Imagem]" required>
+                    <div class="image-preview">
+                        <img src="" alt="Preview" style="display: none; max-width: 100px; max-height: 100px;">
+                    </div>
+                    <div class="drop-zone" data-target="link_${index}">
+                        Arraste uma imagem aqui ou clique para selecionar
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Largura (px)</label>
+                        <input type="number" class="form-control" name="links[${index}][Largura]">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Altura (px)</label>
+                        <input type="number" class="form-control" name="links[${index}][Altura]">
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(newLink);
+        initializeDropZone(newLink.querySelector('.drop-zone'));
+    }
+
+    function removeLink(button) {
+        if (confirm('Tem certeza que deseja remover esta ligação?')) {
+            button.closest('.link-item').remove();
+            updateLinkNumbers();
+        }
+    }
+
+    function updateLinkNumbers() {
+        const items = document.querySelectorAll('.link-item');
+        items.forEach((item, index) => {
+            item.querySelector('h4').textContent = `Ligação ${index + 1}`;
+            const inputs = item.querySelectorAll('input');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                }
+            });
+            const dropZone = item.querySelector('.drop-zone');
+            if (dropZone) {
+                dropZone.setAttribute('data-target', `link_${index}`);
+            }
+        });
+    }
+
+    function clearAllLinks() {
+        if (confirm('Tem certeza que deseja apagar todas as ligações? Esta ação não pode ser desfeita.')) {
+            document.getElementById('linksContainer').innerHTML = '';
+        }
+    }
+
+    // Inicializar drop zones para upload de imagens
+    function initializeDropZone(dropZone) {
+        const input = dropZone.previousElementSibling.previousElementSibling;
+        const preview = dropZone.previousElementSibling.querySelector('img');
+
+        dropZone.addEventListener('click', () => {
+            input.click();
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageUpload(file, input, preview);
+            }
+        });
+
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageUpload(file, input, preview);
+            }
+        });
+    }
+
+    function handleImageUpload(file, input, preview) {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('target', input.getAttribute('name').match(/\[(\d+)\]/)[1]);
+
+        fetch('upload_image.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                input.value = data.url;
+                preview.src = data.url;
+                preview.style.display = 'block';
+            } else {
+                alert('Erro ao fazer upload da imagem: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao fazer upload da imagem');
+        });
+    }
+
+    // Inicializar drop zones existentes
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.drop-zone').forEach(initializeDropZone);
+    });
 });
 </script>
 

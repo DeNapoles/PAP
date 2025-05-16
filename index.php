@@ -334,7 +334,7 @@ require_once 'functions.php';
 	<button onclick="topFunction()" id="backToTopBtn" title="Voltar ao topo">⬆</button>
 
 	<!--  ------------------------------------------ End AVISO LARANJA Area ------------------------------------------ -->
-
+	<!-- comentário -->
 	<!-- ------------------------------------------ start FOOTER Area ------------------------------------------ -->
 	<footer class="footer-area section-gap">
 		<div class="container">

@@ -89,10 +89,15 @@ $total_pages = ceil($total_posts / $posts_per_page);
                         </li>
                         <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo $separador['link']; ?>"
-                                <?php echo ($separador['separador'] === 'Login') ? 'data-bs-toggle="modal" data-bs-target="#loginModal"' : ''; ?>>
+                            <?php if ($separador['separador'] === 'Login'): ?>
+                                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal" style="cursor: pointer;">
+                                    <?php echo $separador['separador']; ?>
+                                </a>
+                            <?php else: ?>
+                                <a class="nav-link" href="<?php echo $separador['link']; ?>">
                                 <?php echo $separador['separador']; ?>
                             </a>
+                            <?php endif; ?>
                         </li>
                         <?php endif; ?>
                         <?php endforeach; ?>
@@ -487,13 +492,80 @@ $total_pages = ceil($total_posts / $posts_per_page);
         </div>
     </footer>
 
+    <!-- ----------------------------------- Modal de Login ----------------------------------- -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="loginModalLabel">Iniciar Sessão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" id="loginError" style="display: none;"></div>
+                    <form id="loginForm">
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                            <label for="email" class="fw-bold">Email</label>
+                        </div>
+                        <div class="form-floating mb-3" id="login-password-container" style="position: relative;">
+                            <input type="password" class="form-control" id="password" placeholder="Password" required>
+                            <label for="password" class="fw-bold">Palavra-passe</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Entrar</button>
+                    </form>
+                    <hr>
+                    <button id="google-login-b" class="btn btn-danger w-100 fw-bold">
+                        <i class="fa fa-google me-2"></i> Entrar com o Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- ----------------------------------- Modal de Registo ----------------------------------- -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="registerModalLabel">Criar conta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" id="registerError" style="display: none;"></div>
+                    <div class="alert alert-success" id="registerSuccess" style="display: none;"></div>
+                    <form id="registerForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="reg_nome" placeholder="Nome" required>
+                            <label for="reg_nome" class="fw-bold">Nome</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control" id="reg_email" placeholder="Email" required>
+                            <label for="reg_email" class="fw-bold">Email</label>
+                        </div>
+                        <div class="form-floating mb-3" id="register-password-container" style="position: relative;">
+                            <input type="password" class="form-control" id="reg_password" placeholder="Palavra-passe" required>
+                            <label for="reg_password" class="fw-bold">Palavra-passe</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <select class="form-select" id="reg_tipo" required>
+                                <option value="">Selecione o tipo de utilizador</option>
+                                <option value="Aluno">Aluno</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Encarregado de Educação">Encarregado de Educação</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                            <label for="reg_tipo" class="fw-bold">Tipo de Utilizador</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Registar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="js/vendor/jquery-2.2.4.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous">
-    </script>
-    <script src="js/vendor/bootstrap.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhOdIF3Y9382fqJYt5I_sswSrEw5eihAA"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/easing.min.js"></script>
     <script src="js/hoverIntent.js"></script>
     <script src="js/superfish.min.js"></script>
@@ -505,6 +577,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
     <script src="js/mail-script.js"></script>
     <script src="js/main.js"></script>
     <script src="js/extra.js"></script>
+    <script src="js/google-login.js" type="module"></script>
 </body>
 
 </html>

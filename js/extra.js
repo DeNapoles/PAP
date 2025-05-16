@@ -201,6 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Login
+  // teste
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     loginForm.addEventListener("submit", async e => {

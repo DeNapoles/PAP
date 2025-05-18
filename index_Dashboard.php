@@ -37,6 +37,14 @@ function getSobreNosData() {
     return $result->fetch_assoc();
 }
 
+// Função para buscar os dados da tabela AvisolaranjaInicio
+function getAvisolaranjaInicio() {
+    global $conn;
+    $sql = "SELECT * FROM AvisolaranjaInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
 // Função para atualizar os dados
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
     $logoSeparador = $_POST['LogoSeparador'];
@@ -172,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
 $capaData = getCapaData();
 $sobreNos = getSobreNosData();
 $ctaInicio = getCTAInicioData();
+$avisoData = getAvisolaranjaInicio();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -503,7 +512,9 @@ $ctaInicio = getCTAInicioData();
                       </a>
                     </li>
                     <li>
-                      <a href="javascript:void(0);" data-section="aviso">Aviso</a>
+                      <a class="nav-link" href="#" onclick="showSection('aviso-section')">
+                          <i class="fas fa-exclamation-circle"></i> Aviso
+                      </a>
                     </li>
                   </ul>
               </li>
@@ -1199,6 +1210,86 @@ $ctaInicio = getCTAInicioData();
                 </div>
             </div>
 
+            <!-- Seção Aviso (escondida por padrão) -->
+            <div id="aviso-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Editar Conteúdo do Aviso</h3>
+                                </div>
+                                <div class="card-body">
+                                    <?php 
+                                    // Processamento do formulário do Aviso
+                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
+                                        $texto = $_POST['texto'];
+                                        $textobtn = $_POST['textobtn'];
+                                        $link = $_POST['link'];
+
+                                        $sql = "UPDATE AvisolaranjaInicio SET 
+                                                texto = ?,
+                                                textobtn = ?,
+                                                link = ?
+                                                WHERE id = 1";
+
+                                        $stmt = $conn->prepare($sql);
+                                        $stmt->bind_param("sss", $texto, $textobtn, $link);
+
+                                        if ($stmt->execute()) {
+                                            $updateMessage = "Aviso atualizado com sucesso!";
+                                            $updateType = "success";
+                                            // Atualiza os dados após o update
+                                            $avisoData = getAvisolaranjaInicio();
+                                        } else {
+                                            $updateMessage = "Erro ao atualizar aviso: " . $conn->error;
+                                            $updateType = "danger";
+                                        }
+                                    }
+                                    ?>
+
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <form method="POST" id="avisoForm">
+                                        <div class="text-input-container">
+                                            <div class="form-group">
+                                                <label for="texto" class="form-label">Texto do Aviso</label>
+                                                <textarea class="form-control" id="texto" name="texto" rows="4" 
+                                                          placeholder="Digite o texto do aviso..."><?php echo isset($avisoData['texto']) ? htmlspecialchars($avisoData['texto']) : ''; ?></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="textobtn" class="form-label">Texto do Botão</label>
+                                                <input type="text" class="form-control" id="textobtn" name="textobtn" 
+                                                       value="<?php echo isset($avisoData['textobtn']) ? htmlspecialchars($avisoData['textobtn']) : ''; ?>"
+                                                       placeholder="Digite o texto do botão...">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="link" class="form-label">Link do Botão</label>
+                                                <input type="text" class="form-control" id="link" name="link" 
+                                                       value="<?php echo isset($avisoData['link']) ? htmlspecialchars($avisoData['link']) : ''; ?>"
+                                                       placeholder="Digite o link para onde o botão deve direcionar...">
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" name="update_aviso" class="btn btn-primary">Salvar Alterações</button>
+                                            <button type="button" class="btn btn-danger" onclick="clearAvisoFields()">Apagar tudo</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Outras seções serão adicionadas aqui -->
         </div>
     </main>
@@ -1849,6 +1940,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 dropZone.setAttribute('data-target', `faq_${index}`);
             }
         });
+    }
+
+    // Adicionar a função JavaScript para limpar os campos do formulário do Aviso
+    function clearAvisoFields() {
+        if (confirm('Tem certeza que deseja apagar todos os campos?')) {
+            document.querySelectorAll('#avisoForm input[type="text"], #avisoForm textarea').forEach(input => {
+                input.value = '';
+            });
+        }
     }
 });
 </script>

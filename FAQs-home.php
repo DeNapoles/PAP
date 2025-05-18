@@ -564,8 +564,10 @@ $total_pages = ceil($total_posts / $posts_per_page);
     </div>
 
     <!-- Scripts -->
-    <script src="js/vendor/jquery-2.2.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/extra.js" type="module"></script>
+    <script src="js/google-login.js" type="module"></script>
+    <script src="js/vendor/jquery-2.2.4.min.js"></script>
     <script src="js/easing.min.js"></script>
     <script src="js/hoverIntent.js"></script>
     <script src="js/superfish.min.js"></script>
@@ -576,8 +578,6 @@ $total_pages = ceil($total_posts / $posts_per_page);
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/mail-script.js"></script>
     <script src="js/main.js"></script>
-    <script src="js/extra.js"></script>
-    <script src="js/google-login.js" type="module"></script>
 </body>
 
 </html>

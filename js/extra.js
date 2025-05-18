@@ -224,7 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.success) {
           localStorage.setItem('user', JSON.stringify(data.user));
           updateNavbarForLogin(data.user);
-          closeModal("loginModal");
+          closeLoginModal();
         } else {
           loginError.innerText = data.message;
           loginError.style.display = "block";
@@ -235,4 +235,41 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  // Garantia extra: sempre que o modal for fechado (por X, clique fora, ou JS), limpa overlays e scroll
+  const loginModal = document.getElementById('loginModal');
+  if (loginModal) {
+    loginModal.addEventListener('hidden.bs.modal', () => {
+      setTimeout(() => {
+        document.body.classList.remove('modal-open');
+        document.body.style = '';
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+      }, 100);
+    });
+  }
 });
+
+export function closeLoginModal() {
+  console.log('A fechar modal de login...');
+  const modalEl = document.getElementById('loginModal');
+  if (!modalEl) {
+    console.log('Modal não encontrado!');
+    return;
+  }
+  // ... resto da função ...
+
+  // Fallback manual
+  modalEl.classList.remove('show');
+  modalEl.style.display = 'none';
+  document.body.classList.remove('modal-open');
+  document.body.style = '';
+  const backdrop = document.querySelector('.modal-backdrop');
+  if (backdrop) backdrop.remove();
+
+  // Garantia extra: limpa tudo após 300ms (caso o Bootstrap não limpe)
+  setTimeout(() => {
+    document.body.classList.remove('modal-open');
+    document.body.style = '';
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+  }, 300);
+}

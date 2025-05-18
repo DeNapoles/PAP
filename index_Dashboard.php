@@ -498,7 +498,9 @@ $ctaInicio = getCTAInicioData();
                       </a>
                     </li>
                     <li>
-                      <a href="javascript:void(0);" data-section="faqs">Main FAQ's</a>
+                      <a class="nav-link" href="#" onclick="showSection('faqs-section')">
+                          <i class="fas fa-question-circle"></i> Main FAQ's
+                      </a>
                     </li>
                     <li>
                       <a href="javascript:void(0);" data-section="aviso">Aviso</a>
@@ -1100,6 +1102,103 @@ $ctaInicio = getCTAInicioData();
                 </div>
             </div>
 
+            <!-- Seção Main FAQ's (escondida por padrão) -->
+            <div id="faqs-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title mb-0">Editar Main FAQ's</h3>
+                                    <div>
+                                        <button type="button" class="btn btn-success me-2" onclick="addNewFaq()">
+                                            <i class="fas fa-plus"></i> Nova FAQ
+                                        </button>
+                                        <button type="button" class="btn btn-danger" onclick="clearAllFaqs()">
+                                            <i class="fas fa-trash"></i> Apagar Tudo
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <?php 
+                                    // Processamento do formulário de FAQs
+                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_faqs'])) {
+                                        $faqs = $_POST['faqs'] ?? [];
+                                        // Limpa a tabela
+                                        $conn->query("TRUNCATE TABLE FaqPrevisualizacaoInicio");
+                                        // Insere as FAQs na nova ordem
+                                        $stmt = $conn->prepare("INSERT INTO FaqPrevisualizacaoInicio (titulofaq, textofaq, Link, imagemfaq) VALUES (?, ?, ?, ?)");
+                                        foreach ($faqs as $faq) {
+                                            $titulo = $faq['titulofaq'] ?? '';
+                                            $texto = $faq['textofaq'] ?? '';
+                                            $link = $faq['Link'] ?? '';
+                                            $imagem = $faq['imagemfaq'] ?? '';
+                                            $stmt->bind_param("ssss", $titulo, $texto, $link, $imagem);
+                                            $stmt->execute();
+                                        }
+                                        $updateMessage = "FAQs atualizadas com sucesso!";
+                                        $updateType = "success";
+                                    }
+                                    $faqsData = [];
+                                    $result = $conn->query("SELECT * FROM FaqPrevisualizacaoInicio ORDER BY id");
+                                    while($row = $result->fetch_assoc()) {
+                                        $faqsData[] = $row;
+                                    }
+                                    ?>
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+                                    <form method="POST" id="faqsForm">
+                                        <div id="faqsContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
+                                            <?php foreach ($faqsData as $index => $faq): ?>
+                                            <div class="faq-item" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
+                                                <button type="button" class="remove-link-btn" onclick="removeFaq(this)" title="Remover FAQ" style="position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;"><i class="fas fa-trash"></i></button>
+                                                <h4 class="mb-2" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;">FAQ <?php echo $index + 1; ?></h4>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Título</label>
+                                                    <input type="text" class="form-control" name="faqs[<?php echo $index; ?>][titulofaq]" value="<?php echo htmlspecialchars($faq['titulofaq']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Texto</label>
+                                                    <textarea class="form-control" name="faqs[<?php echo $index; ?>][textofaq]" rows="3" required><?php echo htmlspecialchars($faq['textofaq']); ?></textarea>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Link</label>
+                                                    <input type="text" class="form-control" name="faqs[<?php echo $index; ?>][Link]" value="<?php echo htmlspecialchars($faq['Link']); ?>" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Imagem</label>
+                                                    <div class="image-upload-container">
+                                                        <input type="text" class="form-control mb-2" name="faqs[<?php echo $index; ?>][imagemfaq]" value="<?php echo htmlspecialchars($faq['imagemfaq']); ?>" required>
+                                                        <div class="image-preview mb-2">
+                                                            <img src="<?php echo htmlspecialchars($faq['imagemfaq']); ?>" alt="Preview" 
+                                                                 onerror="this.style.display='none'" style="max-width: 100px; max-height: 100px;">
+                                                        </div>
+                                                        <div class="drop-zone" data-target="faq_<?php echo $index; ?>">
+                                                            <i class="fas fa-cloud-upload-alt mb-2"></i>
+                                                            <p class="mb-0">Arraste uma imagem aqui ou clique para selecionar</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <button type="submit" name="update_faqs" class="btn btn-primary">
+                                                <i class="fas fa-save"></i> Salvar Alterações
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Outras seções serão adicionadas aqui -->
         </div>
     </main>
@@ -1679,6 +1778,78 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', function() {
         initDragAndDrop();
     });
+
+    // Funções para gerenciar FAQs
+    function addNewFaq() {
+        const container = document.getElementById('faqsContainer');
+        const index = container.children.length;
+        const newCard = document.createElement('div');
+        newCard.className = 'faq-item';
+        newCard.style = 'background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;';
+        newCard.innerHTML = `
+            <button type="button" class="remove-link-btn" onclick="removeFaq(this)" title="Remover FAQ" style="position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;"><i class="fas fa-trash"></i></button>
+            <h4 class="mb-2" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;">FAQ ${index + 1}</h4>
+            <div class="mb-2">
+                <label class="form-label">Título</label>
+                <input type="text" class="form-control" name="faqs[${index}][titulofaq]" required>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Texto</label>
+                <textarea class="form-control" name="faqs[${index}][textofaq]" rows="3" required></textarea>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Link</label>
+                <input type="text" class="form-control" name="faqs[${index}][Link]" required>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Imagem</label>
+                <div class="image-upload-container">
+                    <input type="text" class="form-control mb-2" name="faqs[${index}][imagemfaq]" required>
+                    <div class="image-preview mb-2">
+                        <img src="" alt="Preview" style="display: none; max-width: 100px; max-height: 100px;">
+                    </div>
+                    <div class="drop-zone" data-target="faq_${index}">
+                        <i class="fas fa-cloud-upload-alt mb-2"></i>
+                        <p class="mb-0">Arraste uma imagem aqui ou clique para selecionar</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(newCard);
+        updateFaqNumbers();
+        initDragAndDrop();
+    }
+
+    function removeFaq(button) {
+        if (confirm('Tem certeza que deseja remover esta FAQ?')) {
+            button.closest('.faq-item').remove();
+            updateFaqNumbers();
+        }
+    }
+
+    function clearAllFaqs() {
+        if (confirm('Tem certeza que deseja apagar todas as FAQs? Esta ação não pode ser desfeita.')) {
+            document.getElementById('faqsContainer').innerHTML = '';
+        }
+    }
+
+    function updateFaqNumbers() {
+        const items = document.querySelectorAll('.faq-item');
+        items.forEach((item, index) => {
+            item.querySelector('h4').textContent = `FAQ ${index + 1}`;
+            const inputs = item.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                }
+            });
+            const dropZone = item.querySelector('.drop-zone');
+            if (dropZone) {
+                dropZone.setAttribute('data-target', `faq_${index}`);
+            }
+        });
+    }
 });
 </script>
 

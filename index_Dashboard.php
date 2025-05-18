@@ -9,6 +9,14 @@ function getCapaData() {
     return $result->fetch_assoc();
 }
 
+// Função para buscar os dados da tabela CTAInicio
+function getCTAInicioData() {
+    global $conn;
+    $sql = "SELECT * FROM CTAInicio LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
 // Função para buscar os dados da tabela LigacoesRapidasInicio
 function getLigacoesRapidasData() {
     global $conn;
@@ -102,6 +110,37 @@ if (isset($_POST['update_links'])) {
     }
 }
 
+// Processar atualização do Login Rápido
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
+    $titulo = $_POST['Titulo'];
+    $texto = $_POST['texto'];
+    $btntext = $_POST['btntext'];
+    $fundo = $_POST['fundo'];
+
+    $sql = "UPDATE CTAInicio SET 
+            Titulo = ?,
+            texto = ?,
+            btntext = ?,
+            fundo = ?
+            WHERE id = 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", 
+        $titulo,
+        $texto,
+        $btntext,
+        $fundo
+    );
+
+    if ($stmt->execute()) {
+        $updateMessage = "Dados do Login Rápido atualizados com sucesso!";
+        $updateType = "success";
+    } else {
+        $updateMessage = "Erro ao atualizar dados do Login Rápido: " . $conn->error;
+        $updateType = "danger";
+    }
+}
+
 // Adicionar o processamento do formulário Sobre Nós
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
     $texto1 = $_POST['Texto1'];
@@ -132,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
 
 $capaData = getCapaData();
 $sobreNos = getSobreNosData();
+$ctaInicio = getCTAInicioData();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -453,7 +493,9 @@ $sobreNos = getSobreNosData();
                         </a>
                     </li>
                     <li>
-                      <a href="javascript:void(0);" data-section="login">Login rápido</a>
+                      <a class="nav-link" href="#" onclick="showSection('login-section')">
+                          <i class="fas fa-sign-in-alt"></i> Login Rápido
+                      </a>
                     </li>
                     <li>
                       <a href="javascript:void(0);" data-section="faqs">Main FAQ's</a>
@@ -960,12 +1002,15 @@ $sobreNos = getSobreNosData();
                                                     <input type="text" class="form-control" name="avaliacoes[<?php echo $index; ?>][Nome]" value="<?php echo htmlspecialchars($avaliacao['Nome']); ?>" required>
                                                 </div>
                                                 <div class="mb-2">
-                                                    <label class="form-label">Estrelas</label>
-                                                    <div class="star-rating d-flex align-items-center gap-1 py-1" data-index="<?php echo $index; ?>">
-                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                            <span class="fa fa-star star-select <?php echo ($i <= $avaliacao['Estrelas']) ? 'checked' : ''; ?>" data-value="<?php echo $i; ?>" style="font-size: 1.5rem; cursor:pointer;"></span>
-                                                        <?php endfor; ?>
-                                                        <input type="hidden" name="avaliacoes[<?php echo $index; ?>][Estrelas]" value="<?php echo $avaliacao['Estrelas']; ?>">
+                                                    <label class="form-label">Avaliação</label>
+                                                    <div class="star-rating" data-rating="<?php echo htmlspecialchars($avaliacao['Estrelas']); ?>">
+                                                        <span class="star" data-value="1">★</span>
+                                                        <span class="star" data-value="2">★</span>
+                                                        <span class="star" data-value="3">★</span>
+                                                        <span class="star" data-value="4">★</span>
+                                                        <span class="star" data-value="5">★</span>
+                                                        <span class="rating-value"><?php echo htmlspecialchars($avaliacao['Estrelas']); ?>/5</span>
+                                                        <input type="hidden" name="avaliacoes[<?php echo $index; ?>][Estrelas]" value="<?php echo htmlspecialchars($avaliacao['Estrelas']); ?>">
                                                     </div>
                                                 </div>
                                                 <div class="mb-2">
@@ -979,6 +1024,73 @@ $sobreNos = getSobreNosData();
                                             <button type="submit" name="update_avaliacoes" class="btn btn-primary">
                                                 <i class="fas fa-save"></i> Salvar Alterações
                                             </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Login Rápido (escondida por padrão) -->
+            <div id="login-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Editar Conteúdo do Login Rápido</h3>
+                                </div>
+                                <div class="card-body">
+                                    <?php if (isset($updateMessage)): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <form method="POST" id="loginForm">
+                                        <div class="text-input-container">
+                                            <div class="form-group">
+                                                <label for="Titulo" class="form-label">Título</label>
+                                                <input type="text" class="form-control" id="Titulo" name="Titulo" 
+                                                       value="<?php echo htmlspecialchars($ctaInicio['Titulo']); ?>"
+                                                       placeholder="Digite o título...">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="texto" class="form-label">Texto</label>
+                                                <textarea class="form-control" id="texto" name="texto" rows="4" 
+                                                          placeholder="Digite o texto..."><?php echo htmlspecialchars($ctaInicio['texto']); ?></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="btntext" class="form-label">Texto do Botão</label>
+                                                <input type="text" class="form-control" id="btntext" name="btntext" 
+                                                       value="<?php echo htmlspecialchars($ctaInicio['btntext']); ?>"
+                                                       placeholder="Digite o texto do botão...">
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="fundo" class="form-label">Imagem de Fundo</label>
+                                            <div class="image-upload-container">
+                                                <input type="text" class="form-control" id="fundo" name="fundo" 
+                                                       value="<?php echo htmlspecialchars($ctaInicio['fundo']); ?>">
+                                                <div class="image-preview" id="fundoPreview">
+                                                    <img src="<?php echo htmlspecialchars($ctaInicio['fundo']); ?>" alt="Fundo Preview" 
+                                                         onerror="this.style.display='none'" style="max-width: 200px; max-height: 150px;">
+                                                </div>
+                                                <div class="drop-zone" data-target="fundo">
+                                                    Arraste uma imagem aqui ou clique para selecionar
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <button type="submit" name="update_login" class="btn btn-primary">Salvar Alterações</button>
+                                            <button type="button" class="btn btn-danger" onclick="clearLoginFields()">Apagar tudo</button>
                                         </div>
                                     </form>
                                 </div>
@@ -1450,19 +1562,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newCard.innerHTML = `
             <button type=\"button\" class=\"remove-link-btn\" onclick=\"removeAvaliacao(this)\" title=\"Remover avaliação\" style=\"position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;\"><i class='fas fa-trash'></i></button>
             <h4 class=\"mb-2\" style=\"font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;\">Avaliação ${index + 1}</h4>
-            <div class=\"mb-2\">
-                <label class=\"form-label\">Nome</label>
-                <input type=\"text\" class=\"form-control\" name=\"avaliacoes[${index}][Nome]\" required>
-            </div>
-            <div class=\"mb-2\">
-                <label class=\"form-label\">Estrelas</label>
-                <div class=\"star-rating d-flex align-items-center gap-1 py-1\" data-index=\"${index}\">${[1,2,3,4,5].map(i => `<span class='fa fa-star star-select' data-value='${i}' style='font-size:1.5rem;cursor:pointer;'></span>`).join('')}<input type=\"hidden\" name=\"avaliacoes[${index}][Estrelas]\" value=\"0\"></div>
-            </div>
-            <div class=\"mb-2\">
-                <label class=\"form-label\">Texto</label>
-                <textarea class=\"form-control\" name=\"avaliacoes[${index}][Texto]\" rows=\"3\" required></textarea>
-            </div>
-        `;
+            <div class=\"mb-2\">\n        <label class=\"form-label\">Nome</label>\n        <input type=\"text\" class=\"form-control\" name=\"avaliacoes[${index}][Nome]\" required>\n    </div>\n    <div class=\"mb-2\">\n        <label class=\"form-label\">Avaliação</label>\n        <div class=\"star-rating\" data-rating=\"${avaliacao['Estrelas']}\">\n            <span class=\"star\" data-value=\"1\">★</span>\n            <span class=\"star\" data-value=\"2\">★</span>\n            <span class=\"star\" data-value=\"3\">★</span>\n            <span class=\"star\" data-value=\"4\">★</span>\n            <span class=\"star\" data-value=\"5\">★</span>\n            <span class=\"rating-value\">${avaliacao['Estrelas']}/5</span>\n            <input type=\"hidden\" name=\"avaliacoes[${index}][Estrelas]\" value=\"${avaliacao['Estrelas']}\">\n        </div>\n    </div>\n    <div class=\"mb-2\">\n        <label class=\"form-label\">Texto</label>\n        <textarea class=\"form-control\" name=\"avaliacoes[${index}][Texto]\" rows=\"3\" required>${avaliacao['Texto']}</textarea>\n    </div>\n`;
         container.appendChild(newCard);
         updateAvaliacaoNumbers();
         initStarRating(newCard.querySelector('.star-rating'));
@@ -1490,36 +1590,56 @@ document.addEventListener('DOMContentLoaded', function() {
             if (estrelas) estrelas.setAttribute('name', `avaliacoes[${index}][Estrelas]`);
             if (texto) texto.setAttribute('name', `avaliacoes[${index}][Texto]`);
             const starDiv = item.querySelector('.star-rating');
-            if (starDiv) starDiv.setAttribute('data-index', index);
+            if (starDiv) starDiv.setAttribute('data-rating', estrelas.value);
             if (starDiv) initStarRating(starDiv); // Re-inicializa o rating ao reordenar
         });
     }
     function initStarRating(container) {
         if (!container) return;
-        const stars = container.querySelectorAll('.star-select');
+        console.log('Inicializando estrelas para:', container);
+        const stars = container.querySelectorAll('.star');
         const hiddenInput = container.querySelector('input[type="hidden"]');
-        // Inicializa visual
         let currentValue = parseInt(hiddenInput.value) || 0;
-        stars.forEach((s, i) => {
-            if (i < currentValue) s.classList.add('checked');
-            else s.classList.remove('checked');
+
+        // Atualiza visual inicial
+        stars.forEach((star, index) => {
+            if (index < currentValue) {
+                star.classList.add('checked');
+            } else {
+                star.classList.remove('checked');
+            }
         });
+
         // Clique para selecionar
-        stars.forEach(star => {
+        stars.forEach((star, index) => {
             star.onclick = function() {
-                const value = parseInt(this.getAttribute('data-value'));
+                const value = index + 1;
                 hiddenInput.value = value;
+                currentValue = value;
                 stars.forEach((s, i) => {
                     if (i < value) s.classList.add('checked');
                     else s.classList.remove('checked');
                 });
             };
+            // Hover visual
+            star.onmouseover = function() {
+                stars.forEach((s, i) => {
+                    if (i <= index) s.classList.add('checked');
+                    else s.classList.remove('checked');
+                });
+            };
+            star.onmouseout = function() {
+                stars.forEach((s, i) => {
+                    if (i < currentValue) s.classList.add('checked');
+                    else s.classList.remove('checked');
+                });
+            };
         });
     }
+
     // Inicializar rating em todos os cartões ao carregar
-    setTimeout(function() {
-        document.querySelectorAll('.star-rating').forEach(initStarRating);
-    }, 100);
+    document.querySelectorAll('.star-rating').forEach(initStarRating);
+
     // Drag and drop para reordenar avaliações
     function initDragAndDrop() {
         const container = document.getElementById('avaliacoesContainer');

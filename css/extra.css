@@ -461,3 +461,37 @@ input[type="text"].form-control {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
 }
+
+/* Estilos para o sistema de avaliação com estrelas */
+.star-rating {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.star-rating .star {
+    color: rgba(221, 221, 221, 0.5); /* Estrela transparente quando não selecionada */
+    cursor: pointer;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+.star-rating .star:hover,
+.star-rating .star:hover ~ .star {
+    color: rgba(255, 215, 0, 0.7); /* Amarelo semi-transparente no hover */
+    transform: scale(1.1);
+}
+
+.star-rating .star.active {
+    color: #ffd700; /* Amarelo sólido quando selecionada */
+    text-shadow: 0 0 2px rgba(255, 215, 0, 0.3);
+}
+
+.star-rating .rating-value {
+    margin-left: 10px;
+    font-size: 16px;
+    color: #666;
+    font-weight: 500;
+}

@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -59,7 +59,7 @@ function updateNavbarForLogin(user) {
         logoutBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             try {
-                await auth.signOut();
+                await signOut(auth);
                 localStorage.removeItem('user');
                 localStorage.removeItem('loginOrigem');
                 location.reload();
@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('loginOrigem', 'google');
                 closeLoginModal();
                 updateNavbarForLogin(userData);
+                location.reload();
             })
             .catch((error) => {
                 console.error("Erro no login:", error.message);
@@ -188,6 +189,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 tipo: 'Google'
             };
             updateNavbarForLogin(userData);
+        }
+    });
+
+    // Adicionar evento de logout
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'logout-btn') {
+            e.preventDefault();
+            const auth = getAuth();
+            signOut(auth).then(() => {
+                localStorage.removeItem('user');
+                localStorage.removeItem('loginOrigem');
+                location.reload();
+            }).catch((error) => {
+                // Mesmo que dê erro, força a limpeza local
+                localStorage.removeItem('user');
+                localStorage.removeItem('loginOrigem');
+                location.reload();
+            });
         }
     });
 });

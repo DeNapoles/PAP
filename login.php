@@ -19,6 +19,8 @@ $result = $stmt->get_result();
 if ($user = $result->fetch_assoc()) {
     // Verifica a senha (simples, sem hash)
     if ($user['Senha'] === $senha) {
+        session_start();
+        $_SESSION['user_id'] = $user['ID_Utilizador'];
         echo json_encode([
             'success' => true,
             'message' => 'Login efetuado com sucesso!',

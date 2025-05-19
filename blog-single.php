@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once 'functions.php';
 require_once 'functions_posts.php';
 
@@ -16,15 +18,28 @@ if (!$post) {
     exit;
 }
 
+// Verificar se o utilizador está autenticado
+$user = null;
+if (isset($_SESSION['user_id'])) {
+    $user = $_SESSION['user_id'];
+} else {
+    // Verificar se há um utilizador no localStorage (login via Google)
+    $user = json_decode($_COOKIE['user'] ?? 'null', true);
+    if ($user) {
+        $user = $user['id'] ?? null;
+    }
+}
+
 // Processar comentário
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
-    $comentario = trim($_POST['comentario']);
-    $user_id = $_SESSION['user_id'] ?? null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
+    $comentario = trim($_POST['texto']);
+    $assunto = isset($_POST['assunto']) ? trim($_POST['assunto']) : '';
+    $comentario_pai_id = !empty($_POST['comentario_pai_id']) ? (int)$_POST['comentario_pai_id'] : null;
     
-    if (!empty($comentario) && $user_id) {
-        $sql = "INSERT INTO comentarios (post_id, utilizador_id, texto, data_criacao) VALUES (?, ?, ?, NOW())";
+    if (!empty($comentario) && $user) {
+        $sql = "INSERT INTO comentarios (post_id, utilizador_id, assunto, texto, comentario_pai_id, data_criacao) VALUES (?, ?, ?, ?, ?, NOW())";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iis", $id, $user_id, $comentario);
+        $stmt->bind_param("iissi", $id, $user, $assunto, $comentario, $comentario_pai_id);
         $stmt->execute();
         
         // Redirecionar para evitar reenvio do formulário
@@ -210,8 +225,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 							<div class="comments-area">
 								<h4><?php echo $post['num_comentarios']; ?> Comments</h4>
 								<?php
-								// Função para exibir comentários e suas respostas
-								function displayComments($post_id, $parent_id = null, $level = 0) {
+								// Definir a função aceitando $user
+								function displayComments($post_id, $parent_id = null, $level = 0, $user = null) {
 									global $conn;
 									
 									$sql = "SELECT c.*, u.Nome as autor_nome,
@@ -253,29 +268,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 												<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
 													<?php if ($comment['num_respostas'] > 0): ?>
 														<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="<?php echo $comment['id']; ?>">
-															Respostas
+															Ver Respostas
 														</button>
 													<?php endif; ?>
-													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
-														Responder
-													</button>
+													<?php if ($user): ?>
+														<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
+															Responder
+														</button>
+													<?php endif; ?>
 												</div>
 											</div>
 											<div class="replies-container" id="replies-<?php echo $comment['id']; ?>" style="display: none;">
-												<?php displayComments($post_id, $comment['id'], $level + 1); ?>
+												<?php displayComments($post_id, $comment['id'], $level + 1, $user); ?>
 											</div>
 										</div>
 										<?php
 									}
 								}
 								
-								// Exibir comentários principais
-								displayComments($id);
+								// Chamada inicial:
+								displayComments($id, null, 0, $user);
 								?>
 							</div>
 							
+							<?php if ($user): ?>
+							<div class="comment-form">
+								<h4>Deixar um Comentário</h4>
+								<div id="replyTo" style="display: none;" class="alert alert-info mb-3">
+									<strong>Respondendo a:</strong> <span id="replyToAuthor"></span>
+									<p class="mb-0"><small id="replyToText"></small></p>
+									<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
+								</div>
+								<form id="commentForm" method="POST">
+									<input type="hidden" name="post_id" value="<?php echo $id; ?>">
+									<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
+									<div class="form-group form-inline">
+										<div class="form-group col-lg-6 col-md-12 name">
+											<input type="text" class="form-control" name="assunto" placeholder="Assunto" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Assunto'">
+										</div>
+									</div>
+									<div class="form-group">
+										<textarea class="form-control mb-10" rows="5" name="texto" placeholder="Mensagem" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mensagem'" required></textarea>
+									</div>
+									<button type="submit" class="primary-btn text-uppercase">Publicar Comentário</button>
+								</form>
+							</div>
+							<?php else: ?>
+							<div class="comment-form">
+								<div class="alert alert-info">
+									<p>Por favor, <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">inicie sessão</a> para deixar um comentário.</p>
+								</div>
+							</div>
+							<?php endif; ?>
+
 							<script>
 							document.addEventListener('DOMContentLoaded', function() {
+								// Verificar estado de autenticação
+								function checkAuthState() {
+									const user = localStorage.getItem('user');
+									if (user) {
+										try {
+											const userData = JSON.parse(user);
+											// Atualizar UI para estado autenticado
+											document.querySelectorAll('.comment-form').forEach(form => {
+												if (form.querySelector('.alert-info')) {
+													form.innerHTML = `
+														<h4>Deixar um Comentário</h4>
+														<div id="replyTo" style="display: none;" class="alert alert-info mb-3">
+															<strong>Respondendo a:</strong> <span id="replyToAuthor"></span>
+															<p class="mb-0"><small id="replyToText"></small></p>
+															<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
+														</div>
+														<form id="commentForm" method="POST">
+															<input type="hidden" name="post_id" value="<?php echo $id; ?>">
+															<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
+															<div class="form-group form-inline">
+																<div class="form-group col-lg-6 col-md-12 name">
+																	<input type="text" class="form-control" name="assunto" placeholder="Assunto" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Assunto'">
+																</div>
+															</div>
+															<div class="form-group">
+																<textarea class="form-control mb-10" rows="5" name="texto" placeholder="Mensagem" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mensagem'" required></textarea>
+															</div>
+															<button type="submit" class="primary-btn text-uppercase">Publicar Comentário</button>
+														</form>
+													`;
+												}
+											});
+													
+													// Mostrar botões de resposta
+													document.querySelectorAll('.single-comment').forEach(comment => {
+														if (!comment.querySelector('.reply-buttons')) {
+															const replyButtons = document.createElement('div');
+															replyButtons.className = 'reply-buttons';
+															replyButtons.style.cssText = 'min-width: 120px; margin-left: 15px;';
+															replyButtons.innerHTML = `
+																<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="${comment.dataset.commentId}">
+																	Ver Respostas
+																</button>
+																<button type="button" class="genric-btn primary circle btn-respond" 
+																	data-comment-id="${comment.dataset.commentId}" 
+																	data-author="${comment.dataset.author}" 
+																	data-text="${comment.dataset.text}">
+																	Responder
+																</button>
+															`;
+															comment.appendChild(replyButtons);
+														}
+													});
+										} catch (e) {
+											console.error('Erro ao processar dados do utilizador:', e);
+										}
+									} else {
+										// Remover formulário de comentário e mostrar aviso
+										document.querySelectorAll('.comment-form').forEach(form => {
+											form.innerHTML = `
+												<div class="alert alert-info">
+													<p>Por favor, <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">inicie sessão</a> para deixar um comentário.</p>
+												</div>
+											`;
+										});
+										// Remover botões de responder de todos os comentários
+										document.querySelectorAll('.reply-buttons').forEach(btns => {
+											// Só remove o botão de responder, deixa o de ver respostas
+											const responder = btns.querySelector('.btn-respond');
+											if (responder) responder.remove();
+										});
+									}
+								}
+
+								// Verificar estado inicial
+								checkAuthState();
+
+								// Adicionar listener para mudanças no localStorage
+								window.addEventListener('storage', function(e) {
+									if (e.key === 'user') {
+										checkAuthState();
+									}
+								});
+
+								// Resto do código JavaScript existente...
+								const commentForm = document.getElementById('commentForm');
+								if (commentForm) {
+									// ... código existente do formulário ...
+								}
+
 								// Adicionar evento de clique para os botões de responder
 								document.querySelectorAll('.btn-respond').forEach(button => {
 									button.addEventListener('click', function(e) {
@@ -303,132 +440,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 										if (repliesContainer) {
 											if (repliesContainer.style.display === 'none') {
 												repliesContainer.style.display = 'block';
-												this.textContent = 'Respostas';
+												this.textContent = 'Esconder Respostas';
 											} else {
 												repliesContainer.style.display = 'none';
-												this.textContent = 'Respostas';
+												this.textContent = 'Ver Respostas';
 											}
 										}
 									});
-								});
-							});
-							</script>
-							<div class="comment-form">
-								<h4>Deixar um Comentário</h4>
-								<div id="replyTo" style="display: none;" class="alert alert-info mb-3">
-									<strong>Respondendo a:</strong> <span id="replyToAuthor"></span>
-									<p class="mb-0"><small id="replyToText"></small></p>
-									<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
-								</div>
-								<form id="commentForm" method="POST">
-									<input type="hidden" name="post_id" value="<?php echo $id; ?>">
-									<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
-									<div class="form-group form-inline">
-										<div class="form-group col-lg-6 col-md-12 name">
-											<input type="text" class="form-control" name="assunto" placeholder="Assunto" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Assunto'">
-										</div>
-									</div>
-									<div class="form-group">
-										<textarea class="form-control mb-10" rows="5" name="texto" placeholder="Mensagem" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Mensagem'" required></textarea>
-									</div>
-									<button type="submit" class="primary-btn text-uppercase">Publicar Comentário</button>
-								</form>
-							</div>
-
-							<script>
-							document.addEventListener('DOMContentLoaded', function() {
-								const commentForm = document.getElementById('commentForm');
-								const replyToDiv = document.getElementById('replyTo');
-								const replyToAuthor = document.getElementById('replyToAuthor');
-								const replyToText = document.getElementById('replyToText');
-								let currentReplyTo = null;
-
-								// Função para cancelar resposta
-								window.cancelReply = function() {
-									document.getElementById('comentario_pai_id').value = '';
-									replyToDiv.style.display = 'none';
-									currentReplyTo = null;
-								}
-
-								// Função para adicionar novo comentário ao DOM
-								function addCommentToDOM(comment) {
-									const commentHTML = `
-										<div class="comment-list ${comment.comentario_pai_id ? 'left-padding' : ''}">
-											<div class="single-comment d-flex">
-												<div class="user flex-grow-1 d-flex">
-													<div class="thumb">
-														<img src="img/blog/img_profilepic.png" alt="">
-													</div>
-													<div class="desc">
-														<h5><a href="#">${comment.autor_nome}</a></h5>
-														<p class="date">${comment.data_formatada}</p>
-														${comment.assunto ? `<h6>${comment.assunto}</h6>` : ''}
-														<p class="comment">${comment.texto}</p>
-													</div>
-												</div>
-												<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
-													<a href="#" class="genric-btn primary-border circle btn-show-replies" data-comment-id="${comment.id}">Ver Respostas</a>
-													<a href="#" class="genric-btn primary circle btn-respond" data-comment-id="${comment.id}" data-author="${comment.autor_nome}" data-text="${comment.texto}">Responder</a>
-												</div>
-											</div>
-											<div class="replies-container" id="replies-${comment.id}" style="display: none;"></div>
-										</div>
-									`;
-
-									if (comment.comentario_pai_id) {
-										const repliesContainer = document.getElementById('replies-' + comment.comentario_pai_id);
-										if (repliesContainer) {
-											repliesContainer.insertAdjacentHTML('beforeend', commentHTML);
-										}
-									} else {
-										document.querySelector('.comments-area').insertAdjacentHTML('beforeend', commentHTML);
-									}
-								}
-
-								// Manipular envio do formulário
-								commentForm.addEventListener('submit', function(e) {
-									e.preventDefault();
-									
-									const formData = new FormData(this);
-									
-									fetch('process_comment.php', {
-										method: 'POST',
-										body: formData
-									})
-									.then(response => response.json())
-									.then(data => {
-										if (data.success) {
-											addCommentToDOM(data.comment);
-											commentForm.reset();
-											document.getElementById('comentario_pai_id').value = '';
-											replyToDiv.style.display = 'none';
-											currentReplyTo = null;
-										} else {
-											alert(data.message || 'Erro ao publicar comentário');
-										}
-									})
-									.catch(error => {
-										console.error('Erro:', error);
-										alert('Erro ao publicar comentário');
-									});
-								});
-
-								// Manipular cliques nos botões de resposta
-								document.addEventListener('click', function(e) {
-									// Botão para ver/esconder respostas
-									if (e.target.classList.contains('btn-respond')) {
-										e.preventDefault();
-										const commentId = e.target.dataset.commentId;
-										const repliesContainer = document.getElementById('replies-' + commentId);
-										
-										if (repliesContainer) {
-											if (repliesContainer.style.display === 'none') {
-												repliesContainer.style.display = 'block';
-											} else {
-												repliesContainer.style.display = 'none';
-											}
-										}
-									}
 								});
 							});
 							</script>
@@ -676,6 +694,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comentario'])) {
 			<script src="js/jquery.nice-select.min.js"></script>	
 			<script src="js/owl.carousel.min.js"></script>									
 			<script src="js/mail-script.js"></script>	
-			<script src="js/main.js"></script>	
+			<script src="js/main.js"></script>
+
+			<!-- ----------------------------------- Modal de Login ----------------------------------- -->
+			<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content shadow">
+						<div class="modal-header">
+							<h5 class="modal-title fw-bold" id="loginModalLabel">Iniciar Sessão</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+						</div>
+						<div class="modal-body">
+							<div class="alert alert-danger" id="loginError" style="display: none;"></div>
+							<form id="loginForm">
+								<div class="form-floating mb-3">
+									<input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+									<label for="email" class="fw-bold">Email</label>
+								</div>
+								<div class="form-floating mb-3" id="login-password-container" style="position: relative;">
+									<input type="password" class="form-control" id="password" placeholder="Password" required>
+									<label for="password" class="fw-bold">Palavra-passe</label>
+								</div>
+								<button type="submit" class="btn btn-primary w-100 fw-bold">Entrar</button>
+							</form>
+							<hr>
+							<button id="google-login-b" class="btn btn-danger w-100 fw-bold">
+								<i class="fa fa-google me-2"></i> Entrar com o Google
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Scripts necessários para o login -->
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+			<script src="js/extra.js" type="module"></script>
+			<script src="js/google-login.js" type="module"></script>
 		</body>
 	</html>

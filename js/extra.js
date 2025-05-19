@@ -225,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
           localStorage.setItem('user', JSON.stringify(data.user));
           updateNavbarForLogin(data.user);
           closeLoginModal();
+          location.reload();
         } else {
           loginError.innerText = data.message;
           loginError.style.display = "block";

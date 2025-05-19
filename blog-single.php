@@ -323,6 +323,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 
 							<script>
 							document.addEventListener('DOMContentLoaded', function() {
+								// Função para cancelar resposta
+								window.cancelReply = function() {
+									document.getElementById('comentario_pai_id').value = '';
+									document.getElementById('replyTo').style.display = 'none';
+									document.getElementById('replyToAuthor').textContent = '';
+									document.getElementById('replyToText').textContent = '';
+								};
+
 								// Verificar estado de autenticação
 								function checkAuthState() {
 									const user = localStorage.getItem('user');

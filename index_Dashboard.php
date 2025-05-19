@@ -177,6 +177,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
     }
 }
 
+// Processamento do formulário do Aviso
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
+    $texto = $_POST['texto'];
+    $textobtn = $_POST['textobtn'];
+    $link = $_POST['link'];
+
+    $sql = "UPDATE AvisolaranjaInicio SET 
+            Texto = ?,
+            Textobtn = ?,
+            link = ?
+            WHERE id = 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $texto, $textobtn, $link);
+
+    if ($stmt->execute()) {
+        $updateMessage = "Aviso atualizado com sucesso!";
+        $updateType = "success";
+        // Atualiza os dados após o update
+        $avisoData = getAvisolaranjaInicio();
+    } else {
+        $updateMessage = "Erro ao atualizar aviso: " . $conn->error;
+        $updateType = "danger";
+    }
+}
+
 $capaData = getCapaData();
 $sobreNos = getSobreNosData();
 $ctaInicio = getCTAInicioData();
@@ -804,7 +830,7 @@ $avisoData = getAvisolaranjaInicio();
                 </div>
             </div>
 
-            <!-- Seção de Ligações Rápidas (escondida por padrão) -->
+            <!-- ---------------------------- Seção de Ligações Rápidas (escondida por padrão) ---------------------------- -->
             <div id="links-section" class="content-section" style="display: none;">
                 <div class="container-fluid">
                     <div class="row">
@@ -1228,8 +1254,8 @@ $avisoData = getAvisolaranjaInicio();
                                         $link = $_POST['link'];
 
                                         $sql = "UPDATE AvisolaranjaInicio SET 
-                                                texto = ?,
-                                                textobtn = ?,
+                                                Texto = ?,
+                                                Textobtn = ?,
                                                 link = ?
                                                 WHERE id = 1";
 
@@ -1260,13 +1286,13 @@ $avisoData = getAvisolaranjaInicio();
                                             <div class="form-group">
                                                 <label for="texto" class="form-label">Texto do Aviso</label>
                                                 <textarea class="form-control" id="texto" name="texto" rows="4" 
-                                                          placeholder="Digite o texto do aviso..."><?php echo isset($avisoData['texto']) ? htmlspecialchars($avisoData['texto']) : ''; ?></textarea>
+                                                          placeholder="Digite o texto do aviso..."><?php echo isset($avisoData['Texto']) ? htmlspecialchars($avisoData['Texto']) : ''; ?></textarea>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="textobtn" class="form-label">Texto do Botão</label>
                                                 <input type="text" class="form-control" id="textobtn" name="textobtn" 
-                                                       value="<?php echo isset($avisoData['textobtn']) ? htmlspecialchars($avisoData['textobtn']) : ''; ?>"
+                                                       value="<?php echo isset($avisoData['Textobtn']) ? htmlspecialchars($avisoData['Textobtn']) : ''; ?>"
                                                        placeholder="Digite o texto do botão...">
                                             </div>
 
@@ -1562,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Funções para gerenciar ligações rápidas
+    // ---------------------------- Funções para gerenciar ligações rápidas ----------------------------
     function addNewLink() {
         const container = document.getElementById('linksContainer');
         const index = container.children.length;
@@ -1742,7 +1768,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Funções para gerenciar avaliações
+    // ---------------------------- Funções para gerenciar avaliações ----------------------------
     function addNewAvaliacao() {
         const container = document.getElementById('avaliacoesContainer');
         const index = container.children.length;
@@ -1870,7 +1896,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initDragAndDrop();
     });
 
-    // Funções para gerenciar FAQs
+    // ---------------------------- Funções para gerenciar FAQs ----------------------------
     function addNewFaq() {
         const container = document.getElementById('faqsContainer');
         const index = container.children.length;

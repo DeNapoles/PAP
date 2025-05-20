@@ -661,11 +661,15 @@ $avisoData = getAvisolaranjaInicio();
         <ul class="users-item-dropdown nav-user-dropdown dropdown">
           <li><a href="##">
               <i data-feather="user" aria-hidden="true"></i>
-              <span>Profile</span>
+              <span>Perfil</span>
             </a></li>
           <li><a href="##">
               <i data-feather="settings" aria-hidden="true"></i>
-              <span>Account settings</span>
+              <span>Configurações</span>
+            </a></li>
+          <li><a href="index.php">
+              <i data-feather="home" aria-hidden="true"></i>
+              <span>Voltar ao site</span>
             </a></li>
           <li><a class="danger" href="logout.php">
               <i data-feather="log-out" aria-hidden="true"></i>

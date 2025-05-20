@@ -417,6 +417,20 @@ require_once 'functions.php';
 	<script src="js/owl.carousel.min.js"></script>
 	<script src="js/mail-script.js"></script>
 	<script src="js/main.js"></script>
+	<script>
+		// Verificar se existe o cookie de logout
+		if (document.cookie.includes('logout=true')) {
+			// Limpar o localStorage
+			localStorage.removeItem('user');
+			localStorage.removeItem('loginOrigem');
+			
+			// Remover o cookie
+			document.cookie = 'logout=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+			
+			// Recarregar a página para atualizar o estado
+			location.reload();
+		}
+	</script>
 </body>
 
 </html>

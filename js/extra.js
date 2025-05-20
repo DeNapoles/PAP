@@ -73,13 +73,19 @@ function updateNavbarForLogin(user) {
   const navItem = loginLink.closest('li.nav-item');
   if (!navItem) return;
 
-  // Criar o HTML do dropdown
+  // Adiciona o botão Dashboard só para Admins
+  const isAdmin = user.tipo === 'Admin';
+  const dashboardBtn = isAdmin
+    ? `<li><a class="dropdown-item text-primary fw-bold" href="index_Dashboard.php?user=${encodeURIComponent(user.nome || user.displayName)}" id="dashboard-btn"><i class="fa fa-cogs me-2"></i>Dashboard</a></li><li><hr class="dropdown-divider"></li>`
+    : '';
+
   const dropdownHTML = `
     <div class="dropdown">
       <a class="nav-link dropdown-toggle logged-in-user" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="fa fa-user me-2"></i>${user.nome || user.displayName}
       </a>
       <ul class="dropdown-menu dropdown-menu-end" style="min-width: 220px;">
+        ${dashboardBtn}
         <li>
           <a class="dropdown-item" href="#"><i class="fa fa-user me-2"></i>Ver Perfil</a>
         </li>
@@ -99,7 +105,6 @@ function updateNavbarForLogin(user) {
     </div>
   `;
 
-  // Atualizar o HTML
   navItem.innerHTML = dropdownHTML;
 
   // Inicializar o dropdown do Bootstrap

@@ -1,6 +1,75 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard JS carregado');
     
+    // Inicializa os ícones do Feather
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+
+    // Adiciona event listeners para os botões de categoria
+    document.querySelectorAll('.show-cat-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const subMenu = this.nextElementSibling;
+            const arrow = this.querySelector('.icon.arrow-down');
+            
+            // Toggle do submenu
+            if (subMenu.style.display === 'block') {
+                subMenu.style.display = 'none';
+                if (arrow) {
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            } else {
+                subMenu.style.display = 'block';
+                if (arrow) {
+                    arrow.style.transform = 'rotate(180deg)';
+                }
+            }
+        });
+    });
+
+    // Função para mostrar/esconder seções
+    function showSection(sectionId) {
+        // Previne o comportamento padrão do link
+        event.preventDefault();
+        
+        // Esconde todas as seções
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Mostra a seção selecionada
+        const selectedSection = document.getElementById(sectionId);
+        if (selectedSection) {
+            selectedSection.style.display = 'block';
+            console.log('Seção mostrada:', sectionId);
+            
+            // Se for a seção de posts, atualiza a URL sem recarregar a página
+            if (sectionId === 'posts-section') {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('section', 'posts');
+                window.history.pushState({}, '', currentUrl);
+            }
+        } else {
+            console.error('Seção não encontrada:', sectionId);
+        }
+    }
+
+    // Adiciona event listeners aos links do menu
+    document.querySelectorAll('.nav-link, .cat-sub-menu a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (sectionId) {
+                showSection(sectionId);
+                console.log('Link clicado:', sectionId);
+            }
+        });
+    });
+
+    // Mostra a seção de boas-vindas por padrão
+    showSection('welcome-section');
+
     // Adiciona event listeners para todos os links com data-section
     document.querySelectorAll('[data-section]').forEach(link => {
         console.log('Encontrado link com data-section:', link.getAttribute('data-section'));
@@ -33,26 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-function showSection(section) {
-    // Oculta todas as seções
-    const sections = ['capa-section'];
-    sections.forEach(s => {
-        const element = document.getElementById(s);
-        if (element) {
-            element.style.display = 'none';
-        }
-    });
-
-    // Mostra a seção selecionada
-    if (section === 'capa') {
-        const capaSection = document.getElementById('capa-section');
-        if (capaSection) {
-            capaSection.style.display = 'block';
-        }
-    }
-    // Adicione mais condições para outras seções conforme necessário
-}
 
 function loadContent(section) {
     console.log('Carregando seção:', section);
@@ -179,4 +228,48 @@ function initStarRating(container) {
 // Inicializar todas as avaliações com estrelas ao carregar a página
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.star-rating').forEach(initStarRating);
-}); 
+});
+
+// Funções para gerenciar posts
+function showNewPostForm() {
+    // Por enquanto, apenas mostra um alerta
+    alert('Funcionalidade em desenvolvimento');
+}
+
+function editPost(postId) {
+    // Por enquanto, apenas mostra um alerta
+    alert('Funcionalidade em desenvolvimento');
+}
+
+function deletePost(postId) {
+    if (confirm('Tem certeza que deseja apagar este post? Esta ação não pode ser desfeita.')) {
+        // Faz a requisição para apagar o post
+        fetch('delete_post.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'post_id=' + postId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove o card do post da interface
+                const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+                if (postCard) {
+                    postCard.remove();
+                }
+                // Mostra mensagem de sucesso
+                alert('Post apagado com sucesso!');
+                // Recarrega a página para atualizar a paginação
+                location.reload();
+            } else {
+                alert('Erro ao apagar o post: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao apagar o post. Por favor, tente novamente.');
+        });
+    }
+} 

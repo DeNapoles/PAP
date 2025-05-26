@@ -573,7 +573,9 @@ $avisoData = getAvisolaranjaInicio();
                     </a>
                     <ul class="cat-sub-menu">
                         <li>
-                            <a href="pages.html">Capa</a>
+                            <a href="#" onclick="showSection('posts-section')">
+                            <i class="fas fa-exclamation-circle"></i> Posts
+                            </a>
                         </li>
                         <li>
                             <a href="manage_posts.php">FAQ's</a>
@@ -1285,6 +1287,112 @@ $avisoData = getAvisolaranjaInicio();
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Seção de Posts (escondida por padrão) -->
+            <div id="posts-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row mb-4">
+                        <div class="col-12 d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Gerenciar Posts</h2>
+                            <button class="btn btn-primary" onclick="showNewPostForm()">
+                                <i class="fas fa-plus"></i> Novo Post
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <?php
+                        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                        $posts_per_page = 6;
+                        $offset = ($page - 1) * $posts_per_page;
+                        
+                        // Buscar posts com paginação
+                        $sql = "SELECT * FROM posts ORDER BY data_criacao DESC LIMIT ? OFFSET ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("ii", $posts_per_page, $offset);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        
+                        // Buscar total de posts para paginação
+                        $total_sql = "SELECT COUNT(*) as total FROM posts";
+                        $total_result = $conn->query($total_sql);
+                        $total_posts = $total_result->fetch_assoc()['total'];
+                        $total_pages = ceil($total_posts / $posts_per_page);
+
+                        if ($result->num_rows > 0) {
+                            while($post = $result->fetch_assoc()) {
+                                ?>
+                                <div class="col-md-4 mb-4">
+                                    <div class="post-card">
+                                        <div class="post-image">
+                                            <img src="<?php echo htmlspecialchars($post['img_principal']); ?>" 
+                                                 alt="<?php echo htmlspecialchars($post['titulo']); ?>">
+                                        </div>
+                                        <div class="post-content">
+                                            <h3 class="post-title"><?php echo htmlspecialchars($post['titulo']); ?></h3>
+                                            <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 150)) . '...'; ?></p>
+                                            
+                                            <?php if (!empty($post['tags'])): ?>
+                                            <div class="post-tags">
+                                                <?php 
+                                                $tags = explode(',', $post['tags']);
+                                                foreach ($tags as $tag): 
+                                                ?>
+                                                    <span class="tag-badge"><?php echo htmlspecialchars(trim($tag)); ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                            <?php endif; ?>
+                                            
+                                            <div class="post-actions">
+                                                <button class="btn btn-primary btn-sm" onclick="editPost(<?php echo $post['id']; ?>)">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="deletePost(<?php echo $post['id']; ?>)">
+                                                    <i class="fas fa-trash"></i> Apagar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php
+                            }
+                        } else {
+                            echo '<div class="col-12"><p class="text-center">Nenhum post encontrado.</p></div>';
+                        }
+                        ?>
+                    </div>
+
+                    <?php if ($total_pages > 1): ?>
+                    <div class="pagination-container">
+                        <nav aria-label="Navegação de posts">
+                            <ul class="pagination justify-content-center">
+                                <?php if ($page > 1): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Anterior">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                    <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                    </li>
+                                <?php endfor; ?>
+
+                                <?php if ($page < $total_pages): ?>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Próximo">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </nav>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

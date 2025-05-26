@@ -189,6 +189,14 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("registerSuccess").innerText = data.message;
           document.getElementById("registerSuccess").style.display = "block";
           registerForm.reset();
+          setTimeout(() => {
+            closeModalById('registerModal');
+            const successAlert = document.getElementById("registerSuccessAlert");
+            successAlert.style.display = "block";
+            setTimeout(() => {
+              successAlert.style.display = "none";
+            }, 5000);
+          }, 1000);
         } else {
           document.getElementById("registerError").innerText = data.message;
           document.getElementById("registerError").style.display = "block";
@@ -255,16 +263,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-export function closeLoginModal() {
-  console.log('A fechar modal de login...');
-  const modalEl = document.getElementById('loginModal');
-  if (!modalEl) {
-    console.log('Modal não encontrado!');
-    return;
+// Torna a função mais genérica para fechar qualquer modal
+export function closeModalById(modalId) {
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+  // Tenta fechar via Bootstrap
+  if (window.bootstrap && typeof bootstrap.Modal === "function" && typeof bootstrap.Modal.getInstance === "function") {
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) {
+      modalInstance.hide();
+      return;
+    }
   }
-  // ... resto da função ...
-
-  // Fallback manual
+  // Fecho forçado (fallback)
   modalEl.classList.remove('show');
   modalEl.style.display = 'none';
   document.body.classList.remove('modal-open');
@@ -278,4 +289,9 @@ export function closeLoginModal() {
     document.body.style = '';
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
   }, 300);
+}
+
+// Mantém a função antiga para compatibilidade
+export function closeLoginModal() {
+  closeModalById('loginModal');
 }

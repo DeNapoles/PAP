@@ -17,8 +17,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($user = $result->fetch_assoc()) {
-    // Verifica a senha (simples, sem hash)
-    if ($user['Senha'] === $senha) {
+    // Verifica a senha usando password_verify
+    if (password_verify($senha, $user['Senha'])) {
         session_start();
         $_SESSION['user_id'] = $user['ID_Utilizador'];
         echo json_encode([

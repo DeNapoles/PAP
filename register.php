@@ -24,9 +24,12 @@ if ($stmt->num_rows > 0) {
 }
 $stmt->close();
 
+// Criptografar a senha
+$senha_hash = password_hash($senha, PASSWORD_BCRYPT);
+
 // Inserir novo utilizador
 $stmt = $conn->prepare("INSERT INTO Utilizadores (Nome, Email, Senha, Tipo_Utilizador) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("ssss", $nome, $email, $senha, $tipo);
+$stmt->bind_param("ssss", $nome, $email, $senha_hash, $tipo);
 
 if ($stmt->execute()) {
     $new_id = $conn->insert_id;

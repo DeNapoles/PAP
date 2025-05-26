@@ -191,11 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
           registerForm.reset();
           setTimeout(() => {
             closeModalById('registerModal');
-            const successAlert = document.getElementById("registerSuccessAlert");
-            successAlert.style.display = "block";
-            setTimeout(() => {
-              successAlert.style.display = "none";
-            }, 5000);
           }, 1000);
         } else {
           document.getElementById("registerError").innerText = data.message;
@@ -259,6 +254,17 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.style = '';
         document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
       }, 100);
+    });
+  }
+
+  // Limpar mensagens quando o modal de registo for fechado
+  const registerModal = document.getElementById('registerModal');
+  if (registerModal) {
+    registerModal.addEventListener('hidden.bs.modal', () => {
+      document.getElementById("registerError").style.display = "none";
+      document.getElementById("registerSuccess").style.display = "none";
+      document.getElementById("registerError").innerText = "";
+      document.getElementById("registerSuccess").innerText = "";
     });
   }
 });

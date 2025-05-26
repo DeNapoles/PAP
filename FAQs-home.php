@@ -578,6 +578,8 @@ $total_pages = ceil($total_posts / $posts_per_page);
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/mail-script.js"></script>
     <script src="js/main.js"></script>
+
+    <?php include 'modals.php'; ?>
 </body>
 
 </html>

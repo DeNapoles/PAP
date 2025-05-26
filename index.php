@@ -41,7 +41,7 @@ require_once 'functions.php';
 <body>
 	<header id="header" id="home">
 		<div class="container">
-			<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
+		//	<nav class="navbar navbar-expand-lg navbar-dark bg-transparent">
 				<a class="navbar-brand d-flex align-items-center logo" href="index.php">
 					<img src="<?php echo $inicioData['LogoPrincipal']; ?>" alt="logo" class="me-2" style="height: 40px;">
 				</a>
@@ -431,6 +431,8 @@ require_once 'functions.php';
 			location.reload();
 		}
 	</script>
+
+	<?php include 'modals.php'; ?>
 </body>
 
 </html>

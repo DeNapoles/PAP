@@ -704,39 +704,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 			<script src="js/mail-script.js"></script>	
 			<script src="js/main.js"></script>
 
-			<!-- ----------------------------------- Modal de Login ----------------------------------- -->
-			<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-dialog-centered">
-					<div class="modal-content shadow">
-						<div class="modal-header">
-							<h5 class="modal-title fw-bold" id="loginModalLabel">Iniciar Sessão</h5>
-							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-						</div>
-						<div class="modal-body">
-							<div class="alert alert-danger" id="loginError" style="display: none;"></div>
-							<form id="loginForm">
-								<div class="form-floating mb-3">
-									<input type="email" class="form-control" id="email" placeholder="name@example.com" required>
-									<label for="email" class="fw-bold">Email</label>
-								</div>
-								<div class="form-floating mb-3" id="login-password-container" style="position: relative;">
-									<input type="password" class="form-control" id="password" placeholder="Password" required>
-									<label for="password" class="fw-bold">Palavra-passe</label>
-								</div>
-								<button type="submit" class="btn btn-primary w-100 fw-bold">Entrar</button>
-							</form>
-							<hr>
-							<button id="google-login-b" class="btn btn-danger w-100 fw-bold">
-								<i class="fa fa-google me-2"></i> Entrar com o Google
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-
 			<!-- Scripts necessários para o login -->
 			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 			<script src="js/extra.js" type="module"></script>
 			<script src="js/google-login.js" type="module"></script>
+
+			<?php include 'modals.php'; ?>
 		</body>
 	</html>

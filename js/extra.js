@@ -166,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const nome = document.getElementById("reg_nome").value;
       const email = document.getElementById("reg_email").value;
       const senha = document.getElementById("reg_password").value;
-      const tipo = document.getElementById("reg_tipo").value;
 
       const loadingIndicator = document.createElement('div');
       loadingIndicator.classList.add('alert', 'alert-info');
@@ -181,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const response = await fetch('register.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&tipo=${encodeURIComponent(tipo)}`
+          body: `nome=${encodeURIComponent(nome)}&email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}`
         });
         const data = await response.json();
         

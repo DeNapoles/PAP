@@ -6,9 +6,8 @@ header('Content-Type: application/json');
 $nome = $_POST['nome'] ?? '';
 $email = $_POST['email'] ?? '';
 $senha = $_POST['senha'] ?? '';
-$tipo = $_POST['tipo'] ?? '';
 
-if (!$nome || !$email || !$senha || !$tipo) {
+if (!$nome || !$email || !$senha) {
     echo json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios.']);
     exit;
 }
@@ -23,6 +22,11 @@ if ($stmt->num_rows > 0) {
     exit;
 }
 $stmt->close();
+
+// Determinar o tipo de utilizador com base no email
+$email_parts = explode('@', $email);
+$local_part = $email_parts[0];
+$tipo = preg_match('/[0-9]/', $local_part) ? 'Aluno' : 'Admin';
 
 // Criptografar a senha
 $senha_hash = password_hash($senha, PASSWORD_BCRYPT);

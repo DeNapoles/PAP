@@ -52,16 +52,6 @@
                         <input type="password" class="form-control" id="reg_password" placeholder="Palavra-passe" required>
                         <label for="reg_password" class="fw-bold">Palavra-passe</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <select class="form-select" id="reg_tipo" required>
-                            <option value="">Selecione o tipo de utilizador</option>
-                            <option value="Aluno">Aluno</option>
-                            <option value="Professor">Professor</option>
-                            <option value="Encarregado de Educação">Encarregado de Educação</option>
-                            <option value="Admin">Admin</option>
-                        </select>
-                        <label for="reg_tipo" class="fw-bold">Tipo de Utilizador</label>
-                    </div>
                     <button type="submit" class="btn btn-primary w-100 fw-bold">Registar</button>
                 </form>
             </div>

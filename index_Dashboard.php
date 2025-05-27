@@ -239,6 +239,7 @@ $avisoData = getAvisolaranjaInicio();
   <link rel="shortcut icon" href="img/logo2AEBConecta.png" type="image/x-icon">
   <!-- Custom styles -->
   <link rel="stylesheet" href="./css/style.min.css">
+
   <style>
     .content-section {
       display: none;
@@ -1302,14 +1303,18 @@ $avisoData = getAvisolaranjaInicio();
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div id="postsContainer" class="row">
                         <?php
                         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                         $posts_per_page = 6;
                         $offset = ($page - 1) * $posts_per_page;
                         
                         // Buscar posts com paginação
-                        $sql = "SELECT * FROM posts ORDER BY data_criacao DESC LIMIT ? OFFSET ?";
+                        $sql = "SELECT p.*, u.Nome as autor_nome, 
+                               (SELECT COUNT(*) FROM comentarios WHERE post_id = p.id) as num_comentarios 
+                               FROM posts p 
+                               LEFT JOIN Utilizadores u ON p.autor_id = u.ID_Utilizador 
+                               ORDER BY p.data_criacao DESC LIMIT ? OFFSET ?";
                         $stmt = $conn->prepare($sql);
                         $stmt->bind_param("ii", $posts_per_page, $offset);
                         $stmt->execute();
@@ -1324,35 +1329,46 @@ $avisoData = getAvisolaranjaInicio();
                         if ($result->num_rows > 0) {
                             while($post = $result->fetch_assoc()) {
                                 ?>
-                                <div class="col-md-4 mb-4">
-                                    <div class="post-card">
-                                        <div class="post-image">
-                                            <img src="<?php echo htmlspecialchars($post['img_principal']); ?>" 
-                                                 alt="<?php echo htmlspecialchars($post['titulo']); ?>">
+                                <div class="post-card" data-post-id="<?php echo $post['id']; ?>">
+                                    <div class="post-image">
+                                        <img src="<?php echo htmlspecialchars($post['img_principal']); ?>" 
+                                             alt="<?php echo htmlspecialchars($post['titulo']); ?>"
+                                             loading="lazy">
+                                    </div>
+                                    <div class="post-content">
+                                        <h3 class="post-title"><?php echo htmlspecialchars($post['titulo']); ?></h3>
+                                        <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 150)) . '...'; ?></p>
+                                        
+                                        <?php if (!empty($post['tags'])): ?>
+                                        <div class="post-tags">
+                                            <?php 
+                                            $tags = explode(',', $post['tags']);
+                                            foreach ($tags as $tag): 
+                                            ?>
+                                                <span class="tag-badge"><?php echo htmlspecialchars(trim($tag)); ?></span>
+                                            <?php endforeach; ?>
                                         </div>
-                                        <div class="post-content">
-                                            <h3 class="post-title"><?php echo htmlspecialchars($post['titulo']); ?></h3>
-                                            <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 150)) . '...'; ?></p>
-                                            
-                                            <?php if (!empty($post['tags'])): ?>
-                                            <div class="post-tags">
-                                                <?php 
-                                                $tags = explode(',', $post['tags']);
-                                                foreach ($tags as $tag): 
-                                                ?>
-                                                    <span class="tag-badge"><?php echo htmlspecialchars(trim($tag)); ?></span>
-                                                <?php endforeach; ?>
-                                            </div>
-                                            <?php endif; ?>
-                                            
-                                            <div class="post-actions">
-                                                <button class="btn btn-primary btn-sm" onclick="editPost(<?php echo $post['id']; ?>)">
-                                                    <i class="fas fa-edit"></i> Editar
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" onclick="deletePost(<?php echo $post['id']; ?>)">
-                                                    <i class="fas fa-trash"></i> Apagar
-                                                </button>
-                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <div class="post-meta">
+                                            <span class="post-author">
+                                                <i class="fas fa-user"></i> <?php echo htmlspecialchars($post['autor_nome']); ?>
+                                            </span>
+                                            <span class="post-date">
+                                                <i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($post['data_criacao'])); ?>
+                                            </span>
+                                            <span class="post-comments">
+                                                <i class="fas fa-comments"></i> <?php echo $post['num_comentarios']; ?>
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="post-actions">
+                                            <button class="btn btn-primary" onclick="editPost(<?php echo $post['id']; ?>)">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button class="btn btn-danger" onclick="deletePost(<?php echo $post['id']; ?>)">
+                                                <i class="fas fa-trash"></i> Apagar
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

@@ -51,10 +51,29 @@
                     <div class="form-floating mb-3" id="register-password-container" style="position: relative;">
                         <input type="password" class="form-control" id="reg_password" placeholder="Palavra-passe" required>
                         <label for="reg_password" class="fw-bold">Palavra-passe</label>
+                        <div id="password-feedback" class="mt-2 small">
+                            <div class="password-requirement" data-requirement="length">
+                                <i class="fas fa-times text-danger"></i> Mínimo de 8 caracteres
+                            </div>
+                            <div class="password-requirement" data-requirement="numbers">
+                                <i class="fas fa-times text-danger"></i> Pelo menos 2 números
+                            </div>
+                            <div class="password-requirement" data-requirement="special">
+                                <i class="fas fa-times text-danger"></i> Pelo menos 1 caractere especial
+                            </div>
+                            <div class="password-requirement" data-requirement="uppercase">
+                                <i class="fas fa-times text-danger"></i> Pelo menos 1 letra maiúscula
+                            </div>
+                            <div class="password-requirement" data-requirement="lowercase">
+                                <i class="fas fa-times text-danger"></i> Pelo menos 1 letra minúscula
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 fw-bold">Registar</button>
                 </form>
             </div>
         </div>
     </div>
-</div> 
+</div>
+
+<script src="js/password-validation.js"></script> 

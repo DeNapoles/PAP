@@ -15,7 +15,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
+// Verificar se o utilizador existe e é Admin
 if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
+    // Se não for Admin, redirecionar para a página inicial
     header('Location: index.php');
     exit;
 }

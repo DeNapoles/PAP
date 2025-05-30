@@ -257,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 													</button>
 												<?php endif; ?>
 												<?php if ($user): ?>
-													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
+													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>" data-subject="<?php echo htmlspecialchars($comment['assunto']); ?>">
 														Responder
 													</button>
 												<?php endif; ?>
@@ -372,7 +372,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 																<button type="button" class="genric-btn primary circle btn-respond" 
 																	data-comment-id="${comment.dataset.commentId}" 
 																	data-author="${comment.dataset.author}" 
-																	data-text="${comment.dataset.text}">
+																	data-text="${comment.dataset.text}" 
+																	data-subject="${comment.dataset.subject}">
 																	Responder
 																</button>
 															`;
@@ -423,12 +424,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 										const commentId = this.dataset.commentId;
 										const author = this.dataset.author;
 										const text = this.dataset.text;
+										const subject = this.dataset.subject;
 
 										// Atualizar formulário para resposta
 										document.getElementById('comentario_pai_id').value = commentId;
 										document.getElementById('replyToAuthor').textContent = author;
 										document.getElementById('replyToText').textContent = text;
 										document.getElementById('replyTo').style.display = 'block';
+										
+										// Preencher o campo de assunto com o assunto do comentário original
+										const assuntoInput = document.querySelector('input[name="assunto"]');
+										if (assuntoInput && subject) {
+											assuntoInput.value = subject;
+										}
+										
 										document.getElementById('commentForm').scrollIntoView({ behavior: 'smooth' });
 									});
 								});

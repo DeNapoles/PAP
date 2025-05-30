@@ -24,9 +24,11 @@ if (isset($_SESSION['user_id'])) {
     $user = $_SESSION['user_id'];
 } else {
     // Verificar se há um utilizador no localStorage (login via Google)
-    $user = json_decode($_COOKIE['user'] ?? 'null', true);
-    if ($user) {
-        $user = $user['id'] ?? null;
+    if (isset($_COOKIE['user'])) {
+        $userData = json_decode($_COOKIE['user'], true);
+        if ($userData && isset($userData['id'])) {
+            $user = $userData['id'];
+        }
     }
 }
 
@@ -222,72 +224,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
                             <!-- ------------------------------------------ start Comentários Area ------------------------------------------ -->
 
 						
-							<div class="comments-area">
+							<div class="comments-area" id="comentarios">
 								<h4><?php echo $post['num_comentarios']; ?> Comments</h4>
 								<?php
-								// Definir a função aceitando $user
-								function displayComments($post_id, $parent_id = null, $level = 0, $user = null) {
-									global $conn;
-									
-									$sql = "SELECT c.*, u.Nome as autor_nome,
-											(SELECT COUNT(*) FROM comentarios WHERE comentario_pai_id = c.id) as num_respostas
-											FROM comentarios c 
-											JOIN Utilizadores u ON c.utilizador_id = u.ID_Utilizador 
-											WHERE c.post_id = ? AND c.comentario_pai_id " . ($parent_id === null ? "IS NULL" : "= ?") . "
-											ORDER BY c.data_criacao ASC";
-									
-									$stmt = $conn->prepare($sql);
-									if ($parent_id === null) {
-										$stmt->bind_param("i", $post_id);
-									} else {
-										$stmt->bind_param("ii", $post_id, $parent_id);
-									}
-									$stmt->execute();
-									$result = $stmt->get_result();
-									
-									while ($comment = $result->fetch_assoc()) {
-										$padding_class = $level > 0 ? 'left-padding' : '';
-										?>
-										<div class="comment-list <?php echo $padding_class; ?>">
-											<div class="single-comment d-flex">
-												<div class="user flex-grow-1 d-flex">
-													<div class="thumb">
-														<img src="img/blog/img_profilepic.png" alt="">
-													</div>
-													<div class="desc">
-														<h5><a href="#"><?php echo htmlspecialchars($comment['autor_nome']); ?></a></h5>
-														<p class="date"><?php echo formatDate($comment['data_criacao']); ?></p>
-														<?php if (!empty($comment['assunto'])): ?>
-															<h6><?php echo htmlspecialchars($comment['assunto']); ?></h6>
-														<?php endif; ?>
-														<p class="comment">
-															<?php echo nl2br(htmlspecialchars($comment['texto'])); ?>
-														</p>
-													</div>
+								// Obter comentários principais
+								$comments = displayComments($id);
+								
+								// Função para renderizar um comentário e suas respostas
+								function renderComment($comment, $user) {
+									?>
+									<div class="comment-list <?php echo $comment['padding_class']; ?>">
+										<div class="single-comment d-flex">
+											<div class="user flex-grow-1 d-flex">
+												<div class="thumb">
+													<img src="img/blog/img_profilepic.png" alt="">
 												</div>
-												<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
-													<?php if ($comment['num_respostas'] > 0): ?>
-														<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="<?php echo $comment['id']; ?>">
-															Ver Respostas
-														</button>
+												<div class="desc">
+													<h5><a href="#"><?php echo htmlspecialchars($comment['autor_nome']); ?></a></h5>
+													<p class="date"><?php echo formatDate($comment['data_criacao']); ?></p>
+													<?php if (!empty($comment['assunto'])): ?>
+														<h6><?php echo htmlspecialchars($comment['assunto']); ?></h6>
 													<?php endif; ?>
-													<?php if ($user): ?>
-														<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
-															Responder
-														</button>
-													<?php endif; ?>
+													<p class="comment">
+														<?php echo nl2br(htmlspecialchars($comment['texto'])); ?>
+													</p>
 												</div>
 											</div>
-											<div class="replies-container" id="replies-<?php echo $comment['id']; ?>" style="display: none;">
-												<?php displayComments($post_id, $comment['id'], $level + 1, $user); ?>
+											<div class="reply-buttons" style="min-width: 120px; margin-left: 15px;">
+												<?php if ($comment['num_respostas'] > 0): ?>
+													<button type="button" class="genric-btn primary-border circle btn-show-replies" data-comment-id="<?php echo $comment['id']; ?>">
+														Ver Respostas
+													</button>
+												<?php endif; ?>
+												<?php if ($user): ?>
+													<button type="button" class="genric-btn primary circle btn-respond" data-comment-id="<?php echo $comment['id']; ?>" data-author="<?php echo htmlspecialchars($comment['autor_nome']); ?>" data-text="<?php echo htmlspecialchars($comment['texto']); ?>">
+														Responder
+													</button>
+												<?php endif; ?>
 											</div>
 										</div>
-										<?php
-									}
+										<div class="replies-container" id="replies-<?php echo $comment['id']; ?>" style="display: none;">
+											<?php
+											$replies = displayComments($comment['post_id'], $comment['id'], 1, $user);
+											foreach ($replies as $reply) {
+												renderComment($reply, $user);
+											}
+											?>
+										</div>
+									</div>
+									<?php
 								}
-								
-								// Chamada inicial:
-								displayComments($id, null, 0, $user);
+
+								// Renderizar todos os comentários principais
+								if (!empty($comments)) {
+									foreach ($comments as $comment) {
+										renderComment($comment, $user);
+									}
+								} else {
+									echo '<p>Nenhum comentário ainda. Seja o primeiro a comentar!</p>';
+								}
 								?>
 							</div>
 							
@@ -299,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 									<p class="mb-0"><small id="replyToText"></small></p>
 									<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
 								</div>
-								<form id="commentForm" method="POST">
+								<form id="commentForm" method="POST" action="process_comment.php">
 									<input type="hidden" name="post_id" value="<?php echo $id; ?>">
 									<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
 									<div class="form-group form-inline">
@@ -347,7 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['texto'])) {
 															<p class="mb-0"><small id="replyToText"></small></p>
 															<button type="button" class="btn btn-sm btn-link p-0" onclick="cancelReply()">Cancelar resposta</button>
 														</div>
-														<form id="commentForm" method="POST">
+														<form id="commentForm" method="POST" action="process_comment.php">
 															<input type="hidden" name="post_id" value="<?php echo $id; ?>">
 															<input type="hidden" name="comentario_pai_id" id="comentario_pai_id" value="">
 															<div class="form-group form-inline">

@@ -200,4 +200,51 @@ function getAllTags() {
     }
     return $tagObjs;
 }
+
+/**
+ * Exibe os comentários de um post
+ */
+function displayComments($post_id, $parent_id = null, $level = 0, $user = null) {
+    global $conn;
+    
+    // Primeiro, verificar se o post existe
+    $check_post = "SELECT id FROM posts WHERE id = ?";
+    $stmt = $conn->prepare($check_post);
+    $stmt->bind_param("i", $post_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        return [];
+    }
+    
+    // Buscar os comentários
+    $sql = "SELECT c.*, u.Nome as autor_nome,
+            (SELECT COUNT(*) FROM comentarios WHERE comentario_pai_id = c.id) as num_respostas
+            FROM comentarios c 
+            LEFT JOIN Utilizadores u ON c.utilizador_id = u.ID_Utilizador 
+            WHERE c.post_id = ? AND c.comentario_pai_id " . ($parent_id === null ? "IS NULL" : "= ?") . "
+            ORDER BY c.data_criacao ASC";
+    
+    $stmt = $conn->prepare($sql);
+    if ($parent_id === null) {
+        $stmt->bind_param("i", $post_id);
+    } else {
+        $stmt->bind_param("ii", $post_id, $parent_id);
+    }
+    
+    if (!$stmt->execute()) {
+        error_log("Erro ao executar query de comentários: " . $stmt->error);
+        return [];
+    }
+    
+    $result = $stmt->get_result();
+    $comments = [];
+    
+    while ($comment = $result->fetch_assoc()) {
+        $comment['padding_class'] = $level > 0 ? 'left-padding' : '';
+        $comments[] = $comment;
+    }
+    
+    return $comments;
+}
 ?> 

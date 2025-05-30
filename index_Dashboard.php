@@ -15,9 +15,7 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// Verificar se o utilizador existe e é Admin
 if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
-    // Se não for Admin, redirecionar para a página inicial
     header('Location: index.php');
     exit;
 }
@@ -442,52 +440,232 @@ $avisoData = getAvisolaranjaInicio();
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
-        cursor: pointer;
-        opacity: 0.85;
-        transition: background 0.2s, opacity 0.2s;
-        z-index: 2;
     }
 
-    .link-item .remove-link-btn:hover {
-        background: #b02a37;
-        opacity: 1;
+    /* Estilos para os cards de posts no dashboard */
+    #posts-section .post-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        overflow: hidden;
+        transition: all 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: none;
+        padding: 18px 18px 12px 18px;
+        margin: 0;
+        min-width: 270px;
+        max-width: 340px;
+        flex: 1 1 270px;
     }
 
-    .link-item h4 {
+    #posts-section .post-card:hover {
+        transform: none;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+    }
+
+    #posts-section .post-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+        margin-bottom: 15px;
+        border-radius: 8px;
+    }
+
+    #posts-section .post-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    #posts-section .post-card:hover .post-image img {
+        transform: scale(1.03);
+    }
+
+    #posts-section .post-content {
+        padding: 0;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background: none;
+    }
+
+    #posts-section .post-title {
         font-size: 1.1rem;
         font-weight: 600;
-        margin-bottom: 12px;
-        margin-top: 0;
         color: #0d6efd;
-        padding-right: 36px;
+        margin-bottom: 12px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    @media (max-width: 900px) {
-        #linksContainer {
-            flex-direction: column;
-            gap: 18px;
-        }
-        .link-item {
-            max-width: 100%;
-            min-width: 0;
-        }
+    #posts-section .post-excerpt {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
     }
 
-    .link-item .row.g-2 .form-control[type="number"] {
-        max-width: 90px;
-        min-width: 60px;
-        width: 100%;
-        display: inline-block;
+    #posts-section .post-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
     }
-    .link-item .row.g-2 {
-        justify-content: flex-start;
-        gap: 0;
+
+    #posts-section .tag-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
     }
-    @media (max-width: 600px) {
-        .link-item .row.g-2 .form-control[type="number"] {
-            max-width: 100%;
-        }
+
+    #posts-section .tag-badge:hover {
+        background: #dee2e6;
+        color: #333;
+    }
+
+    #posts-section .post-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+        color: #718096;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    #posts-section .post-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    #posts-section .post-meta i {
+        font-size: 0.9rem;
+        color: #a0aec0;
+    }
+
+    #posts-section .post-meta .post-author {
+        color: #4a5568;
+    }
+
+    #posts-section .post-meta .post-date {
+        color: #718096;
+    }
+
+    #posts-section .post-meta .post-comments {
+        color: #718096;
+    }
+
+    #posts-section .post-meta span:hover {
+        color: #4a90e2;
+    }
+
+    #posts-section .post-meta span:hover i {
+        color: #4a90e2;
+    }
+
+    #posts-section .post-actions {
+        display: flex;
+        gap: 0.75rem;
+        padding-top: 1rem;
+        margin-top: auto;
+        justify-content: space-around;
+    }
+
+    #posts-section .post-actions .btn {
+        flex: none;
+        width: auto;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #posts-section .post-actions .btn i {
+        font-size: 0.9rem;
+    }
+
+    #posts-section .post-actions .btn-primary {
+        background: #0d6efd;
+        border: none;
+        color: white;
+    }
+
+    #posts-section .post-actions .btn-primary:hover {
+        background: #0b5ed7;
+        transform: none;
+    }
+
+    #posts-section .post-actions .btn-danger {
+        background: #dc3545;
+        border: none;
+        color: white;
+    }
+
+    #posts-section .post-actions .btn-danger:hover {
+        background: #bb2d3b;
+        transform: none;
+    }
+
+    /* Container e grid de posts */
+    #posts-section .container-fluid {
+        padding: 2rem;
+    }
+
+    #posts-section .row {
+        margin: -1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        justify-content: center;
+    }
+
+    /* Botão Novo Post */
+    #posts-section .btn-primary {
+        background: #0d6efd;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #posts-section .btn-primary:hover {
+        background: #0b5ed7;
+        transform: none;
+    }
+
+    #posts-section .btn-primary i {
+        font-size: 0.9rem;
     }
   </style>
 </head>

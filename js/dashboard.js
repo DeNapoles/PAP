@@ -44,11 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedSection.style.display = 'block';
             console.log('Seção mostrada:', sectionId);
             
-            // Se for a seção de posts, atualiza a URL sem recarregar a página
+            // Se for a seção de posts, carrega a primeira página via AJAX
             if (sectionId === 'posts-section') {
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('section', 'posts');
-                window.history.pushState({}, '', currentUrl);
+                loadPostsPage(1);
             }
         } else {
             console.error('Seção não encontrada:', sectionId);
@@ -272,4 +270,41 @@ function deletePost(postId) {
             alert('Erro ao apagar o post. Por favor, tente novamente.');
         });
     }
+}
+
+// Função para carregar posts via AJAX
+function loadPostsPage(page = 1) {
+    fetch(`get_posts.php?page=${page}`)
+        .then(response => response.text())
+        .then(html => {
+            // Espera que o PHP retorne o HTML dos cards + paginação
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const posts = tempDiv.querySelector('#postsContainer');
+            const pagination = tempDiv.querySelector('#paginationContainer');
+            if (posts && pagination) {
+                document.getElementById('postsContainer').innerHTML = posts.innerHTML;
+                document.getElementById('paginationContainer').innerHTML = pagination.innerHTML;
+                // Atualiza a URL
+                window.history.pushState({}, '', `?page=${page}`);
+                // Reatribui eventos aos botões de paginação
+                setupPaginationEvents();
+            }
+        });
+}
+
+// Função para atribuir eventos aos botões de paginação
+function setupPaginationEvents() {
+    document.querySelectorAll('#paginationContainer .page-link').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            if (page) loadPostsPage(page);
+        });
+    });
+}
+
+// Inicializa paginação AJAX ao carregar a seção de posts
+if (document.getElementById('paginationContainer')) {
+    setupPaginationEvents();
 } 

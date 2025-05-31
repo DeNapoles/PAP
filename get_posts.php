@@ -1,8 +1,34 @@
 <?php
 require_once 'connection.php';
+require_once 'functions_posts.php';
 
+header('Content-Type: application/json');
+
+// Se for uma requisição para buscar um post específico
+if (isset($_GET['id'])) {
+    $post_id = (int)$_GET['id'];
+    $post = getPostById($post_id);
+    
+    if ($post) {
+        // Formatar a data para exibição
+        $post['data_criacao'] = date('Y-m-d H:i:s', strtotime($post['data_criacao']));
+        
+        echo json_encode([
+            'success' => true,
+            'post' => $post
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Post não encontrado'
+        ]);
+    }
+    exit;
+}
+
+// Se for uma requisição para listar posts com paginação
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$posts_per_page = 6;
+$posts_per_page = 8;
 $offset = ($page - 1) * $posts_per_page;
 
 $sql = "SELECT p.*, u.Nome as autor_nome, 

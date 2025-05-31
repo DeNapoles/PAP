@@ -228,15 +228,116 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.star-rating').forEach(initStarRating);
 });
 
-// Funções para gerenciar posts
-function showNewPostForm() {
-    // Por enquanto, apenas mostra um alerta
-    alert('Funcionalidade em desenvolvimento');
+// Função utilitária para obter o user_id do PHP
+function getCurrentUserId() {
+    // Tenta obter do campo hidden
+    const hidden = document.getElementById('postAutorId');
+    if (hidden && hidden.value) return hidden.value;
+    // Tenta obter de variável global
+    if (window.currentUserId) return window.currentUserId;
+    // Tenta obter de meta tag (caso queira implementar no futuro)
+    const meta = document.querySelector('meta[name="user-id"]');
+    if (meta) return meta.getAttribute('content');
+    return '';
 }
 
-function editPost(postId) {
-    // Por enquanto, apenas mostra um alerta
-    alert('Funcionalidade em desenvolvimento');
+function showPostEditor(mode = 'create', postData = null) {
+    // Esconde a section de listagem de posts
+    document.getElementById('posts-section').style.display = 'none';
+    // Mostra a section de edição/criação
+    document.getElementById('post-editor-section').style.display = 'block';
+
+    // Limpa todos os campos
+    document.getElementById('postEditorForm').reset();
+    // Limpa previews de imagens
+    document.querySelectorAll('#post-editor-section .image-preview img').forEach(img => {
+        img.src = '';
+        img.style.display = 'none';
+    });
+    // Limpa campos de texto de imagens
+    document.querySelectorAll('#post-editor-section input[type="text"]').forEach(input => {
+        if (input.id.startsWith('postImg')) input.value = '';
+    });
+    // Data de criação
+    document.getElementById('postDataCriacao').value = '';
+
+    // Sempre garantir que o autor_id está correto
+    const autorIdInput = document.getElementById('postAutorId');
+    if (autorIdInput) {
+        autorIdInput.value = getCurrentUserId();
+    }
+
+    if (mode === 'create') {
+        document.getElementById('post-editor-title').textContent = 'Novo Post';
+        document.getElementById('savePostBtn').textContent = 'Criar';
+        document.getElementById('postId').value = '';
+        // Já garantido acima: autorIdInput.value = getCurrentUserId();
+        // Remove required das imagens adicionais
+        for (let i = 1; i <= 5; i++) {
+            const imgInput = document.getElementById(`postImg${i}`);
+            if (imgInput) imgInput.removeAttribute('required');
+        }
+    } else if (mode === 'edit' && postData) {
+        document.getElementById('post-editor-title').textContent = 'Editar Post';
+        document.getElementById('savePostBtn').textContent = 'Salvar';
+        document.getElementById('postId').value = postData.id;
+        document.getElementById('postTitulo').value = postData.titulo || '';
+        document.getElementById('postTexto').value = postData.texto || '';
+        document.getElementById('postTags').value = postData.tags || '';
+        // Já garantido acima: autorIdInput.value = getCurrentUserId();
+        document.getElementById('postDataCriacao').value = postData.data_criacao || '';
+        // Imagem principal
+        if (postData.img_principal) {
+            document.getElementById('postImgPrincipal').value = postData.img_principal;
+            const img = document.querySelector('#postImgPrincipalPreview img');
+            img.src = postData.img_principal;
+            img.style.display = 'block';
+        }
+        // Imagens adicionais
+        for (let i = 1; i <= 5; i++) {
+            const imgInput = document.getElementById(`postImg${i}`);
+            if (imgInput) {
+                imgInput.removeAttribute('required');
+                if (postData[`img_${i}`]) {
+                    imgInput.value = postData[`img_${i}`];
+                    const img = document.querySelector(`#postImg${i}Preview img`);
+                    img.src = postData[`img_${i}`];
+                    img.style.display = 'block';
+                }
+            }
+        }
+    }
+}
+
+// Botão Novo Post
+window.showNewPostForm = function() {
+    showPostEditor('create');
+};
+
+// Botão Editar Post
+window.editPost = function(postId) {
+    // Buscar dados do post via AJAX
+    fetch(`get_posts.php?id=${postId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.post) {
+                showPostEditor('edit', data.post);
+            } else {
+                alert('Erro ao buscar dados do post: ' + (data.message || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao buscar dados do post. Por favor, tente novamente.');
+        });
+};
+
+// Botão Cancelar
+if (document.getElementById('cancelPostEdit')) {
+    document.getElementById('cancelPostEdit').onclick = function() {
+        document.getElementById('post-editor-section').style.display = 'none';
+        document.getElementById('posts-section').style.display = 'block';
+    };
 }
 
 function deletePost(postId) {
@@ -259,8 +360,11 @@ function deletePost(postId) {
                 }
                 // Mostra mensagem de sucesso
                 alert('Post apagado com sucesso!');
-                // Recarrega a página para atualizar a paginação
-                location.reload();
+                // Garante que a seção de posts está visível
+                document.getElementById('post-editor-section').style.display = 'none';
+                document.getElementById('posts-section').style.display = 'block';
+                // Recarrega a lista de posts via AJAX
+                loadPostsPage(1);
             } else {
                 alert('Erro ao apagar o post: ' + data.message);
             }
@@ -289,6 +393,11 @@ function loadPostsPage(page = 1) {
                 window.history.pushState({}, '', `?page=${page}`);
                 // Reatribui eventos aos botões de paginação
                 setupPaginationEvents();
+                // Scroll suave para o topo da section dos posts
+                const section = document.getElementById('posts-section');
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
         });
 }
@@ -307,4 +416,33 @@ function setupPaginationEvents() {
 // Inicializa paginação AJAX ao carregar a seção de posts
 if (document.getElementById('paginationContainer')) {
     setupPaginationEvents();
-} 
+}
+
+// Processar o formulário de post
+document.getElementById('postEditorForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('save_post.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Voltar para a listagem de posts
+            document.getElementById('post-editor-section').style.display = 'none';
+            document.getElementById('posts-section').style.display = 'block';
+            // Recarregar a lista de posts
+            loadPostsPage(1);
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao salvar o post. Por favor, tente novamente.');
+    });
+}); 

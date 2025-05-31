@@ -667,6 +667,27 @@ $avisoData = getAvisolaranjaInicio();
     #posts-section .btn-primary i {
         font-size: 0.9rem;
     }
+
+    #posts-section .row.mb-4 {
+        margin-bottom: 2.5rem !important; /* aumenta o espaço abaixo do botão Novo Post */
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+        padding: 1rem 0;
+    }
+    .pagination {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
   </style>
 </head>
 
@@ -1486,7 +1507,7 @@ $avisoData = getAvisolaranjaInicio();
                     <div id="postsContainer" class="row">
                         <?php
                         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                        $posts_per_page = 6;
+                        $posts_per_page = 8;
                         $offset = ($page - 1) * $posts_per_page;
                         
                         // Buscar posts com paginação
@@ -1561,12 +1582,12 @@ $avisoData = getAvisolaranjaInicio();
                     </div>
 
                     <?php if ($total_pages > 1): ?>
-                    <div class="pagination-container">
+                    <div id="paginationContainer" class="pagination-container">
                         <nav aria-label="Navegação de posts">
                             <ul class="pagination justify-content-center">
                                 <?php if ($page > 1): ?>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Anterior">
+                                        <a class="page-link" href="#" data-page="<?php echo $page - 1; ?>" aria-label="Anterior">
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
                                     </li>
@@ -1574,13 +1595,13 @@ $avisoData = getAvisolaranjaInicio();
 
                                 <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                                     <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
-                                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                        <a class="page-link" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
                                     </li>
                                 <?php endfor; ?>
 
                                 <?php if ($page < $total_pages): ?>
                                     <li class="page-item">
-                                        <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Próximo">
+                                        <a class="page-link" href="#" data-page="<?php echo $page + 1; ?>" aria-label="Próximo">
                                             <span aria-hidden="true">&raquo;</span>
                                         </a>
                                     </li>
@@ -1589,6 +1610,77 @@ $avisoData = getAvisolaranjaInicio();
                         </nav>
                     </div>
                     <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Section de criação/edição de post -->
+            <div id="post-editor-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title" id="post-editor-title">Novo Post</h3>
+                                </div>
+                                <div class="card-body">
+                                    <form id="postEditorForm" enctype="multipart/form-data">
+                                        <input type="hidden" name="id" id="postId">
+                                        <input type="hidden" name="autor_id" id="postAutorId" value="<?php echo $_SESSION['user_id']; ?>">
+                                        <div class="mb-3">
+                                            <label for="postTitulo" class="form-label">Título</label>
+                                            <input type="text" class="form-control" id="postTitulo" name="titulo" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="postTexto" class="form-label">Texto</label>
+                                            <textarea class="form-control" id="postTexto" name="texto" rows="6" required></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="postTags" class="form-label">Tags (separadas por vírgula)</label>
+                                            <input type="text" class="form-control" id="postTags" name="tags" placeholder="ex: Moodle, GIAE, Suporte">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Imagem Principal</label>
+                                            <div class="image-upload-container">
+                                                <input type="text" class="form-control mb-2" id="postImgPrincipal" name="img_principal">
+                                                <div class="image-preview mb-2" id="postImgPrincipalPreview">
+                                                    <img src="" alt="Preview" style="display: none; max-width: 200px; max-height: 150px;">
+                                                </div>
+                                                <div class="drop-zone" data-target="postImgPrincipal">
+                                                    Arraste uma imagem aqui ou clique para selecionar
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Imagens Adicionais</label>
+                                            <div class="row">
+                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                <div class="col-md-4 mb-2">
+                                                    <div class="image-upload-container">
+                                                        <input type="text" class="form-control mb-2" id="postImg<?php echo $i; ?>" name="img_<?php echo $i; ?>">
+                                                        <div class="image-preview mb-2" id="postImg<?php echo $i; ?>Preview">
+                                                            <img src="" alt="Preview" style="display: none; max-width: 200px; max-height: 150px;">
+                                                        </div>
+                                                        <div class="drop-zone" data-target="postImg<?php echo $i; ?>">
+                                                            Arraste uma imagem aqui ou clique para selecionar
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php endfor; ?>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Data de Criação</label>
+                                            <input type="text" class="form-control" id="postDataCriacao" name="data_criacao" readonly>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-secondary" id="cancelPostEdit">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary" id="savePostBtn">Criar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -42,13 +42,26 @@ function getPostById($id) {
 /**
  * Salva um novo post
  */
-function savePost($titulo, $texto, $tags, $img_principal, $autor_id) {
+function savePost($titulo, $texto, $tags, $img_principal, $autor_id, $imagens_adicionais = []) {
     global $conn;
     
-    $sql = "INSERT INTO posts (titulo, texto, tags, img_principal, autor_id, data_criacao) 
-            VALUES (?, ?, ?, ?, ?, NOW())";
+    $sql = "INSERT INTO posts (titulo, texto, tags, img_principal, autor_id, data_criacao";
+    $values = "VALUES (?, ?, ?, ?, ?, NOW()";
+    $types = "ssssi";
+    $params = [$titulo, $texto, $tags, $img_principal, $autor_id];
+
+    // Adicionar imagens adicionais se existirem
+    foreach ($imagens_adicionais as $key => $value) {
+        $sql .= ", $key";
+        $values .= ", ?";
+        $types .= "s";
+        $params[] = $value;
+    }
+
+    $sql .= ") " . $values . ")";
+    
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssi", $titulo, $texto, $tags, $img_principal, $autor_id);
+    $stmt->bind_param($types, ...$params);
     
     if ($stmt->execute()) {
         return $conn->insert_id;
@@ -59,14 +72,26 @@ function savePost($titulo, $texto, $tags, $img_principal, $autor_id) {
 /**
  * Atualiza um post existente
  */
-function updatePost($id, $titulo, $texto, $tags, $img_principal) {
+function updatePost($id, $titulo, $texto, $tags, $img_principal, $imagens_adicionais = []) {
     global $conn;
     
-    $sql = "UPDATE posts 
-            SET titulo = ?, texto = ?, tags = ?, img_principal = ? 
-            WHERE id = ?";
+    $sql = "UPDATE posts SET titulo = ?, texto = ?, tags = ?, img_principal = ?";
+    $types = "ssss";
+    $params = [$titulo, $texto, $tags, $img_principal];
+
+    // Adicionar imagens adicionais se existirem
+    foreach ($imagens_adicionais as $key => $value) {
+        $sql .= ", $key = ?";
+        $types .= "s";
+        $params[] = $value;
+    }
+
+    $sql .= " WHERE id = ?";
+    $types .= "i";
+    $params[] = $id;
+    
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssi", $titulo, $texto, $tags, $img_principal, $id);
+    $stmt->bind_param($types, ...$params);
     
     return $stmt->execute();
 }

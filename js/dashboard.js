@@ -29,9 +29,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Função para mostrar/esconder seções
-    function showSection(sectionId) {
-        // Previne o comportamento padrão do link
-        event.preventDefault();
+    function showSection(sectionId, event) {
+        // Previne o comportamento padrão do link se o evento existir
+        if (event) {
+            event.preventDefault();
+        }
         
         // Esconde todas as seções
         document.querySelectorAll('.content-section').forEach(section => {
@@ -59,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const sectionId = this.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
             if (sectionId) {
-                showSection(sectionId);
+                showSection(sectionId, e);
                 console.log('Link clicado:', sectionId);
             }
         });
@@ -444,5 +446,50 @@ document.getElementById('postEditorForm').addEventListener('submit', function(e)
     .catch(error => {
         console.error('Erro:', error);
         alert('Erro ao salvar o post. Por favor, tente novamente.');
+    });
+});
+
+// Processar o formulário de ligações rápidas
+document.getElementById('linksForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('update_links.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        const alertDiv = document.getElementById('linksAlert');
+        alertDiv.innerHTML = `
+            <div class="alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
+                ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Scroll para o topo da seção
+        const section = document.getElementById('links-section');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Remove a mensagem após 3 segundos
+        setTimeout(() => {
+            alertDiv.innerHTML = '';
+        }, 3000);
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        const alertDiv = document.getElementById('linksAlert');
+        alertDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Erro ao salvar alterações. Por favor, tente novamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Scroll para o topo da seção
+        const section = document.getElementById('links-section');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 }); 

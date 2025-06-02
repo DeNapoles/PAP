@@ -741,9 +741,7 @@ $avisoData = getAvisolaranjaInicio();
                         </li>
                     </ul>
                 </li>
-                <li>
-                    <a href="##"><span class="icon setting" aria-hidden="true"></span>Settings</a>
-                </li>
+            
             </ul>
             <span class="system-menu__title">system</span>
             <ul class="sidebar-body-menu">
@@ -777,12 +775,12 @@ $avisoData = getAvisolaranjaInicio();
                     </a>
                     <ul class="cat-sub-menu">
                         <li>
-                            <a href="#" onclick="showSection('users-section')">
+                            <a href="#" data-section-id="users-section">
                                 <i class="fas fa-users"></i> Gerir Utilizadores
                             </a>
                         </li>
                         <li>
-                            <a href="#" onclick="showSection('user-logs-section')">
+                            <a href="#" data-section-id="user-logs-section">
                                 <i class="fas fa-history"></i> Histórico de Alterações
                             </a>
                         </li>
@@ -1625,9 +1623,9 @@ $avisoData = getAvisolaranjaInicio();
                             <h2 class="mb-0">Gerenciar Utilizadores</h2>
                             <div class="d-flex gap-2">
                                 <div class="search-box">
-                                    <input type="text" id="userSearch" class="form-control" placeholder="Pesquisar utilizadores...">
+                                    <input type="text" id="userSearchInput" class="form-control" placeholder="Pesquisar utilizadores...">
                                 </div>
-                                <button class="btn btn-primary" onclick="showNewUserForm()">
+                                <button class="btn btn-primary" id="addNewUserBtn">
                                     <i class="fas fa-plus"></i> Novo Utilizador
                                 </button>
                             </div>
@@ -1637,14 +1635,13 @@ $avisoData = getAvisolaranjaInicio();
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover table-striped">
                                     <thead>
                                         <tr>
                                             <th>Nome</th>
                                             <th>Email</th>
                                             <th>Tipo</th>
                                             <th>Estado</th>
-                                            <th>Data de Registo</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
@@ -1676,7 +1673,7 @@ $avisoData = getAvisolaranjaInicio();
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table table-hover table-striped">
                                     <thead>
                                         <tr>
                                             <th>Utilizador</th>
@@ -1748,7 +1745,7 @@ $avisoData = getAvisolaranjaInicio();
 </div>
 
 <!-- Modal para criar/editar usuário -->
-<div class="modal fade" id="user-modal" tabindex="-1" aria-labelledby="user-modal-title" aria-hidden="true">
+<div class="modal fade" id="user-modal" tabindex="-1" aria-labelledby="user-modal-title" aria-hidden="true" style="display: none;">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -1783,7 +1780,7 @@ $avisoData = getAvisolaranjaInicio();
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="saveUser()">Salvar</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">Salvar</button>
             </div>
         </div>
     </div>

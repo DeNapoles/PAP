@@ -1,154 +1,241 @@
 <?php
+// Enable error reporting for debugging (should be disabled in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Do not display errors directly on the page
+
 require_once 'connection.php';
 
-// Verificar se o utilizador está autenticado e é Admin
+// Ensure session is started to get admin ID for logging
 session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Não autorizado']);
+
+// Set header to indicate JSON content
+header('Content-Type: application/json');
+
+// Function to send JSON response
+function sendJsonResponse($success, $message, $data = []) {
+    echo json_encode(['success' => $success, 'message' => $message] + $data);
     exit;
 }
 
-// Buscar informações do utilizador
-$stmt = $conn->prepare("SELECT Tipo_Utilizador FROM Utilizadores WHERE ID_Utilizador = ?");
-$stmt->bind_param("i", $_SESSION['user_id']);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Não autorizado']);
-    exit;
-}
-
-// Função para registrar alterações no log
+// Function to log user changes (optional, based on your log system)
+// This function needs to interact with your 'user_logs' table structure
 function logUserChange($userId, $action, $details) {
     global $conn;
-    $stmt = $conn->prepare("INSERT INTO user_logs (user_id, action, details, admin_id) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("issi", $userId, $action, $details, $_SESSION['user_id']);
-    return $stmt->execute();
+    // Assuming 'user_logs' table has columns: user_id, action, details, admin_id, created_at
+    // You might need to get the current admin user ID from the session
+    // Replace with actual column names and table name if different
+    $admin_id = $_SESSION['user_id'] ?? null; // Get admin ID from session
+     if ($admin_id === null) { // Handle case where admin ID is not in session
+        error_log("Warning: Admin user ID not found in session for logging user changes.");
+        // Optionally, you can skip logging or use a default/anonymous admin ID
+     }
+
+    // Check if user_logs table exists (optional, avoids errors if logging is not set up)
+    $tableExists = $conn->query("SHOW TABLES LIKE 'user_logs'")->num_rows > 0;
+    if ($tableExists) {
+        $stmt = $conn->prepare("INSERT INTO user_logs (user_id, action, details, admin_id) VALUES (?, ?, ?, ?)");
+        // Use 'i' for integers, 's' for strings
+        $stmt->bind_param("issi", $userId, $action, $details, $admin_id);
+        if (!$stmt->execute()) {
+             error_log("Error logging user change: " . $stmt->error);
+        }
+    }
 }
 
-// Processar a requisição
-$action = $_POST['action'] ?? '';
-$response = ['success' => false, 'message' => 'Ação inválida'];
+// Check if request method is POST and action is set
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
 
-switch ($action) {
-    case 'create':
-        if (isset($_POST['nome'], $_POST['email'], $_POST['senha'], $_POST['tipo'])) {
-            // Verificar se o email já existe
+    switch ($action) {
+        case 'create':
+            // Validate required fields
+            if (!isset($_POST['nome'], $_POST['email'], $_POST['senha'], $_POST['tipo'])) {
+                sendJsonResponse(false, 'Campos obrigatórios faltando.');
+            }
+            
+            $nome = $_POST['nome'];
+            $email = $_POST['email'];
+            $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT); // Hash the password
+            $tipo = $_POST['tipo'];
+            $estado = 'Ativo'; // Default status for new user
+
+            // Check if email already exists
             $stmt = $conn->prepare("SELECT ID_Utilizador FROM Utilizadores WHERE Email = ?");
-            $stmt->bind_param("s", $_POST['email']);
+            $stmt->bind_param("s", $email);
             $stmt->execute();
-            if ($stmt->get_result()->num_rows > 0) {
-                $response = ['success' => false, 'message' => 'Este email já está em uso'];
-                break;
+            $stmt->store_result();
+            if ($stmt->num_rows > 0) {
+                sendJsonResponse(false, 'Email já cadastrado.');
             }
+            $stmt->close();
 
-            // Criar novo usuário
-            $stmt = $conn->prepare("INSERT INTO Utilizadores (Nome, Email, Senha, Tipo_Utilizador, Estado, Data_Registo) VALUES (?, ?, ?, ?, 'Ativo', NOW())");
-            $hashed_password = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-            $stmt->bind_param("ssss", $_POST['nome'], $_POST['email'], $hashed_password, $_POST['tipo']);
-            
+            // Insert new user
+            // Use column names: Nome, Email, Senha, Tipo_Utilizador, Estado
+            $stmt = $conn->prepare("INSERT INTO Utilizadores (Nome, Email, Senha, Tipo_Utilizador, Estado) VALUES (?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssss", $nome, $email, $senha, $tipo, $estado);
+
             if ($stmt->execute()) {
-                $user_id = $conn->insert_id;
-                logUserChange($user_id, 'create', 'Novo usuário criado');
-                $response = ['success' => true, 'message' => 'Usuário criado com sucesso'];
+                $newUserId = $conn->insert_id;
+                logUserChange($newUserId, 'create', 'Criou o utilizador ' . $nome . ' (' . $email . '). Tipo: ' . $tipo . ', Estado: ' . $estado);
+                sendJsonResponse(true, 'Utilizador criado com sucesso!');
             } else {
-                $response = ['success' => false, 'message' => 'Erro ao criar usuário'];
+                error_log("Error creating user: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao criar utilizador. Por favor, tente novamente.');
             }
-        }
-        break;
+            $stmt->close();
+            break;
 
-    case 'update':
-        if (isset($_POST['id'], $_POST['nome'], $_POST['email'], $_POST['tipo'])) {
-            $user_id = (int)$_POST['id'];
-            
-            // Verificar se o email já existe para outro usuário
+        case 'update':
+            // Validate required fields
+            if (!isset($_POST['id'], $_POST['nome'], $_POST['email'], $_POST['tipo'])) {
+                 sendJsonResponse(false, 'Campos obrigatórios faltando para atualização.');
+            }
+
+            $id = (int)$_POST['id'];
+            $nome = $_POST['nome'];
+            $email = $_POST['email'];
+            $tipo = $_POST['tipo'];
+            $senha = $_POST['senha'] ?? ''; // Senha é opcional na edição
+
+            // Check if email already exists for another user
             $stmt = $conn->prepare("SELECT ID_Utilizador FROM Utilizadores WHERE Email = ? AND ID_Utilizador != ?");
-            $stmt->bind_param("si", $_POST['email'], $user_id);
+            $stmt->bind_param("si", $email, $id);
             $stmt->execute();
-            if ($stmt->get_result()->num_rows > 0) {
-                $response = ['success' => false, 'message' => 'Este email já está em uso'];
-                break;
+            $stmt->store_result();
+            if ($stmt->num_rows > 0) {
+                sendJsonResponse(false, 'Email já cadastrado por outro utilizador.');
             }
+            $stmt->close();
 
-            // Atualizar usuário
+            // Build update query dynamically based on whether password is provided
             $sql = "UPDATE Utilizadores SET Nome = ?, Email = ?, Tipo_Utilizador = ?";
-            $params = [$_POST['nome'], $_POST['email'], $_POST['tipo']];
             $types = "sss";
+            $params = [$nome, $email, $tipo];
+            $log_details = 'Atualizou o utilizador ID ' . $id . '. Campos: Nome=' . $nome . ', Email=' . $email . ', Tipo=' . $tipo;
 
-            // Se uma nova senha foi fornecida
-            if (!empty($_POST['senha'])) {
+            if (!empty($senha)) {
                 $sql .= ", Senha = ?";
-                $hashed_password = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-                $params[] = $hashed_password;
                 $types .= "s";
+                $params[] = password_hash($senha, PASSWORD_DEFAULT); // Hash the new password
+                $log_details .= ', Senha=***'; // Avoid logging actual password
             }
-
+            
             $sql .= " WHERE ID_Utilizador = ?";
-            $params[] = $user_id;
             $types .= "i";
+            $params[] = $id;
 
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param($types, ...$params);
+            // Using call_user_func_array because bind_param does not accept array directly
+            call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $params));
             
             if ($stmt->execute()) {
-                logUserChange($user_id, 'update', 'Usuário atualizado');
-                $response = ['success' => true, 'message' => 'Usuário atualizado com sucesso'];
+                logUserChange($id, 'update', $log_details);
+                sendJsonResponse(true, 'Utilizador atualizado com sucesso!');
             } else {
-                $response = ['success' => false, 'message' => 'Erro ao atualizar usuário'];
+                error_log("Error updating user: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao atualizar utilizador. Por favor, tente novamente.');
             }
-        }
-        break;
+            $stmt->close();
+            break;
 
-    case 'delete':
-        if (isset($_POST['id'])) {
-            $user_id = (int)$_POST['id'];
+        case 'delete':
+            // Validate required fields
+            if (!isset($_POST['id'])) {
+                 sendJsonResponse(false, 'ID do utilizador faltando para exclusão.');
+            }
             
-            // Não permitir excluir o próprio usuário
-            if ($user_id === $_SESSION['user_id']) {
-                $response = ['success' => false, 'message' => 'Não é possível excluir seu próprio usuário'];
-                break;
+            $id = (int)$_POST['id'];
+
+            // Prevent deleting the currently logged-in user
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $id) {
+                 sendJsonResponse(false, 'Não pode excluir o seu próprio utilizador.');
             }
 
-            // Excluir usuário
+            // Get user details before deleting for logging
+            $stmt = $conn->prepare("SELECT Nome, Email FROM Utilizadores WHERE ID_Utilizador = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $userToDelete = $result->fetch_assoc();
+            $stmt->close();
+
+            if (!$userToDelete) {
+                 sendJsonResponse(false, 'Utilizador não encontrado.');
+            }
+            
+            // Delete user
             $stmt = $conn->prepare("DELETE FROM Utilizadores WHERE ID_Utilizador = ?");
-            $stmt->bind_param("i", $user_id);
-            
+            $stmt->bind_param("i", $id);
+
             if ($stmt->execute()) {
-                logUserChange($user_id, 'delete', 'Usuário excluído');
-                $response = ['success' => true, 'message' => 'Usuário excluído com sucesso'];
+                logUserChange($id, 'delete', 'Excluiu o utilizador ' . $userToDelete['Nome'] . ' (' . $userToDelete['Email'] . ').');
+                sendJsonResponse(true, 'Utilizador excluído com sucesso!');
             } else {
-                $response = ['success' => false, 'message' => 'Erro ao excluir usuário'];
+                 error_log("Error deleting user: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao excluir utilizador. Por favor, tente novamente.');
             }
-        }
-        break;
+            $stmt->close();
+            break;
 
-    case 'update_status':
-        if (isset($_POST['id'], $_POST['status'])) {
-            $user_id = (int)$_POST['id'];
-            $status = $_POST['status'] ? 'Ativo' : 'Inativo';
-            
-            // Não permitir desativar o próprio usuário
-            if ($user_id === $_SESSION['user_id']) {
-                $response = ['success' => false, 'message' => 'Não é possível desativar seu próprio usuário'];
-                break;
+        case 'update_status':
+             // Validate required fields
+            if (!isset($_POST['id'], $_POST['status'])) {
+                 sendJsonResponse(false, 'ID ou status faltando para atualização de status.');
             }
 
+            $id = (int)$_POST['id'];
+            $status = $_POST['status']; // Expected: 'Ativo' or 'Inativo'
+
+             // Prevent changing status of the currently logged-in user (optional, but good practice)
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $id) {
+                 sendJsonResponse(false, 'Não pode alterar o status do seu próprio utilizador.');
+            }
+
+             // Validate status value
+            if ($status !== 'Ativo' && $status !== 'Inativo') {
+                 sendJsonResponse(false, 'Status inválido fornecido.');
+            }
+
+            // Update user status
+            // Use column name: Estado
             $stmt = $conn->prepare("UPDATE Utilizadores SET Estado = ? WHERE ID_Utilizador = ?");
-            $stmt->bind_param("si", $status, $user_id);
-            
+            $stmt->bind_param("si", $status, $id);
+
             if ($stmt->execute()) {
-                logUserChange($user_id, 'status_update', 'Status alterado para ' . $status);
-                $response = ['success' => true, 'message' => 'Status atualizado com sucesso'];
+                logUserChange($id, 'update_status', 'Alterou o status do utilizador ID ' . $id . ' para ' . $status . '.');
+                sendJsonResponse(true, 'Status do utilizador atualizado com sucesso!');
             } else {
-                $response = ['success' => false, 'message' => 'Erro ao atualizar status'];
+                 error_log("Error updating user status: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao atualizar status do utilizador. Por favor, tente novamente.');
             }
-        }
-        break;
+            $stmt->close();
+            break;
+
+        default:
+            sendJsonResponse(false, 'Ação inválida.');
+            break;
+    }
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
+    // Handle fetching a single user for editing
+    $id = (int)$_GET['id'];
+    
+    // Use column names: ID_Utilizador, Nome, Email, Tipo_Utilizador, Estado
+    $stmt = $conn->prepare("SELECT ID_Utilizador, Nome, Email, Tipo_Utilizador, Estado FROM Utilizadores WHERE ID_Utilizador = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($user) {
+        sendJsonResponse(true, '', ['user' => $user]);
+    } else {
+        sendJsonResponse(false, 'Utilizador não encontrado.');
+    }
+
+} else {
+    sendJsonResponse(false, 'Método de requisição inválido ou ação não especificada.');
 }
 
-header('Content-Type: application/json');
-echo json_encode($response); 
+$conn->close();
+?> 

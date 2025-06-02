@@ -735,15 +735,14 @@ $avisoData = getAvisolaranjaInicio();
                             </a>
                         </li>
                         <li>
-                      <a class="nav-link" href="#" onclick="showSection('faqs-section')">
-                          <i class="fas fa-question-circle"></i> Main FAQ's index
-                      </a>
-                    </li>
+                            <a class="nav-link" href="#" onclick="showSection('faqs-section')">
+                                <i class="fas fa-question-circle"></i> Main FAQ's index
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li>
-                    <a href="comments.html">
-                        <span class="icon message" aria-hidden="true"></span> Footer </a>
+                    <a href="##"><span class="icon setting" aria-hidden="true"></span>Settings</a>
                 </li>
             </ul>
             <span class="system-menu__title">system</span>
@@ -770,7 +769,7 @@ $avisoData = getAvisolaranjaInicio();
                 </li>
                 <li>
                     <a class="show-cat-btn" href="##">
-                        <span class="icon user-3" aria-hidden="true"></span>Users
+                        <span class="icon user-3" aria-hidden="true"></span>Utilizadores
                         <span class="category__btn transparent-btn" title="Open list">
                             <span class="sr-only">Open list</span>
                             <span class="icon arrow-down" aria-hidden="true"></span>
@@ -778,10 +777,14 @@ $avisoData = getAvisolaranjaInicio();
                     </a>
                     <ul class="cat-sub-menu">
                         <li>
-                            <a href="users-01.html">Users-01</a>
+                            <a href="#" onclick="showSection('users-section')">
+                                <i class="fas fa-users"></i> Gerir Utilizadores
+                            </a>
                         </li>
                         <li>
-                            <a href="users-02.html">Users-02</a>
+                            <a href="#" onclick="showSection('user-logs-section')">
+                                <i class="fas fa-history"></i> Histórico de Alterações
+                            </a>
                         </li>
                     </ul>
                 </li>
@@ -1614,7 +1617,87 @@ $avisoData = getAvisolaranjaInicio();
                 </div>
             </div>
 
-            <!-- Outras seções serão adicionadas aqui -->
+            <!-- Seção de Gerenciamento de Usuários (escondida por padrão) -->
+            <div id="users-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row mb-4">
+                        <div class="col-12 d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Gerenciar Utilizadores</h2>
+                            <div class="d-flex gap-2">
+                                <div class="search-box">
+                                    <input type="text" id="userSearch" class="form-control" placeholder="Pesquisar utilizadores...">
+                                </div>
+                                <button class="btn btn-primary" onclick="showNewUserForm()">
+                                    <i class="fas fa-plus"></i> Novo Utilizador
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Tipo</th>
+                                            <th>Estado</th>
+                                            <th>Data de Registo</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <!-- Será preenchido via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="usersPagination" class="pagination-container">
+                                <!-- Será preenchido via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Histórico de Alterações (escondida por padrão) -->
+            <div id="user-logs-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row mb-4">
+                        <div class="col-12 d-flex justify-content-between align-items-center">
+                            <h2 class="mb-0">Histórico de Alterações</h2>
+                            <div class="search-box">
+                                <input type="text" id="logSearch" class="form-control" placeholder="Pesquisar no histórico...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Utilizador</th>
+                                            <th>Ação</th>
+                                            <th>Detalhes</th>
+                                            <th>Data</th>
+                                            <th>Administrador</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="logsTableBody">
+                                        <!-- Será preenchido via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="logsPagination" class="pagination-container">
+                                <!-- Será preenchido via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
     <!-- ============================================ End Main Content ============================================ -->
@@ -1659,6 +1742,80 @@ $avisoData = getAvisolaranjaInicio();
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" id="confirmRename">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para criar/editar usuário -->
+<div class="modal fade" id="user-modal" tabindex="-1" aria-labelledby="user-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="user-modal-title">Novo Usuário</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="user-form">
+                    <input type="hidden" id="user-id" name="id">
+                    <div class="mb-3">
+                        <label for="user-nome" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="user-nome" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="user-email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user-senha" class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="user-senha" name="senha" required>
+                        <small class="form-text text-muted">Deixe em branco para manter a senha atual ao editar.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user-tipo" class="form-label">Tipo de Usuário</label>
+                        <select class="form-select" id="user-tipo" name="tipo" required>
+                            <option value="Aluno">Aluno</option>
+                            <option value="Professor">Professor</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para histórico de alterações -->
+<div class="modal fade" id="logs-section" tabindex="-1" aria-labelledby="logs-section-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logs-section-title">Histórico de Alterações</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="logs-search" placeholder="Pesquisar...">
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped" id="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Ação</th>
+                                <th>Detalhes</th>
+                                <th>Data</th>
+                                <th>Administrador</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="logs-pagination"></div>
             </div>
         </div>
     </div>

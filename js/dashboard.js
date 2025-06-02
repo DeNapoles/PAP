@@ -46,9 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedSection.style.display = 'block';
             console.log('Seção mostrada:', sectionId);
             
-            // Se for a seção de posts, carrega a primeira página via AJAX
-            if (sectionId === 'posts-section') {
-                loadPostsPage(1);
+            // Carrega o conteúdo específico da seção
+            switch(sectionId) {
+                case 'posts-section':
+                    loadPostsPage(1);
+                    break;
+                case 'users-section':
+                    loadUsers();
+                    break;
+                case 'user-logs-section':
+                    loadUserLogs();
+                    break;
             }
         } else {
             console.error('Seção não encontrada:', sectionId);
@@ -492,4 +500,212 @@ document.getElementById('linksForm').addEventListener('submit', function(e) {
         const section = document.getElementById('links-section');
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+});
+
+// Funções para gerenciar usuários
+let currentPage = 1;
+let currentSearch = '';
+
+function loadUsers(page = 1, search = '') {
+    currentPage = page;
+    currentSearch = search;
+    
+    fetch('get_users.php?page=' + page + '&search=' + encodeURIComponent(search))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('usersTableBody').innerHTML = data.html;
+                document.getElementById('usersPagination').innerHTML = data.pagination;
+                
+                // Adicionar eventos de paginação
+                document.querySelectorAll('#usersPagination .page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = this.getAttribute('data-page');
+                        loadUsers(page, currentSearch);
+                    });
+                });
+            } else {
+                showAlert('Erro ao carregar usuários: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao carregar usuários. Por favor, tente novamente.', 'danger');
+        });
+}
+
+function loadUserLogs(page = 1, search = '') {
+    fetch('get_user_logs.php?page=' + page + '&search=' + encodeURIComponent(search))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector('#logs-table tbody').innerHTML = data.html;
+                document.getElementById('logs-pagination').innerHTML = data.pagination;
+                
+                // Adicionar eventos de paginação
+                document.querySelectorAll('#logs-pagination .page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = this.getAttribute('data-page');
+                        loadUserLogs(page, currentSearch);
+                    });
+                });
+            } else {
+                showAlert('Erro ao carregar logs: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao carregar logs. Por favor, tente novamente.', 'danger');
+        });
+}
+
+function showNewUserForm() {
+    document.getElementById('user-form').reset();
+    document.getElementById('user-id').value = '';
+    document.getElementById('user-modal-title').textContent = 'Novo Usuário';
+    new bootstrap.Modal(document.getElementById('user-modal')).show();
+}
+
+function editUser(id) {
+    fetch('get_users.php?id=' + id)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const user = data.user;
+                document.getElementById('user-id').value = user.ID_Utilizador;
+                document.getElementById('user-nome').value = user.Nome;
+                document.getElementById('user-email').value = user.Email;
+                document.getElementById('user-tipo').value = user.Tipo_Utilizador;
+                document.getElementById('user-senha').value = '';
+                document.getElementById('user-senha').required = false;
+                document.getElementById('user-modal-title').textContent = 'Editar Usuário';
+                new bootstrap.Modal(document.getElementById('user-modal')).show();
+            } else {
+                showAlert('Erro ao carregar usuário: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao carregar usuário. Por favor, tente novamente.', 'danger');
+        });
+}
+
+function saveUser() {
+    const form = document.getElementById('user-form');
+    const formData = new FormData(form);
+    formData.append('action', document.getElementById('user-id').value ? 'update' : 'create');
+    
+    fetch('manage_user.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('user-modal')).hide();
+            showAlert(data.message, 'success');
+            loadUsers(currentPage, currentSearch);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showAlert('Erro ao salvar usuário. Por favor, tente novamente.', 'danger');
+    });
+}
+
+function deleteUser(id) {
+    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
+        fetch('manage_user.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=delete&id=' + id
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                loadUsers(currentPage, currentSearch);
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao excluir usuário. Por favor, tente novamente.', 'danger');
+        });
+    }
+}
+
+function updateUserStatus(id, status) {
+    fetch('manage_user.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=update_status&id=' + id + '&status=' + status
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+        } else {
+            showAlert(data.message, 'danger');
+            // Reverter o switch se houver erro
+            document.getElementById('status_' + id).checked = !status;
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showAlert('Erro ao atualizar status. Por favor, tente novamente.', 'danger');
+        // Reverter o switch se houver erro
+        document.getElementById('status_' + id).checked = !status;
+    });
+}
+
+// Eventos para a seção de usuários
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar a seção de usuários quando a página carrega
+    if (document.getElementById('users-section')) {
+        loadUsers();
+    }
+
+    // Evento para quando a seção de usuários é mostrada
+    document.querySelectorAll('a[onclick*="showSection(\'users-section\')"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('users-section');
+            loadUsers();
+        });
+    });
+
+    // Evento para pesquisa de usuários
+    const userSearch = document.getElementById('userSearch');
+    if (userSearch) {
+        userSearch.addEventListener('input', function() {
+            loadUsers(1, this.value);
+        });
+    }
+
+    // Evento para a seção de logs
+    document.querySelectorAll('a[onclick*="showSection(\'user-logs-section\')"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('user-logs-section');
+            loadUserLogs();
+        });
+    });
+
+    // Evento para pesquisa de logs
+    const logSearch = document.getElementById('logSearch');
+    if (logSearch) {
+        logSearch.addEventListener('input', function() {
+            loadUserLogs(1, this.value);
+        });
+    }
 }); 

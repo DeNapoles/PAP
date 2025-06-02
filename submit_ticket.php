@@ -129,6 +129,12 @@ require_once 'functions.php';
 						</div>
 
 						<div class="form-group mb-3">
+							<label for="data_hora_agendamento">Data e Hora para Entrega do Equipamento:</label>
+							<input type="datetime-local" id="data_hora_agendamento" name="data_hora_agendamento" class="form-control" required>
+							<small class="form-text text-muted">Selecione a data e hora em que pretende entregar o equipamento na escola.</small>
+						</div>
+
+						<div class="form-group mb-3">
 							<label for="descricao">Descrição do Problema:</label>
 							<textarea id="descricao" name="descricao" class="form-control" rows="6" required></textarea>
 						</div>
@@ -230,6 +236,75 @@ require_once 'functions.php';
 	<script src="js/main.js"></script>
 
 	<?php include 'modals.php'; ?>
+
+	<!-- Modal de Feedback -->
+	<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="feedbackModalLabel">Submissão de Ticket</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body" id="feedbackModalMessage">
+					<!-- A mensagem será inserida aqui pelo JavaScript -->
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" id="feedbackModalOK" data-bs-dismiss="modal">OK</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const form = document.querySelector('form');
+			const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+			const feedbackModalMessage = document.getElementById('feedbackModalMessage');
+			const feedbackModalOK = document.getElementById('feedbackModalOK');
+
+			form.addEventListener('submit', async function(event) {
+				event.preventDefault(); // Previne a submissão tradicional do formulário
+
+				const formData = new FormData(form);
+
+				// Limpa mensagens anteriores
+				feedbackModalMessage.innerHTML = '';
+				// Remove event listeners antigos do botão OK para evitar múltiplos redirecionamentos
+				feedbackModalOK.replaceWith(feedbackModalOK.cloneNode(true));
+				const newFeedbackModalOK = document.getElementById('feedbackModalOK');
+
+				try {
+					const response = await fetch('process_ticket_submission.php', {
+						method: 'POST',
+						body: formData
+					});
+
+					const data = await response.json();
+
+					if (data.success) {
+						feedbackModalMessage.innerHTML = 'O seu ticket foi submetido com sucesso e aguarda aceitação por um técnico. Deseja voltar à página principal?';
+						feedbackModal.show();
+
+						// Adiciona evento ao botão OK para redirecionar
+						newFeedbackModalOK.addEventListener('click', function() {
+							window.location.href = 'index.php';
+						});
+
+					} else {
+						feedbackModalMessage.innerHTML = 'Erro ao submeter o ticket: ' + data.message;
+						feedbackModal.show();
+						// O botão OK do modal apenas fecha o modal em caso de erro
+					}
+
+				} catch (error) {
+					console.error('Erro na submissão:', error);
+					feedbackModalMessage.innerHTML = 'Ocorreu um erro ao comunicar com o servidor. Por favor, tente novamente.';
+					feedbackModal.show();
+					// O botão OK do modal apenas fecha o modal em caso de erro
+				}
+			});
+		});
+	</script>
 </body>
 
 </html> 

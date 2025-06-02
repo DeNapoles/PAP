@@ -87,6 +87,9 @@ function updateNavbarForLogin(user) {
       <ul class="dropdown-menu dropdown-menu-end" style="min-width: 220px;">
         ${dashboardBtn}
         <li>
+          <a class="dropdown-item" href="submit_ticket.php"><i class="fa fa-ticket me-2"></i>Submeter Ticket</a>
+        </li>
+        <li>
           <a class="dropdown-item" href="#"><i class="fa fa-user me-2"></i>Ver Perfil</a>
         </li>
         <li>

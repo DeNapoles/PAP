@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once 'functions.php';
 
 // Verificar se o utilizador está autenticado e é um aluno

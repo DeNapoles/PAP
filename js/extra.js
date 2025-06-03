@@ -82,7 +82,8 @@ function updateNavbarForLogin(user) {
   // Adiciona o botão Submeter Ticket só para Alunos
   const isAluno = user.tipo === 'Aluno';
   const submitTicketBtn = isAluno
-    ? `<li><a class="dropdown-item" href="submit_ticket.php"><i class="fa fa-ticket me-2"></i>Submeter Ticket</a></li>`
+    ? `<li><a class="dropdown-item" href="submit_ticket.php"><i class="fa fa-ticket me-2"></i>Submeter Ticket</a></li>
+       <li><a class="dropdown-item" href="view_tickets.php"><i class="fa fa-list me-2"></i>Reparações Agendadas</a></li><li><hr class="dropdown-divider"></li>`
     : '';
 
   const dropdownHTML = `
@@ -125,9 +126,10 @@ function updateNavbarForLogin(user) {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', e => {
       e.preventDefault();
+      // Limpar dados locais e redirecionar para o script de logout do servidor
       localStorage.removeItem('user');
       localStorage.removeItem('loginOrigem');
-      location.reload();
+      window.location.href = 'logout.php'; // Redireciona para logout.php
     });
   }
 }

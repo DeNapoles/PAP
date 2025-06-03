@@ -1,7 +1,8 @@
 <?php
 // Enable error reporting for debugging (should be disabled in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Do not display errors directly on the page
+ini_set('display_errors', 1); // Temporariamente, para depurar
+ini_set('display_startup_errors', 1); // Temporariamente, para depurar
 
 require_once 'connection.php';
 
@@ -35,7 +36,9 @@ function logUserChange($userId, $action, $details) {
     if ($tableExists) {
         $stmt = $conn->prepare("INSERT INTO user_logs (user_id, action, details, admin_id) VALUES (?, ?, ?, ?)");
         // Use 'i' for integers, 's' for strings
-        $stmt->bind_param("issi", $userId, $action, $details, $admin_id);
+        // Ensure admin_id is an integer or null
+        $admin_id_param = $admin_id !== null ? (int)$admin_id : null;
+        $stmt->bind_param("issi", $userId, $action, $details, $admin_id_param);
         if (!$stmt->execute()) {
              error_log("Error logging user change: " . $stmt->error);
         }
@@ -207,6 +210,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             } else {
                  error_log("Error updating user status: " . $stmt->error);
                 sendJsonResponse(false, 'Erro ao atualizar status do utilizador. Por favor, tente novamente.');
+            }
+            $stmt->close();
+            break;
+
+        case 'update_type':
+            // Validate required fields
+            if (!isset($_POST['id'], $_POST['tipo'])) {
+                 sendJsonResponse(false, 'ID ou tipo faltando para atualização de tipo.');
+            }
+
+            $id = (int)$_POST['id'];
+            $tipo = $_POST['tipo']; // Expected: 'Aluno', 'Professor', or 'Admin'
+
+            // Prevent changing type of the currently logged-in user (optional, but good practice)
+            // You might want to allow changing your *own* type, but be careful with Admin permissions.
+            // For simplicity here, let's disallow changing your own type.
+            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $id) {
+                 sendJsonResponse(false, 'Não pode alterar o seu próprio tipo de utilizador.');
+            }
+
+             // Validate type value
+            if (!in_array($tipo, ['Aluno', 'Professor', 'Admin'])) {
+                 sendJsonResponse(false, 'Tipo de utilizador inválido fornecido.');
+            }
+
+            // Update user type
+            // Use column name: Tipo_Utilizador
+            $stmt = $conn->prepare("UPDATE Utilizadores SET Tipo_Utilizador = ? WHERE ID_Utilizador = ?");
+            $stmt->bind_param("si", $tipo, $id);
+
+            if ($stmt->execute()) {
+                logUserChange($id, 'update_type', 'Alterou o tipo do utilizador ID ' . $id . ' para ' . $tipo . '.');
+                sendJsonResponse(true, 'Tipo de utilizador atualizado com sucesso!');
+            } else {
+                error_log("Error updating user type: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao atualizar tipo de utilizador. Por favor, tente novamente.');
             }
             $stmt->close();
             break;

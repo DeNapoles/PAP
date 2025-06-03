@@ -199,6 +199,8 @@ $avisoData = getAvisolaranjaInicio();
   <link rel="shortcut icon" href="img/logo2AEBConecta.png" type="image/x-icon">
   <!-- Custom styles -->
   <link rel="stylesheet" href="./css/style.min.css">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <style>
     .content-section {
@@ -648,6 +650,183 @@ $avisoData = getAvisolaranjaInicio();
         padding-left: 0;
         margin-bottom: 0;
     }
+
+    /* Estilos para a tabela de utilizadores */
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        color: #495057;
+        font-weight: 600;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .user-row td {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+    }
+
+    .avatar {
+        transition: transform 0.2s ease;
+    }
+
+    .user-row:hover .avatar {
+        transform: scale(1.1);
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .user-name {
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+
+    .user-email {
+        font-size: 0.85rem;
+    }
+
+    .form-select-sm {
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-select-sm:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-check-input {
+        width: 2.5em;
+        height: 1.25em;
+        margin-top: 0.125em;
+        vertical-align: top;
+        background-color: #fff;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        appearance: none;
+        color-adjust: exact;
+        transition: background-position 0.15s ease-in-out;
+    }
+
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .badge {
+        padding: 0.5em 0.75em;
+        font-size: 0.75em;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .bg-success-subtle {
+        background-color: #d1e7dd;
+    }
+
+    .bg-secondary-subtle {
+        background-color: #e2e3e5;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-secondary {
+        color: #6c757d !important;
+    }
+
+    .btn-outline-danger {
+        border-width: 1px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    /* Estilo para a mensagem de "Nenhum utilizador encontrado" */
+    .text-muted {
+        color: #6c757d !important;
+        font-size: 0.95rem;
+    }
+
+    /* Estilo para a paginação */
+    .pagination {
+        margin-top: 1.5rem;
+    }
+
+    .page-link {
+        padding: 0.5rem 0.75rem;
+        color: #0d6efd;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+
+    .page-link:hover {
+        z-index: 2;
+        color: #0a58ca;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    /* CSS extra para labels por cima dos campos na tabela de utilizadores */
+    .users-table th, .users-table td {
+        vertical-align: top;
+        text-align: left;
+    }
+    .users-table .form-label {
+        display: block;
+        font-size: 0.8rem;
+        color: #888;
+        margin-bottom: 0.2rem;
+        font-weight: 500;
+    }
+    .users-table .form-control, .users-table .form-select {
+        margin-bottom: 0.5rem;
+    }
+    .users-table .user-info {
+        margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 
@@ -781,7 +960,7 @@ $avisoData = getAvisolaranjaInicio();
                         </li>
                         <li>
                             <a href="#" data-section-id="user-logs-section">
-                                <i class="fas fa-history"></i> Histórico de Alterações
+                                <i class="fas fa-history"></i> Histórico
                             </a>
                         </li>
                     </ul>
@@ -1625,9 +1804,7 @@ $avisoData = getAvisolaranjaInicio();
                                 <div class="search-box">
                                     <input type="text" id="userSearchInput" class="form-control" placeholder="Pesquisar utilizadores...">
                                 </div>
-                                <button class="btn btn-primary" id="addNewUserBtn">
-                                    <i class="fas fa-plus"></i> Novo Utilizador
-                                </button>
+                                <!-- Removido o botão Novo Utilizador -->
                             </div>
                         </div>
                     </div>
@@ -1642,6 +1819,7 @@ $avisoData = getAvisolaranjaInicio();
                                             <th>Email</th>
                                             <th>Tipo</th>
                                             <th>Estado</th>
+                                            <th>Data Registo</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>

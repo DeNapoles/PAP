@@ -137,36 +137,54 @@ $result = $stmt->get_result();
 $html = '';
 if ($result->num_rows > 0) {
     while($user = $result->fetch_assoc()) {
-        $html .= '<tr>';
-        $html .= '<td class="align-middle"><div class="d-flex align-items-center gap-2">'
-               . '<span class="avatar bg-primary text-white rounded-circle" style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;">'
-               . strtoupper(substr($user['Nome'],0,1))
-               . '</span>'
-               . '<span>' . htmlspecialchars($user['Nome']) . '</span></div></td>';
-        $html .= '<td class="align-middle">' . htmlspecialchars($user['Email']) . '</td>';
+        $html .= '<tr class="user-row">';
+        // Coluna Nome (avatar, nome)
         $html .= '<td class="align-middle">';
-        $html .= '<select class="form-select form-select-sm user-type-select" data-id="' . $user['ID_Utilizador'] . '">';
+        $html .= '<div class="d-flex align-items-center gap-3">';
+        $html .= '<div class="avatar-wrapper">';
+        $html .= '<span class="avatar bg-primary text-white rounded-circle" style="width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;">';
+        $html .= strtoupper(substr($user['Nome'],0,1));
+        $html .= '</span>';
+        $html .= '</div>';
+        $html .= '<div class="user-info">';
+        $html .= '<span class="user-name fw-bold">' . htmlspecialchars($user['Nome']) . '</span>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</td>';
+        // Coluna Email
+        $html .= '<td class="align-middle">';
+        $html .= '<span class="user-email text-muted d-block small">' . htmlspecialchars($user['Email']) . '</span>';
+        $html .= '</td>';
+        // Coluna Tipo (Dropdown)
+        $html .= '<td class="align-middle">';
+        $html .= '<select class="form-select form-select-sm user-type-select" data-id="' . $user['ID_Utilizador'] . '" style="min-width:120px;">';
         $html .= '<option value="Aluno"' . ($user['Tipo_Utilizador'] == 'Aluno' ? ' selected' : '') . '>Aluno</option>';
         $html .= '<option value="Professor"' . ($user['Tipo_Utilizador'] == 'Professor' ? ' selected' : '') . '>Professor</option>';
         $html .= '<option value="Admin"' . ($user['Tipo_Utilizador'] == 'Admin' ? ' selected' : '') . '>Admin</option>';
         $html .= '</select>';
         $html .= '</td>';
-        $html .= '<td class="align-middle">' . htmlspecialchars($user['Estado']) . '</td>';
-        $html .= '<td class="align-middle">' . date('d/m/Y H:i', strtotime($user['Data_Registo'])) . '</td>';
-        $html .= '<td class="align-middle">'
-               . '<div class="btn-group me-2" role="group">'
-               . '<button type="button" class="btn btn-sm btn-outline-danger delete-user-btn" data-id="' . $user['ID_Utilizador'] . '" title="Apagar"><i class="fas fa-trash"></i> Apagar</button>'
-               . '</div>'
-               . '<div class="form-check form-switch d-inline-block align-middle">'
-               . '<input class="form-check-input status-toggle" type="checkbox" role="switch" id="status_' . $user['ID_Utilizador'] . '" data-id="' . $user['ID_Utilizador'] . '" '
-               . ($user['Estado'] == 'Ativo' ? 'checked' : '') . '>'
-               . '<label class="form-check-label ms-2" for="status_' . $user['ID_Utilizador'] . '">'
-               . ($user['Estado'] == 'Ativo' ? "<span class='badge bg-success'>Ativo</span>" : "<span class='badge bg-secondary'>Inativo</span>")
-               . '</label></div></td>';
+        // Coluna Estado (botão)
+        $html .= '<td class="align-middle">';
+        $estadoBtnClass = $user['Estado'] == 'Ativo' ? 'btn-success' : 'btn-secondary';
+        $estadoBtnText = $user['Estado'] == 'Ativo' ? 'Ativo' : 'Inativo';
+        $html .= '<button type="button" class="btn btn-sm btn-estado-toggle ' . $estadoBtnClass . '" data-id="' . $user['ID_Utilizador'] . '" data-estado="' . $user['Estado'] . '">' . $estadoBtnText . '</button>';
+        $html .= '</td>';
+        // Coluna Data de Registo
+        $html .= '<td class="align-middle">';
+        $html .= '<span class="text-muted">' . date('d/m/Y H:i', strtotime($user['Data_Registo'])) . '</span>';
+        $html .= '</td>';
+        // Coluna Ações
+        $html .= '<td class="align-middle">';
+        $html .= '<div class="d-flex gap-2">';
+        $html .= '<button type="button" class="btn btn-sm btn-icon btn-delete delete-user-btn" style="color:#fff;background:#dc3545;" data-id="' . $user['ID_Utilizador'] . '" title="Apagar">';
+        $html .= '<i class="fas fa-trash"></i>';
+        $html .= '</button>';
+        $html .= '</div>';
+        $html .= '</td>';
         $html .= '</tr>';
     }
 } else {
-    $html = '<tr><td colspan="6" class="text-center">Nenhum utilizador encontrado.</td></tr>';
+    $html = '<tr><td colspan="5" class="text-center py-4"><div class="text-muted">Nenhum utilizador encontrado.</div></td></tr>';
 }
 
 // Preparar a paginação

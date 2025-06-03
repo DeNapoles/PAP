@@ -52,7 +52,7 @@ function loadUsers(page = 1, search = '') {
                 if (usersTableBody) usersTableBody.innerHTML = data.html;
                 if (usersPagination) usersPagination.innerHTML = data.pagination;
                 setupUsersPaginationEvents();
-                 // Attach event listeners to Edit, Delete, and Status buttons AFTER loading HTML
+                 // Attach event listeners to Edit, Delete, Tipo and Status buttons AFTER loading HTML
                 attachUserActionListeners();
             } else {
                 showAlert('Erro ao carregar usuários: ' + data.message, 'danger');
@@ -87,6 +87,7 @@ function setupUsersPaginationEvents() {
 }
 
 function attachUserActionListeners() {
+    console.log('Anexando event listeners para ações de utilizador...');
     // Attach listeners for Edit buttons
     document.querySelectorAll('#usersTableBody .edit-user-btn').forEach(button => {
         const userId = button.getAttribute('data-id');
@@ -107,16 +108,45 @@ function attachUserActionListeners() {
         }
     });
 
-    // Attach listeners for Status toggles
-    document.querySelectorAll('#usersTableBody .status-toggle').forEach(toggle => {
-         const userId = toggle.getAttribute('data-id');
+    // Attach listeners for Estado toggle button (update to target the button class)
+    const statusButtons = document.querySelectorAll('#usersTableBody .btn-estado-toggle');
+    console.log('Encontrados ' + statusButtons.length + ' botões de estado.');
+    statusButtons.forEach(button => {
+         const userId = button.getAttribute('data-id');
          if (userId) {
-            // Remove any existing inline onchange
-            toggle.removeAttribute('onchange');
-            toggle.addEventListener('change', function() {
-                updateUserStatus(parseInt(userId), this.checked ? "Ativo" : "Inativo");
+            button.addEventListener('click', function() {
+                const currentEstado = this.getAttribute('data-estado');
+                const newEstado = currentEstado === 'Ativo' ? 'Inativo' : 'Ativo';
+                updateUserStatusBtn(parseInt(userId), newEstado, this);
             });
          }
+    });
+
+    // Attach listeners for Tipo select
+    const typeSelects = document.querySelectorAll('#usersTableBody .user-type-select');
+    console.log('Encontrados ' + typeSelects.length + ' dropdowns de tipo.');
+    typeSelects.forEach(select => {
+        const userId = select.getAttribute('data-id');
+        const originalValue = select.value; // Store the original value
+        if (userId) {
+            select.addEventListener('change', function() {
+                const newType = this.value;
+                const userName = this.closest('tr').querySelector('.user-name').textContent; // Get user name for confirmation
+                
+                if (newType === 'Admin') {
+                    // Confirm if changing to Admin
+                    if (confirm(`Tem certeza que deseja tornar ${userName} um administrador? Administradores têm acesso total.`)) {
+                        updateUserType(parseInt(userId), newType, this);
+                    } else {
+                        // Revert to original value if cancelled
+                        this.value = originalValue;
+                    }
+                } else {
+                     // No confirmation needed for other types
+                    updateUserType(parseInt(userId), newType, this);
+                }
+            });
+        }
     });
 }
 
@@ -282,33 +312,93 @@ window.deleteUser = function(id) {
 };
 
 window.updateUserStatus = function(id, status) {
-    console.log(`Updating status for user ID: ${id}, new status: ${status}`);
     fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=update_status&id=' + id + '&status=' + status })
-        .then(response => { 
-             // Check if response is JSON
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                return response.text().then(text => { throw new Error(`Expected JSON, received ${contentType}. Content: ${text}`); });
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log('Update status response:', data);
-            if (data.success) { showAlert(data.message, 'success'); }
-            else { showAlert(data.message, 'danger'); /* Reverter o switch se houver erro não é mais necessário aqui, o backend deve retornar o status atualizado no futuro se houver erro*/ }
+            if (data.success) {
+                showAlert(data.message, 'success');
+                // Atualiza visualmente o switch e badge imediatamente
+                const toggles = document.querySelectorAll('#usersTableBody .status-toggle');
+                toggles.forEach(toggle => {
+                    if (parseInt(toggle.getAttribute('data-id')) === id) {
+                        toggle.checked = (status === 'Ativo');
+                        // Atualiza badge
+                        const badge = toggle.parentNode.querySelector('.badge');
+                        if (badge) {
+                            badge.textContent = status;
+                            badge.className = 'badge ' + (status === 'Ativo' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary');
+                        }
+                    }
+                });
+            } else {
+                showAlert(data.message, 'danger');
+            }
         })
         .catch(error => {
-            console.error('Erro no fetch para atualizar status:', error);
             showAlert('Erro ao atualizar status. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
             // Reverter o switch se houver erro
-            const statusToggle = document.getElementById('status_' + id);
-             // Find the correct toggle based on data-id
             const toggles = document.querySelectorAll('#usersTableBody .status-toggle');
             toggles.forEach(toggle => {
                 if (parseInt(toggle.getAttribute('data-id')) === id) {
-                    toggle.checked = !status; // Revert the toggle state
+                    toggle.checked = !(status === 'Ativo');
                 }
             });
+        });
+};
+
+// Função para atualizar o estado via botão
+window.updateUserStatusBtn = function(id, status, btn) {
+    fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=update_status&id=' + id + '&status=' + status })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                console.log('Status update successful for user ID:', id, 'New status:', status);
+                console.log('Button element before update:', btn);
+                // Atualiza visualmente o botão
+                btn.textContent = status;
+                btn.setAttribute('data-estado', status);
+                
+                // Remover explicitamente ambas as classes antes de adicionar a correta
+                btn.classList.remove('btn-success');
+                btn.classList.remove('btn-secondary');
+
+                if (status === 'Ativo') {
+                    btn.classList.add('btn-success');
+                } else {
+                    btn.classList.add('btn-secondary');
+                }
+
+                console.log('Button element after visual update:', btn);
+                console.log('Button updated visually.');
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            showAlert('Erro ao atualizar status. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
+        });
+};
+
+// Função para atualizar o tipo de utilizador
+window.updateUserType = function(id, tipo, selectElement) {
+    fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=update_type&id=' + id + '&tipo=' + tipo })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                // O select já tem o valor correto devido ao event listener
+                // Nenhuma atualização visual extra é necessária para o select em si
+            } else {
+                showAlert(data.message, 'danger');
+                // Reverter o select se houver erro (opcional, dependendo da UX desejada)
+                // selectElement.value = selectElement.getAttribute('data-original-value'); // Precisaria armazenar original-value
+            }
+        })
+        .catch(error => {
+            showAlert('Erro ao atualizar tipo de utilizador. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
+            // Reverter o select se houver erro
+             // selectElement.value = selectElement.getAttribute('data-original-value'); // Precisaria armazenar original-value
         });
 };
 

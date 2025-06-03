@@ -79,6 +79,12 @@ function updateNavbarForLogin(user) {
     ? `<li><a class="dropdown-item text-primary fw-bold" href="index_Dashboard.php?user=${encodeURIComponent(user.nome || user.displayName)}" id="dashboard-btn"><i class="fa fa-cogs me-2"></i>Dashboard</a></li><li><hr class="dropdown-divider"></li>`
     : '';
 
+  // Adiciona o botão Submeter Ticket só para Alunos
+  const isAluno = user.tipo === 'Aluno';
+  const submitTicketBtn = isAluno
+    ? `<li><a class="dropdown-item" href="submit_ticket.php"><i class="fa fa-ticket me-2"></i>Submeter Ticket</a></li>`
+    : '';
+
   const dropdownHTML = `
     <div class="dropdown">
       <a class="nav-link dropdown-toggle logged-in-user" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -86,9 +92,7 @@ function updateNavbarForLogin(user) {
       </a>
       <ul class="dropdown-menu dropdown-menu-end" style="min-width: 220px;">
         ${dashboardBtn}
-        <li>
-          <a class="dropdown-item" href="submit_ticket.php"><i class="fa fa-ticket me-2"></i>Submeter Ticket</a>
-        </li>
+        ${submitTicketBtn}
         <li>
           <a class="dropdown-item" href="#"><i class="fa fa-user me-2"></i>Ver Perfil</a>
         </li>

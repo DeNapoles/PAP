@@ -1,6 +1,26 @@
 <?php
 require_once 'functions.php';
 
+// Verificar se o utilizador está autenticado e é um aluno
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: index.php');
+    exit;
+}
+
+// Verificar o tipo de utilizador
+require_once 'connection.php';
+$stmt = $conn->prepare("SELECT Tipo_Utilizador FROM Utilizadores WHERE ID_Utilizador = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+
+if (!$user || $user['Tipo_Utilizador'] !== 'Aluno') {
+    header('Location: index.php');
+    exit;
+}
+
 // Adicione aqui qualquer lógica PHP necessária para carregar dados, se aplicável
 
 ?>

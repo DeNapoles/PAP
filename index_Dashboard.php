@@ -1819,7 +1819,6 @@ $avisoData = getAvisolaranjaInicio();
                                             <th>Email</th>
                                             <th>Tipo</th>
                                             <th>Estado</th>
-                                            <th>Data Registo</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>

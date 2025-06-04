@@ -353,24 +353,10 @@ window.updateUserStatusBtn = function(id, status, btn) {
         .then(data => {
             if (data.success) {
                 showAlert(data.message, 'success');
-                console.log('Status update successful for user ID:', id, 'New status:', status);
-                console.log('Button element before update:', btn);
-                // Atualiza visualmente o botão
-                btn.textContent = status;
-                btn.setAttribute('data-estado', status);
-                
-                // Remover explicitamente ambas as classes antes de adicionar a correta
-                btn.classList.remove('btn-success');
-                btn.classList.remove('btn-secondary');
-
-                if (status === 'Ativo') {
-                    btn.classList.add('btn-success');
-                } else {
-                    btn.classList.add('btn-secondary');
-                }
-
-                console.log('Button element after visual update:', btn);
-                console.log('Button updated visually.');
+                // Não atualizar o botão localmente, apenas recarregar a tabela com o valor real da BD
+                const searchInput = document.getElementById('userSearchInput');
+                const searchValue = searchInput ? searchInput.value : '';
+                loadUsers(1, searchValue);
             } else {
                 showAlert(data.message, 'danger');
             }

@@ -169,10 +169,6 @@ if ($result->num_rows > 0) {
         $estadoBtnText = $user['Estado'] == 'Ativo' ? 'Ativo' : 'Inativo';
         $html .= '<button type="button" class="btn btn-sm btn-estado-toggle ' . $estadoBtnClass . '" data-id="' . $user['ID_Utilizador'] . '" data-estado="' . $user['Estado'] . '">' . $estadoBtnText . '</button>';
         $html .= '</td>';
-        // Coluna Data de Registo
-        $html .= '<td class="align-middle">';
-        $html .= '<span class="text-muted">' . date('d/m/Y H:i', strtotime($user['Data_Registo'])) . '</span>';
-        $html .= '</td>';
         // Coluna Ações
         $html .= '<td class="align-middle">';
         $html .= '<div class="d-flex gap-2">';

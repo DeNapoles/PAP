@@ -163,11 +163,14 @@ if ($result->num_rows > 0) {
         $html .= '<option value="Admin"' . ($user['Tipo_Utilizador'] == 'Admin' ? ' selected' : '') . '>Admin</option>';
         $html .= '</select>';
         $html .= '</td>';
-        // Coluna Estado (botão)
+        // Coluna Estado (botão clicável)
         $html .= '<td class="align-middle">';
         $estadoBtnClass = $user['Estado'] == 'Ativo' ? 'btn-success' : 'btn-secondary';
         $estadoBtnText = $user['Estado'] == 'Ativo' ? 'Ativo' : 'Inativo';
-        $html .= '<button type="button" class="btn btn-sm btn-estado-toggle ' . $estadoBtnClass . '" data-id="' . $user['ID_Utilizador'] . '" data-estado="' . $user['Estado'] . '">' . $estadoBtnText . '</button>';
+        $html .= '<button type="button" class="btn btn-sm ' . $estadoBtnClass . ' status-toggle-btn" style="min-width:70px;" ';
+        $html .= 'data-user-id="' . $user['ID_Utilizador'] . '" data-current-status="' . $user['Estado'] . '" ';
+        $html .= 'onclick="toggleUserStatus(' . $user['ID_Utilizador'] . ', \'' . $user['Estado'] . '\', this)">';
+        $html .= $estadoBtnText . '</button>';
         $html .= '</td>';
         // Coluna Ações
         $html .= '<td class="align-middle">';

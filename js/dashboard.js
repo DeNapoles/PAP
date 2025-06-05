@@ -22,7 +22,10 @@ function showSection(sectionId, event) {
         console.log('Seção mostrada:', sectionId);
         switch(sectionId) {
             case 'posts-section': loadPostsPage(1); break;
-            case 'users-section': loadUsers(); break;
+            case 'users-section': 
+                // Manter página e pesquisa atuais se já estiverem definidas
+                loadUsers(currentPage || 1, currentSearch || ''); 
+                break;
             case 'user-logs-section': loadUserLogs(); break;
         }
     } else { console.error('Seção não encontrada:', sectionId); }
@@ -108,19 +111,8 @@ function attachUserActionListeners() {
         }
     });
 
-    // Attach listeners for Estado toggle button (update to target the button class)
-    const statusButtons = document.querySelectorAll('#usersTableBody .btn-estado-toggle');
-    console.log('Encontrados ' + statusButtons.length + ' botões de estado.');
-    statusButtons.forEach(button => {
-         const userId = button.getAttribute('data-id');
-         if (userId) {
-            button.addEventListener('click', function() {
-                const currentEstado = this.getAttribute('data-estado');
-                const newEstado = currentEstado === 'Ativo' ? 'Inativo' : 'Ativo';
-                updateUserStatusBtn(parseInt(userId), newEstado, this);
-            });
-         }
-    });
+    // Botões de estado agora usam onclick inline - não precisam de event listeners
+    console.log('Event listeners anexados para botões de edit/delete/tipo');
 
     // Attach listeners for Tipo select
     const typeSelects = document.querySelectorAll('#usersTableBody .user-type-select');
@@ -311,60 +303,9 @@ window.deleteUser = function(id) {
     }
 };
 
-window.updateUserStatus = function(id, status) {
-    fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=update_status&id=' + id + '&status=' + status })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert(data.message, 'success');
-                // Atualiza visualmente o switch e badge imediatamente
-                const toggles = document.querySelectorAll('#usersTableBody .status-toggle');
-                toggles.forEach(toggle => {
-                    if (parseInt(toggle.getAttribute('data-id')) === id) {
-                        toggle.checked = (status === 'Ativo');
-                        // Atualiza badge
-                        const badge = toggle.parentNode.querySelector('.badge');
-                        if (badge) {
-                            badge.textContent = status;
-                            badge.className = 'badge ' + (status === 'Ativo' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary');
-                        }
-                    }
-                });
-            } else {
-                showAlert(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showAlert('Erro ao atualizar status. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
-            // Reverter o switch se houver erro
-            const toggles = document.querySelectorAll('#usersTableBody .status-toggle');
-            toggles.forEach(toggle => {
-                if (parseInt(toggle.getAttribute('data-id')) === id) {
-                    toggle.checked = !(status === 'Ativo');
-                }
-            });
-        });
-};
+// Função updateUserStatus removida - agora usa toggleUserStatus exclusivamente
 
-// Função para atualizar o estado via botão
-window.updateUserStatusBtn = function(id, status, btn) {
-    fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=update_status&id=' + id + '&status=' + status })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showAlert(data.message, 'success');
-                // Não atualizar o botão localmente, apenas recarregar a tabela com o valor real da BD
-                const searchInput = document.getElementById('userSearchInput');
-                const searchValue = searchInput ? searchInput.value : '';
-                loadUsers(1, searchValue);
-            } else {
-                showAlert(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showAlert('Erro ao atualizar status. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
-        });
-};
+// Função updateUserStatusBtn removida - agora usa toggleUserStatus com onclick inline
 
 // Função para atualizar o tipo de utilizador
 window.updateUserType = function(id, tipo, selectElement) {
@@ -388,8 +329,101 @@ window.updateUserType = function(id, tipo, selectElement) {
         });
 };
 
+// Variável para prevenir chamadas simultâneas
+window._statusUpdateInProgress = false;
+
+// Função global para alternar status (disponível imediatamente)
+window.toggleUserStatus = function(userId, currentStatus, element) {
+    // Prevenir múltiplas chamadas simultâneas
+    if (window._statusUpdateInProgress) {
+        console.log('🛑 Update já em progresso, ignorando clique');
+        return;
+    }
+    
+    window._statusUpdateInProgress = true;
+    
+    console.log('🔥 Alterando status do utilizador', userId, 'de', currentStatus);
+    
+    const newStatus = currentStatus === 'Ativo' ? 'Inativo' : 'Ativo';
+    
+    // Guardar estado original para reversão em caso de erro
+    const originalState = {
+        text: element.textContent,
+        className: element.className,
+        dataStatus: element.getAttribute('data-current-status')
+    };
+    
+    // Aplicar feedback visual imediato
+    element.style.opacity = '0.6';
+    element.disabled = true;
+    element.textContent = 'Processando...';
+    
+    // Fazer a requisição
+    fetch('manage_user.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=update_status&id=${userId}&status=${encodeURIComponent(newStatus)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        window._statusUpdateInProgress = false;
+        
+        if (data && data.success) {
+            console.log('✅ Status atualizado com sucesso');
+            
+            // Mostrar mensagem de sucesso
+            if (typeof showAlert === 'function') {
+                showAlert(data.message, 'success');
+            }
+            
+            // Recarregar a tabela para mostrar o novo estado
+            if (typeof loadUsers === 'function') {
+                loadUsers(currentPage, currentSearch);
+            } else {
+                // Fallback: recarregar página
+                location.reload();
+            }
+        } else {
+            console.log('❌ Erro:', data ? data.message : 'Resposta inválida');
+            
+            // Reverter botão ao estado original
+            element.textContent = originalState.text;
+            element.className = originalState.className;
+            element.setAttribute('data-current-status', originalState.dataStatus);
+            element.style.opacity = '1';
+            element.disabled = false;
+            
+            if (typeof showAlert === 'function') {
+                showAlert(data ? data.message : 'Erro na comunicação com o servidor', 'danger');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('🚨 Erro na requisição:', error);
+        
+        window._statusUpdateInProgress = false;
+        
+        // Reverter botão ao estado original
+        element.textContent = originalState.text;
+        element.className = originalState.className;
+        element.setAttribute('data-current-status', originalState.dataStatus);
+        element.style.opacity = '1';
+        element.disabled = false;
+        
+        if (typeof showAlert === 'function') {
+            showAlert('Erro de conexão: ' + error.message, 'danger');
+        }
+    });
+};
+
+console.log('✅ Função toggleUserStatus definida globalmente!');
+
+// Teste imediato da função
+console.log('🧪 Testando função:', typeof window.toggleUserStatus);
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard JS carregado');
+    console.log('📋 Dashboard JS DOMContentLoaded executado');
+    console.log('🧪 Função disponível após DOM:', typeof window.toggleUserStatus);
     
     // Inicializa os ícones do Feather
     if (typeof feather !== 'undefined') { feather.replace(); }
@@ -430,7 +464,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Event Listeners para a seção de Usuários ---
     const userSearchInput = document.getElementById('userSearchInput');
-    if (userSearchInput) { userSearchInput.addEventListener('input', function() { loadUsers(1, this.value); }); }
+    if (userSearchInput) { 
+        userSearchInput.addEventListener('input', function() { 
+            currentSearch = this.value;
+            loadUsers(1, currentSearch); 
+        }); 
+    }
     
     // Corrigido ID do botão Novo Utilizador
     const addNewUserBtn = document.getElementById('addNewUserBtn'); 

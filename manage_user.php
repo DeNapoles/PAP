@@ -12,6 +12,9 @@ session_start();
 // Set header to indicate JSON content
 header('Content-Type: application/json');
 
+// Garantir que autocommit está ativado para mudanças imediatas
+$conn->autocommit(true);
+
 // Function to send JSON response
 function sendJsonResponse($success, $message, $data = []) {
     echo json_encode(['success' => $success, 'message' => $message] + $data);
@@ -181,35 +184,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
 
         case 'update_status':
-             // Validate required fields
+            // Validate required fields
             if (!isset($_POST['id'], $_POST['status'])) {
-                 sendJsonResponse(false, 'ID ou status faltando para atualização de status.');
+                sendJsonResponse(false, 'ID ou status faltando para atualização de status.');
             }
 
             $id = (int)$_POST['id'];
             $status = $_POST['status']; // Expected: 'Ativo' or 'Inativo'
 
-             // Prevent changing status of the currently logged-in user (optional, but good practice)
-            if (isset($_SESSION['user_id']) && (int)$_SESSION['user_id'] === $id) {
-                 sendJsonResponse(false, 'Não pode alterar o status do seu próprio utilizador.');
+            // Validate status value
+            if ($status !== 'Ativo' && $status !== 'Inativo') {
+                sendJsonResponse(false, 'Status inválido fornecido.');
             }
 
-             // Validate status value
-            if ($status !== 'Ativo' && $status !== 'Inativo') {
-                 sendJsonResponse(false, 'Status inválido fornecido.');
+            // Verificar se o utilizador existe
+            $checkStmt = $conn->prepare("SELECT ID_Utilizador, Estado FROM Utilizadores WHERE ID_Utilizador = ?");
+            $checkStmt->bind_param("i", $id);
+            $checkStmt->execute();
+            $checkResult = $checkStmt->get_result();
+            $existingUser = $checkResult->fetch_assoc();
+            $checkStmt->close();
+
+            if (!$existingUser) {
+                sendJsonResponse(false, 'Utilizador não encontrado.');
+            }
+
+            // Verificar se realmente precisa de atualização
+            if ($existingUser['Estado'] === $status) {
+                sendJsonResponse(true, 'Estado já está definido como ' . $status . '.');
             }
 
             // Update user status
-            // Use column name: Estado
             $stmt = $conn->prepare("UPDATE Utilizadores SET Estado = ? WHERE ID_Utilizador = ?");
             $stmt->bind_param("si", $status, $id);
 
             if ($stmt->execute()) {
-                logUserChange($id, 'update_status', 'Alterou o status do utilizador ID ' . $id . ' para ' . $status . '.');
-                sendJsonResponse(true, 'Status do utilizador atualizado com sucesso!');
+                $affectedRows = $stmt->affected_rows;
+                
+                if ($affectedRows > 0) {
+                    logUserChange($id, 'update_status', 'Alterou o status do utilizador ID ' . $id . ' para ' . $status . '.');
+                    sendJsonResponse(true, 'Status do utilizador atualizado com sucesso!');
+                } else {
+                    sendJsonResponse(false, 'Nenhuma alteração foi feita.');
+                }
             } else {
-                 error_log("Error updating user status: " . $stmt->error);
-                sendJsonResponse(false, 'Erro ao atualizar status do utilizador. Por favor, tente novamente.');
+                error_log("Error updating user status: " . $stmt->error);
+                sendJsonResponse(false, 'Erro ao atualizar status do utilizador.');
             }
             $stmt->close();
             break;

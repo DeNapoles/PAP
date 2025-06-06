@@ -204,12 +204,68 @@ $avisoData = getAvisolaranjaInicio();
 
   <style>
     .content-section {
-      display: none;
+      display: none !important;
       padding: 20px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content-section.active {
+      display: block !important;
+    }
+
+    /* Evitar que elementos apareçam por trás */
+    body, html {
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .main-wrapper {
+      position: relative;
+      z-index: 1;
+      background: #f8f9fa;
+      min-height: 100vh;  
+      padding: 20px;
+    }
+
+    /* Garantir que a sidebar acompanhe o conteúdo */
+    .page-flex {
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      min-height: 100vh !important;
+      height: auto !important;
+    }
+
+    /* Garantir que modais tenham z-index correto */
+    .modal, .custom-modal {
+      z-index: 1050 !important;
+    }
+
+    /* Esconder qualquer elemento que possa estar vazando */
+    .content-section:not(.active) {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      left: -9999px;
+    }
+
+    .content-section.active {
+      visibility: visible;
+      opacity: 1;
+      position: relative;
+      left: auto;
     }
 
     .content-section .card {
@@ -827,6 +883,34 @@ $avisoData = getAvisolaranjaInicio();
     .users-table .user-info {
         margin-bottom: 0.5rem;
     }
+
+    /* Animações para linhas da tabela */
+    .user-row {
+        transition: all 0.3s ease;
+    }
+    
+    .user-row.removing {
+        opacity: 0.3;
+        transform: translateX(-10px);
+        background-color: #ffebee !important;
+    }
+
+    /* Spinner de loading personalizado */
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.1em;
+    }
+
+    /* Estados dos botões */
+    .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .btn-loading {
+        pointer-events: none;
+    }
   </style>
 </head>
 
@@ -925,7 +1009,7 @@ $avisoData = getAvisolaranjaInicio();
             <span class="system-menu__title">system</span>
             <ul class="sidebar-body-menu">
                 <li>
-                    <a href="appearance.html"><span class="icon edit" aria-hidden="true"></span>Appearance</a>
+                    <a href="#" onclick="showSection('suggestions-section')"><span class="icon edit" aria-hidden="true"></span>Sugestões</a>
                 </li>
                 <li>
                     <a class="show-cat-btn" href="##">
@@ -956,11 +1040,6 @@ $avisoData = getAvisolaranjaInicio();
                         <li>
                             <a href="#" data-section-id="users-section">
                                 <i class="fas fa-users"></i> Gerir Utilizadores
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" data-section-id="user-logs-section">
-                                <i class="fas fa-history"></i> Histórico
                             </a>
                         </li>
                     </ul>
@@ -1802,7 +1881,7 @@ $avisoData = getAvisolaranjaInicio();
                             <h2 class="mb-0">Gerenciar Utilizadores</h2>
                             <div class="d-flex gap-2">
                                 <div class="search-box">
-                                    <input type="text" id="userSearchInput" class="form-control" placeholder="Pesquisar utilizadores...">
+                                    <input type="text" id="userSearch" class="form-control" placeholder="Pesquisar utilizadores...">
                                 </div>
                                 <!-- Removido o botão Novo Utilizador -->
                             </div>
@@ -1835,14 +1914,31 @@ $avisoData = getAvisolaranjaInicio();
                 </div>
             </div>
 
-            <!-- Seção de Histórico de Alterações (escondida por padrão) -->
-            <div id="user-logs-section" class="content-section" style="display: none;">
+
+
+            <!-- Seção de Sugestões (escondida por padrão) -->
+            <div id="suggestions-section" class="content-section" style="display: none;">
                 <div class="container-fluid">
                     <div class="row mb-4">
                         <div class="col-12 d-flex justify-content-between align-items-center">
-                            <h2 class="mb-0">Histórico de Alterações</h2>
-                            <div class="search-box">
-                                <input type="text" id="logSearch" class="form-control" placeholder="Pesquisar no histórico...">
+                            <h2 class="mb-0">Sugestões dos Utilizadores</h2>
+                            <div class="d-flex gap-2">
+                                <div class="search-box">
+                                    <input type="text" id="suggestionSearchInput" class="form-control" placeholder="Pesquisar sugestões...">
+                                </div>
+                                <select id="statusFilter" class="form-select">
+                                    <option value="">Todos os estados</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="em_analise">Em Análise</option>
+                                    <option value="resolvido">Resolvido</option>
+                                    <option value="rejeitado">Rejeitado</option>
+                                </select>
+                                <select id="priorityFilter" class="form-select">
+                                    <option value="">Todas as prioridades</option>
+                                    <option value="baixa">Baixa</option>
+                                    <option value="media">Média</option>
+                                    <option value="alta">Alta</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -1853,19 +1949,21 @@ $avisoData = getAvisolaranjaInicio();
                                 <table class="table table-hover table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Utilizador</th>
-                                            <th>Ação</th>
-                                            <th>Detalhes</th>
+                                            <th>Nome</th>
+                                            <th>Email</th>
+                                            <th>Tipo</th>
+                                            <th>Prioridade</th>
+                                            <th>Estado</th>
                                             <th>Data</th>
-                                            <th>Administrador</th>
+                                            <th>Ações</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="logsTableBody">
+                                    <tbody id="suggestionsTableBody">
                                         <!-- Será preenchido via JavaScript -->
                                     </tbody>
                                 </table>
                             </div>
-                            <div id="logsPagination" class="pagination-container">
+                            <div id="suggestionsPagination" class="pagination-container">
                                 <!-- Será preenchido via JavaScript -->
                             </div>
                         </div>
@@ -1963,37 +2061,306 @@ $avisoData = getAvisolaranjaInicio();
     </div>
 </div>
 
-<!-- Modal para histórico de alterações -->
-<div class="modal fade" id="logs-section" tabindex="-1" aria-labelledby="logs-section-title" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="logs-section-title">Histórico de Alterações</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <input type="text" class="form-control" id="logs-search" placeholder="Pesquisar...">
+
+
+<!-- Modal customizado para visualizar detalhes da sugestão -->
+<div id="suggestion-details-modal" class="custom-modal" style="display: none;">
+    <div class="custom-modal-backdrop"></div>
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h4 class="custom-modal-title">Detalhes da Sugestão</h4>
+            <button type="button" class="custom-modal-close" onclick="closeSuggestionModal()">×</button>
+        </div>
+        <div class="custom-modal-body">
+            <!-- Seção Informações Básicas -->
+            <div class="modal-section">
+                <h6 class="section-title">
+                    <i class="fas fa-info-circle"></i>Informações Básicas
+                </h6>
+                <div class="section-content">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <strong>Nome:</strong> <span id="modal-suggestion-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong> <span id="modal-suggestion-email"></span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item">
+                            <strong>Tipo de Sugestão:</strong> <span id="modal-suggestion-type"></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-striped" id="logs-table">
-                        <thead>
-                            <tr>
-                                <th>Usuário</th>
-                                <th>Ação</th>
-                                <th>Detalhes</th>
-                                <th>Data</th>
-                                <th>Administrador</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div id="logs-pagination"></div>
             </div>
+
+            <!-- Seção Datas e Estado -->
+            <div class="modal-section">
+                <h6 class="section-title">
+                    <i class="fas fa-calendar-alt"></i>Datas e Estado
+                </h6>
+                <div class="section-content">
+                    <div class="info-row">
+                        <div class="info-item">
+                            <strong>Data de Submissão:</strong> <span id="modal-suggestion-date"></span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Estado:</strong> <span id="modal-suggestion-status"></span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item">
+                            <strong>Prioridade:</strong> <span id="modal-suggestion-priority"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Descrição da Sugestão -->
+            <div class="modal-section">
+                <h6 class="section-title">
+                    <i class="fas fa-comment-dots"></i>Descrição da Sugestão
+                </h6>
+                <div class="suggestion-message">
+                    <p id="modal-suggestion-message"></p>
+                </div>
+            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn-delete-suggestion" onclick="deleteSuggestion()" style="background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex; align-items: center; transition: background-color 0.2s ease; margin-right: 10px;">
+                <i class="fas fa-trash" style="margin-right: 6px; font-size: 12px;"></i>Apagar
+            </button>
+            <button type="button" class="btn-close-modal" onclick="closeSuggestionModal()">
+                <i class="fas fa-times"></i>Fechar
+            </button>
         </div>
     </div>
 </div>
+
+<style>
+/* Estilos para o modal customizado */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.custom-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.custom-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.custom-modal-header {
+    padding: 20px 25px 15px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.custom-modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.custom-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.custom-modal-close:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.custom-modal-body {
+    padding: 20px 25px;
+}
+
+.modal-section {
+    margin-bottom: 25px;
+}
+
+.modal-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    color: #007bff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.section-content {
+    padding-left: 0;
+}
+
+.info-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-item {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: 8px;
+}
+
+.info-item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.info-item span {
+    color: #555;
+    margin-left: 5px;
+}
+
+.suggestion-message {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+}
+
+.suggestion-message p {
+    margin: 0;
+    color: #333;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.custom-modal-footer {
+    padding: 15px 25px 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.btn-close-modal {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.btn-close-modal:hover {
+    background-color: #5a6268;
+}
+
+.btn-close-modal i {
+    margin-right: 6px;
+    font-size: 12px;
+}
+
+.btn-delete-suggestion:hover {
+    background-color: #bb2d3b !important;
+}
+
+.btn-delete-suggestion:disabled {
+    background-color: #6c757d !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+/* Badges para status e prioridade */
+.custom-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.badge-success { background-color: #28a745; color: white; }
+.badge-warning { background-color: #ffc107; color: #212529; }
+.badge-danger { background-color: #dc3545; color: white; }
+.badge-info { background-color: #17a2b8; color: white; }
+.badge-secondary { background-color: #6c757d; color: white; }
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .custom-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .info-item {
+        min-width: 100%;
+    }
+    
+    .custom-modal-header,
+    .custom-modal-body,
+    .custom-modal-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
+</style>
 
 <!-- jQuery primeiro -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -2771,6 +3138,343 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return false;
     }
+
+    // ---------------------------- Funções para gerenciar sugestões ----------------------------
+
+    // Função para carregar sugestões
+    function loadSuggestions(page = 1, search = '', status = '', priority = '') {
+        fetch(`get_suggestions.php?page=${page}&search=${encodeURIComponent(search)}&status=${status}&priority=${priority}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displaySuggestions(data.suggestions);
+                    displaySuggestionsPagination(data.pagination);
+                } else {
+                    console.error('Erro ao carregar sugestões:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+            });
+    }
+
+    // Função para exibir sugestões na tabela
+    function displaySuggestions(suggestions) {
+        const tbody = document.getElementById('suggestionsTableBody');
+        if (suggestions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhuma sugestão encontrada.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = suggestions.map(suggestion => {
+            const statusBadgeClass = {
+                'pendente': 'bg-warning text-dark',
+                'em_analise': 'bg-info text-white',
+                'resolvido': 'bg-success text-white',
+                'rejeitado': 'bg-danger text-white'
+            }[suggestion.status] || 'bg-secondary text-white';
+
+            const priorityBadgeClass = {
+                'baixa': 'bg-success text-white',
+                'media': 'bg-warning text-dark',
+                'alta': 'bg-danger text-white'
+            }[suggestion.prioridade] || 'bg-secondary text-white';
+
+            const statusText = {
+                'pendente': 'Pendente',
+                'em_analise': 'Em Análise',
+                'resolvido': 'Resolvido',
+                'rejeitado': 'Rejeitado'
+            }[suggestion.status] || suggestion.status;
+
+            const priorityText = {
+                'baixa': 'Baixa',
+                'media': 'Média',
+                'alta': 'Alta'
+            }[suggestion.prioridade] || suggestion.prioridade;
+
+            const typeText = {
+                'melhoria_conteudo': 'Melhoria de Conteúdo',
+                'nova_funcionalidade': 'Nova Funcionalidade',
+                'problema_tecnico': 'Problema Técnico',
+                'feedback_geral': 'Feedback Geral',
+                'outro': 'Outro'
+            }[suggestion.tipo_sugestao] || suggestion.tipo_sugestao;
+
+            return `
+                <tr data-suggestion-id="${suggestion.id}">
+                    <td>
+                        <div class="user-info">
+                            <div class="user-name">${suggestion.nome}</div>
+                        </div>
+                    </td>
+                    <td>${suggestion.email}</td>
+                    <td>${typeText}</td>
+                    <td><span class="badge ${priorityBadgeClass}">${priorityText}</span></td>
+                    <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+                    <td>${new Date(suggestion.data_criacao).toLocaleDateString('pt-PT')}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewSuggestionDetails(${suggestion.id})">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Função para exibir paginação das sugestões
+    function displaySuggestionsPagination(pagination) {
+        const container = document.getElementById('suggestionsPagination');
+        if (pagination.total_pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let paginationHtml = '<nav aria-label="Navegação de sugestões"><ul class="pagination justify-content-center">';
+        
+        if (pagination.current_page > 1) {
+            paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadSuggestions(${pagination.current_page - 1}, document.getElementById('suggestionSearchInput').value, document.getElementById('statusFilter').value, document.getElementById('priorityFilter').value)">Anterior</a></li>`;
+        }
+
+        for (let i = 1; i <= pagination.total_pages; i++) {
+            const activeClass = i === pagination.current_page ? 'active' : '';
+            paginationHtml += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="loadSuggestions(${i}, document.getElementById('suggestionSearchInput').value, document.getElementById('statusFilter').value, document.getElementById('priorityFilter').value)">${i}</a></li>`;
+        }
+
+        if (pagination.current_page < pagination.total_pages) {
+            paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadSuggestions(${pagination.current_page + 1}, document.getElementById('suggestionSearchInput').value, document.getElementById('statusFilter').value, document.getElementById('priorityFilter').value)">Próximo</a></li>`;
+        }
+
+        paginationHtml += '</ul></nav>';
+        container.innerHTML = paginationHtml;
+    }
+
+    // Função para ver detalhes de uma sugestão
+    function viewSuggestionDetails(suggestionId) {
+        currentSuggestionId = suggestionId; // Definir ID da sugestão atual
+        
+        fetch(`get_suggestions.php?id=${suggestionId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.suggestion) {
+                    const suggestion = data.suggestion;
+
+                    // Preenche o modal com os dados
+                    document.getElementById('modal-suggestion-name').textContent = suggestion.nome;
+                    document.getElementById('modal-suggestion-email').textContent = suggestion.email;
+                    
+                    const typeText = {
+                        'melhoria_conteudo': 'Melhoria de Conteúdo',
+                        'nova_funcionalidade': 'Nova Funcionalidade',
+                        'problema_tecnico': 'Problema Técnico',
+                        'feedback_geral': 'Feedback Geral',
+                        'outro': 'Outro'
+                    }[suggestion.tipo_sugestao] || suggestion.tipo_sugestao;
+                    
+                    document.getElementById('modal-suggestion-type').textContent = typeText;
+                    
+                    // Formatar data
+                    const dataFormatada = new Date(suggestion.data_criacao).toLocaleString('pt-PT', {
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    document.getElementById('modal-suggestion-date').textContent = dataFormatada;
+                    
+                    // Formatar prioridade com badge colorido
+                    const priorityText = {
+                        'baixa': 'Baixa',
+                        'media': 'Média',
+                        'alta': 'Alta'
+                    }[suggestion.prioridade] || suggestion.prioridade;
+                    
+                    const priorityBadgeClass = {
+                        'baixa': 'custom-badge badge-success',
+                        'media': 'custom-badge badge-warning',
+                        'alta': 'custom-badge badge-danger'
+                    }[suggestion.prioridade] || 'custom-badge badge-secondary';
+                    
+                    document.getElementById('modal-suggestion-priority').innerHTML = 
+                        `<span class="${priorityBadgeClass}">${priorityText}</span>`;
+                    
+                    // Formatar status com badge colorido
+                    const statusText = {
+                        'pendente': 'Pendente',
+                        'em_analise': 'Em Análise',
+                        'resolvido': 'Resolvido',
+                        'rejeitado': 'Rejeitado'
+                    }[suggestion.status] || suggestion.status;
+                    
+                    const statusBadgeClass = {
+                        'pendente': 'custom-badge badge-warning',
+                        'em_analise': 'custom-badge badge-info',
+                        'resolvido': 'custom-badge badge-success',
+                        'rejeitado': 'custom-badge badge-danger'
+                    }[suggestion.status] || 'custom-badge badge-secondary';
+                    
+                    document.getElementById('modal-suggestion-status').innerHTML = 
+                        `<span class="${statusBadgeClass}">${statusText}</span>`;
+                    
+                    document.getElementById('modal-suggestion-message').textContent = suggestion.mensagem;
+
+                    // Mostra o modal customizado
+                    showSuggestionModal();
+                } else {
+                    showAlert('Erro ao carregar detalhes da sugestão', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showAlert('Erro ao carregar detalhes da sugestão', 'error');
+            });
+    }
+
+    // Event listeners para filtros e pesquisa
+    document.getElementById('suggestionSearchInput').addEventListener('input', function() {
+        loadSuggestions(1, this.value, document.getElementById('statusFilter').value, document.getElementById('priorityFilter').value);
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        loadSuggestions(1, document.getElementById('suggestionSearchInput').value, this.value, document.getElementById('priorityFilter').value);
+    });
+
+    document.getElementById('priorityFilter').addEventListener('change', function() {
+        loadSuggestions(1, document.getElementById('suggestionSearchInput').value, document.getElementById('statusFilter').value, this.value);
+    });
+
+
+
+    // Função para mostrar seção (atualizada para incluir sugestões)
+    window.showSection = function(sectionId) {
+        // Esconde todas as seções
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+            section.style.display = 'none';
+        });
+
+        // Mostra a seção selecionada
+        const selectedSection = document.getElementById(sectionId);
+        if (selectedSection) {
+            selectedSection.classList.add('active');
+            selectedSection.style.display = 'block';
+            
+            // Carrega dados específicos da seção
+            if (sectionId === 'suggestions-section') {
+                loadSuggestions();
+            } else if (sectionId === 'users-section') {
+                loadUsers();
+            } else if (sectionId === 'posts-section') {
+                // Código para carregar posts se necessário
+            }
+            
+            console.log('Seção mostrada:', sectionId);
+        } else {
+            console.error('Seção não encontrada:', sectionId);
+        }
+    }
+
+    // Função para mostrar o modal customizado
+    function showSuggestionModal() {
+        const modal = document.getElementById('suggestion-details-modal');
+        modal.style.display = 'block';
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+        
+        // Fechar modal ao clicar no backdrop
+        modal.querySelector('.custom-modal-backdrop').onclick = closeSuggestionModal;
+        
+        // Fechar modal com ESC
+        document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    // Função para fechar o modal customizado
+    function closeSuggestionModal() {
+        const modal = document.getElementById('suggestion-details-modal');
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+        
+        // Limpar ID da sugestão atual
+        currentSuggestionId = null;
+        
+        // Reabilitar botão de apagar (caso tenha ficado desabilitado)
+        const deleteBtn = document.querySelector('.btn-delete-suggestion');
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = '<i class="fas fa-trash" style="margin-right: 6px; font-size: 12px;"></i>Apagar';
+        }
+        
+        // Remover event listener do ESC
+        document.removeEventListener('keydown', handleEscapeKey);
+    }
+
+    // Função para lidar com a tecla ESC
+    function handleEscapeKey(e) {
+        if (e.key === 'Escape') {
+            closeSuggestionModal();
+        }
+    }
+
+    // Variável global para armazenar o ID da sugestão atual no modal
+    let currentSuggestionId = null;
+
+    // Função para apagar sugestão
+    function deleteSuggestion() {
+        if (!currentSuggestionId) {
+            showAlert('Erro: Nenhuma sugestão selecionada', 'danger');
+            return;
+        }
+
+        if (confirm('Tem certeza que deseja apagar esta sugestão? Esta ação não pode ser desfeita.')) {
+            const deleteBtn = document.querySelector('.btn-delete-suggestion');
+            
+            // Desabilitar botão durante a requisição
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 6px; font-size: 12px;"></i>Apagando...';
+
+            fetch('manage_suggestions.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `action=delete&id=${currentSuggestionId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    closeSuggestionModal();
+                    // Recarregar a lista de sugestões
+                    loadSuggestions(1, document.getElementById('suggestionSearchInput').value, 
+                                  document.getElementById('statusFilter').value, 
+                                  document.getElementById('priorityFilter').value);
+                } else {
+                    showAlert(data.message, 'danger');
+                    // Reabilitar botão em caso de erro
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="fas fa-trash" style="margin-right: 6px; font-size: 12px;"></i>Apagar';
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showAlert('Erro ao apagar sugestão: ' + error.message, 'danger');
+                // Reabilitar botão em caso de erro
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash" style="margin-right: 6px; font-size: 12px;"></i>Apagar';
+            });
+        }
+    }
+
+    // Expor funções globalmente para uso nos onclick
+    window.viewSuggestionDetails = viewSuggestionDetails;
+    window.loadSuggestions = loadSuggestions;
+    window.closeSuggestionModal = closeSuggestionModal;
+    window.deleteSuggestion = deleteSuggestion;
 });
 </script>
 

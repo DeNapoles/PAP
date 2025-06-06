@@ -1,8 +1,11 @@
 <?php
 // Enable error reporting for debugging (should be disabled in production)
 error_reporting(E_ALL);
-ini_set('display_errors', 1); // Temporariamente, para depurar
-ini_set('display_startup_errors', 1); // Temporariamente, para depurar
+ini_set('display_errors', 0); // Não mostrar erros na tela para não quebrar JSON
+ini_set('display_startup_errors', 0);
+
+// Limpar qualquer output anterior que possa interferir com o JSON
+ob_clean();
 
 require_once 'connection.php';
 

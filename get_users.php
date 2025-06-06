@@ -2,6 +2,9 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Não mostrar erros diretamente na página, mas logar ou capturar
 
+// Limpar qualquer output anterior que possa interferir com o JSON
+ob_clean();
+
 require_once 'connection.php';
 
 // Configurar o cabeçalho para JSON no início
@@ -137,7 +140,7 @@ $result = $stmt->get_result();
 $html = '';
 if ($result->num_rows > 0) {
     while($user = $result->fetch_assoc()) {
-        $html .= '<tr class="user-row">';
+        $html .= '<tr class="user-row" data-user-id="' . $user['ID_Utilizador'] . '">';
         // Coluna Nome (avatar, nome)
         $html .= '<td class="align-middle">';
         $html .= '<div class="d-flex align-items-center gap-3">';

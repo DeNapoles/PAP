@@ -1,43 +1,63 @@
 // Função para mostrar alertas
 function showAlert(message, type) {
+    // Limitar o tamanho da mensagem e remover detalhes técnicos
+    let cleanMessage = message;
+    if (message.includes('Detalhes:')) {
+        cleanMessage = message.split('Detalhes:')[0].trim();
+    }
+    if (cleanMessage.length > 200) {
+        cleanMessage = cleanMessage.substring(0, 200) + '...';
+    }
+    
     const alertContainer = document.createElement('div');
-    const container = document.getElementById('alert-container') || document.body;
+    // Procurar por um container específico para alertas ou usar a área principal
+    const container = document.querySelector('.main-wrapper') || document.getElementById('alert-container') || document.body;
     alertContainer.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show mt-2" role="alert">
-            ${message}
+        <div class="alert alert-${type} alert-dismissible fade show mt-2" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;">
+            ${cleanMessage}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     `;
     container.appendChild(alertContainer);
-    setTimeout(() => { alertContainer.remove(); }, 5000);
+    setTimeout(() => { 
+        if (alertContainer.parentNode) {
+            alertContainer.remove(); 
+        }
+    }, 4000);
 }
 
 // Função para mostrar/esconder seções
-function showSection(sectionId, event) {
+window.showSection = function(sectionId, event) {
     if (event) { event.preventDefault(); }
     document.querySelectorAll('.content-section').forEach(section => { section.style.display = 'none'; });
-    const selectedSection = document.getElementById(sectionId);
-    if (selectedSection) {
-        selectedSection.style.display = 'block';
-        console.log('Seção mostrada:', sectionId);
-        switch(sectionId) {
-            case 'posts-section': loadPostsPage(1); break;
-            case 'users-section': 
-                // Manter página e pesquisa atuais se já estiverem definidas
-                loadUsers(currentPage || 1, currentSearch || ''); 
-                break;
-            case 'user-logs-section': loadUserLogs(); break;
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) { 
+        targetSection.style.display = 'block'; 
+        
+        // Se for a seção de utilizadores, carregar os dados
+        if (sectionId === 'users-section') {
+            console.log('📋 Carregando seção de utilizadores...');
+            setTimeout(() => {
+                window.loadUsers(1, '');
+            }, 100);
         }
-    } else { console.error('Seção não encontrada:', sectionId); }
-}
+    }
+};
 
-// Funções para gerenciar usuários
+// Variáveis globais para paginação e busca
 let currentPage = 1;
 let currentSearch = '';
 
-function loadUsers(page = 1, search = '') {
+window.loadUsers = function(page = 1, search = '') {
     currentPage = page; currentSearch = search;
-    console.log(`Loading users - Page: ${currentPage}, Search: ${currentSearch}`);
+    console.log(`🔄 Loading users - Page: ${currentPage}, Search: ${currentSearch}`);
+    
+    // Mostrar loading na tabela
+    const usersTableBody = document.getElementById('usersTableBody');
+    if (usersTableBody) {
+        usersTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Carregando utilizadores...</td></tr>';
+    }
+    
     fetch(`get_users.php?page=${page}&search=${encodeURIComponent(search)}`)
         .then(response => { 
             // Check if response is JSON
@@ -48,149 +68,90 @@ function loadUsers(page = 1, search = '') {
             return response.json();
         })
         .then(data => {
-            console.log('Users data received:', data);
+            console.log('✅ Users data received:', data);
             const usersTableBody = document.getElementById('usersTableBody');
             const usersPagination = document.getElementById('usersPagination');
             if (data.success) {
                 if (usersTableBody) usersTableBody.innerHTML = data.html;
                 if (usersPagination) usersPagination.innerHTML = data.pagination;
+                
+                // Primeiro anexar os eventos de paginação
                 setupUsersPaginationEvents();
-                 // Attach event listeners to Edit, Delete, Tipo and Status buttons AFTER loading HTML
-                attachUserActionListeners();
+                
+                // Depois anexar os eventos dos botões de ação
+                setTimeout(() => {
+                    attachUserActionListeners();
+                }, 50);
+                
+                console.log('✅ Tabela de utilizadores atualizada com sucesso');
             } else {
                 showAlert('Erro ao carregar usuários: ' + data.message, 'danger');
-                if (usersTableBody) usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center">${data.message}</td></tr>`;
+                if (usersTableBody) usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center">${data.message}</td></tr>`;
                 if (usersPagination) usersPagination.innerHTML = '';
             }
         })
         .catch(error => {
-            console.error('Erro no fetch de usuários:', error);
+            console.error('❌ Erro no fetch de usuários:', error);
             showAlert('Erro ao carregar usuários. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
             const usersTableBody = document.getElementById('usersTableBody');
-            if (usersTableBody) usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center">Erro ao carregar utilizadores.</td></tr>`;
+            if (usersTableBody) usersTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Erro ao carregar utilizadores.</td></tr>`;
             const usersPagination = document.getElementById('usersPagination');
             if (usersPagination) usersPagination.innerHTML = '';
         });
-}
+};
 
 function setupUsersPaginationEvents() {
-    // Remove previous listeners to avoid duplicates
-    document.querySelectorAll('#usersPagination .page-link').forEach(oldLink => {
-        const newLink = oldLink.cloneNode(true);
-        oldLink.parentNode.replaceChild(newLink, oldLink);
-    });
-
+    // Event listeners para paginação
     document.querySelectorAll('#usersPagination .page-link').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const page = this.getAttribute('data-page');
-            if (page) loadUsers(parseInt(page), currentSearch);
+            if (page) {
+                window.loadUsers(parseInt(page), currentSearch);
+            }
         });
     });
+    console.log('✅ Event listeners de paginação anexados');
 }
 
 function attachUserActionListeners() {
-    console.log('Anexando event listeners para ações de utilizador...');
-    // Attach listeners for Edit buttons
-    document.querySelectorAll('#usersTableBody .edit-user-btn').forEach(button => {
-        const userId = button.getAttribute('data-id');
-        if (userId) {
-             // Remove any existing inline onclick (shouldn't be there if PHP is correct, but as safeguard)
-            button.removeAttribute('onclick'); 
-            button.addEventListener('click', () => editUser(parseInt(userId)));
-        }
-    });
-
-    // Attach listeners for Delete buttons
-    document.querySelectorAll('#usersTableBody .delete-user-btn').forEach(button => {
-         const userId = button.getAttribute('data-id');
-         if (userId) {
-            // Remove any existing inline onclick
-            button.removeAttribute('onclick'); 
-            button.addEventListener('click', () => deleteUser(parseInt(userId)));
-        }
-    });
-
-    // Botões de estado agora usam onclick inline - não precisam de event listeners
-    console.log('Event listeners anexados para botões de edit/delete/tipo');
-
+    console.log('🔗 Configurando listeners para tipo de utilizador...');
+    
+    // Event delegation já está configurado para delete e status buttons
+    // Apenas precisamos configurar os dropdowns de tipo
+    
     // Attach listeners for Tipo select
     const typeSelects = document.querySelectorAll('#usersTableBody .user-type-select');
-    console.log('Encontrados ' + typeSelects.length + ' dropdowns de tipo.');
+    console.log(`📋 Encontrados ${typeSelects.length} dropdowns de tipo`);
+    
     typeSelects.forEach(select => {
         const userId = select.getAttribute('data-id');
-        const originalValue = select.value; // Store the original value
+        const originalValue = select.value;
         if (userId) {
-            select.addEventListener('change', function() {
+            // Remover listeners anteriores clonando o elemento
+            const newSelect = select.cloneNode(true);
+            newSelect.value = originalValue; // Manter o valor selecionado
+            select.parentNode.replaceChild(newSelect, select);
+            
+            // Adicionar novo listener
+            newSelect.addEventListener('change', function() {
                 const newType = this.value;
-                const userName = this.closest('tr').querySelector('.user-name').textContent; // Get user name for confirmation
+                const userName = this.closest('tr').querySelector('.user-name').textContent;
                 
                 if (newType === 'Admin') {
-                    // Confirm if changing to Admin
                     if (confirm(`Tem certeza que deseja tornar ${userName} um administrador? Administradores têm acesso total.`)) {
-                        updateUserType(parseInt(userId), newType, this);
+                        window.updateUserType(parseInt(userId), newType, this);
                     } else {
-                        // Revert to original value if cancelled
                         this.value = originalValue;
                     }
                 } else {
-                     // No confirmation needed for other types
-                    updateUserType(parseInt(userId), newType, this);
+                    window.updateUserType(parseInt(userId), newType, this);
                 }
             });
         }
     });
-}
-
-function loadUserLogs(page = 1, search = '') {
-    console.log(`Loading user logs - Page: ${page}, Search: ${search}`);
-    fetch(`get_user_logs.php?page=${page}&search=${encodeURIComponent(search)}`)
-        .then(response => { 
-             // Check if response is JSON
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                return response.text().then(text => { throw new Error(`Expected JSON, received ${contentType}. Content: ${text}`); });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('User logs data received:', data);
-            const logsTableBody = document.querySelector('#user-logs-section #logsTableBody');
-            const logsPagination = document.querySelector('#user-logs-section #logsPagination');
-            if (data.success) {
-                if (logsTableBody) logsTableBody.innerHTML = data.html;
-                if (logsPagination) logsPagination.innerHTML = data.pagination;
-                setupLogsPaginationEvents();
-            } else {
-                showAlert('Erro ao carregar logs: ' + data.message, 'danger');
-                if (logsTableBody) logsTableBody.innerHTML = `<tr><td colspan="5" class="text-center">${data.message}</td></tr>`;
-                if (logsPagination) logsPagination.innerHTML = '';
-            }
-        })
-        .catch(error => {
-            console.error('Erro no fetch de logs:', error);
-            showAlert('Erro ao carregar logs. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
-            const logsTableBody = document.querySelector('#user-logs-section #logsTableBody');
-            if (logsTableBody) logsTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Erro ao carregar histórico de alterações.</td></tr>`;
-            const logsPagination = document.querySelector('#user-logs-section #logsPagination');
-            if (logsPagination) logsPagination.innerHTML = '';
-        });
-}
-
-function setupLogsPaginationEvents() {
-     // Remove previous listeners to avoid duplicates
-    document.querySelectorAll('#logsPagination .page-link').forEach(oldLink => {
-        const newLink = oldLink.cloneNode(true);
-        oldLink.parentNode.replaceChild(newLink, oldLink);
-    });
-
-    document.querySelectorAll('#logsPagination .page-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            if (page) loadUserLogs(parseInt(page), currentSearch);
-        });
-    });
+    
+    console.log('✅ Event listeners configurados para dropdowns de tipo');
 }
 
 window.showNewUserForm = function() {
@@ -278,29 +239,131 @@ window.saveUser = function() {
 };
 
 window.deleteUser = function(id) {
-    console.log('Deleting user with ID:', id);
-    if (confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.')) {
-        fetch('manage_user.php', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', }, body: 'action=delete&id=' + id })
-            .then(response => { 
-                 // Check if response is JSON
-                const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
-                    return response.text().then(text => { throw new Error(`Expected JSON, received ${contentType}. Content: ${text}`); });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Delete user response:', data);
-                if (data.success) {
-                    showAlert(data.message, 'success');
-                    loadUsers(currentPage, currentSearch);
-                } else { showAlert(data.message, 'danger'); }
-            })
-            .catch(error => {
-                console.error('Erro no fetch para apagar usuário:', error);
-                showAlert('Erro ao excluir usuário. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
-            });
+    console.log(`🚀 INÍCIO - deleteUser chamado para ID: ${id}`);
+    console.log(`🔍 Tipo do ID: ${typeof id}, Valor: ${id}, É NaN: ${isNaN(id)}`);
+    
+    if (!id || isNaN(id)) {
+        console.error('❌ ID inválido para delete:', id);
+        showAlert('Erro: ID de utilizador inválido', 'danger');
+        return;
     }
+    
+    const confirmDelete = confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.');
+    console.log(`🤔 Confirmação do utilizador: ${confirmDelete}`);
+    
+    if (confirmDelete) {
+        console.log(`✅ Prosseguindo com delete do ID: ${id}`);
+        
+        // Encontrar o botão específico
+        const deleteBtn = document.querySelector(`#usersTableBody .delete-user-btn[data-id="${id}"]`);
+        console.log(`🔍 Botão encontrado:`, deleteBtn);
+        
+        let originalContent = '';
+        
+        if (deleteBtn) {
+            originalContent = deleteBtn.innerHTML;
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            console.log('🔄 Estado de loading aplicado ao botão');
+        } else {
+            console.warn('⚠️ Botão de delete não encontrado no DOM');
+        }
+        
+        console.log('📡 Iniciando requisição fetch...');
+        
+        const requestBody = `action=delete&id=${encodeURIComponent(id)}`;
+        console.log(`📤 Body da requisição: ${requestBody}`);
+        
+        fetch('manage_user.php', { 
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }, 
+            body: requestBody
+        })
+        .then(response => { 
+            console.log('📡 Resposta recebida:', {
+                ok: response.ok,
+                status: response.status,
+                statusText: response.statusText,
+                contentType: response.headers.get("content-type"),
+                url: response.url
+            });
+            
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                return response.text().then(text => { 
+                    console.error('❌ Resposta não é JSON:', text);
+                    throw new Error(`Expected JSON, received ${contentType}. Content: ${text.substring(0, 500)}`); 
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📊 JSON de resposta recebido:', data);
+            
+            // Restaurar botão independentemente do resultado
+            if (deleteBtn && deleteBtn.parentNode) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalContent;
+                console.log('🔄 Estado original do botão restaurado');
+            }
+            
+            if (data && data.success === true) {
+                console.log('✅ Delete bem-sucedido!');
+                
+                const successMessage = data.message || 'Utilizador excluído com sucesso!';
+                showAlert(successMessage, 'success');
+                
+                // Encontrar e remover a linha da tabela
+                const userRow = document.querySelector(`tr[data-user-id="${id}"]`);
+                console.log(`🔍 Linha do utilizador encontrada:`, userRow);
+                
+                if (userRow) {
+                    console.log('🎭 Aplicando animação de remoção...');
+                    userRow.classList.add('removing');
+                    
+                    setTimeout(() => {
+                        if (userRow.parentNode) {
+                            userRow.remove();
+                            console.log('❌ Linha removida da tabela');
+                        }
+                        
+                        // Recarregar a tabela após pequeno delay
+                        console.log('🔄 Iniciando recarga da tabela...');
+                        setTimeout(() => {
+                            window.loadUsers(currentPage, currentSearch);
+                        }, 100);
+                        
+                    }, 400);
+                } else {
+                    console.warn('⚠️ Linha do utilizador não encontrada, recarregando tabela imediatamente');
+                    window.loadUsers(currentPage, currentSearch);
+                }
+                
+            } else { 
+                console.error('❌ Erro no delete:', data);
+                const errorMsg = (data && data.message) ? data.message : 'Erro desconhecido ao excluir usuário';
+                showAlert(errorMsg, 'danger'); 
+            }
+        })
+        .catch(error => {
+            console.error('❌ Erro na requisição fetch:', error);
+            
+            // Restaurar botão em caso de erro
+            if (deleteBtn && deleteBtn.parentNode) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalContent;
+                console.log('🔄 Estado do botão restaurado após erro');
+            }
+            
+            showAlert('Erro ao excluir usuário. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
+        });
+    } else {
+        console.log('❌ Delete cancelado pelo utilizador');
+    }
+    
+    console.log(`🏁 FIM - deleteUser para ID: ${id}`);
 };
 
 // Função updateUserStatus removida - agora usa toggleUserStatus exclusivamente
@@ -423,79 +486,101 @@ console.log('🧪 Testando função:', typeof window.toggleUserStatus);
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📋 Dashboard JS DOMContentLoaded executado');
-    console.log('🧪 Função disponível após DOM:', typeof window.toggleUserStatus);
+    console.log('🧪 Função toggleUserStatus disponível:', typeof window.toggleUserStatus);
+    console.log('🧪 Função deleteUser disponível:', typeof window.deleteUser);
+    console.log('🧪 Função loadUsers disponível:', typeof window.loadUsers);
+    
+    // Event delegation para botões de delete - funciona mesmo quando tabela é recriada
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-user-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const button = e.target.closest('.delete-user-btn');
+            const userId = button.getAttribute('data-id');
+            
+            if (userId) {
+                console.log(`🗑️ Event delegation captou click no delete para userId: ${userId}`);
+                window.deleteUser(parseInt(userId));
+            } else {
+                console.warn('⚠️ Botão delete sem data-id clicado');
+            }
+        }
+    });
+    
+    // Event delegation para botões de status toggle
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.status-toggle-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const button = e.target.closest('.status-toggle-btn');
+            const userId = button.getAttribute('data-user-id');
+            const currentStatus = button.getAttribute('data-current-status');
+            
+            if (userId && currentStatus) {
+                console.log(`🔄 Event delegation captou click no status toggle para userId: ${userId}`);
+                window.toggleUserStatus(parseInt(userId), currentStatus, button);
+            }
+        }
+    });
+    
+    console.log('✅ Event delegation configurado para botões de ação');
     
     // Inicializa os ícones do Feather
-    if (typeof feather !== 'undefined') { feather.replace(); }
-
-    // Adiciona event listeners para os botões de categoria que expandem/contraem submenus
-    document.querySelectorAll('.show-cat-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const subMenu = this.nextElementSibling;
-            const arrow = this.querySelector('.icon.arrow-down');
-            if (subMenu.style.display === 'block') {
-                subMenu.style.display = 'none';
-                if (arrow) { arrow.style.transform = 'rotate(0deg)'; }
-            } else {
-                document.querySelectorAll('.cat-sub-menu').forEach(menu => { menu.style.display = 'none'; });
-                document.querySelectorAll('.show-cat-btn .icon.arrow-down').forEach(arr => { arr.style.transform = 'rotate(0deg)'; });
-                subMenu.style.display = 'block';
-                if (arrow) { arrow.style.transform = 'rotate(180deg)'; }
-            }
-        });
-    });
-
-    // Adiciona event listeners aos links do menu usando data-section-id
-    document.querySelectorAll('.cat-sub-menu a[data-section-id]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const sectionId = this.getAttribute('data-section-id');
-            if (sectionId) {
-                showSection(sectionId, e);
-                document.querySelectorAll('.cat-sub-menu a').forEach(a => a.classList.remove('active'));
-                this.classList.add('active');
-            }
-        });
-    });
-
-    // Mostra a seção de boas-vindas por padrão ao carregar a página
-    showSection('welcome-section');
-
-    // --- Event Listeners para a seção de Usuários ---
-    const userSearchInput = document.getElementById('userSearchInput');
-    if (userSearchInput) { 
-        userSearchInput.addEventListener('input', function() { 
-            currentSearch = this.value;
-            loadUsers(1, currentSearch); 
-        }); 
+    if (typeof feather !== 'undefined') {
+        feather.replace();
     }
     
-    // Corrigido ID do botão Novo Utilizador
-    const addNewUserBtn = document.getElementById('addNewUserBtn'); 
-    if (addNewUserBtn) { addNewUserBtn.addEventListener('click', showNewUserForm); }
-    
+    // Event listeners para elementos que existem sempre
     const saveUserBtn = document.getElementById('saveUserBtn');
     if (saveUserBtn) { saveUserBtn.addEventListener('click', saveUser); }
 
-    // --- Event Listeners para a seção de Histórico de Alterações ---
-    // Corrigido ID do input de pesquisa de logs
-    const logSearchInput = document.getElementById('logSearch'); 
-    if (logSearchInput) { logSearchInput.addEventListener('input', function() { loadUserLogs(1, this.value); }); }
-
     // Adiciona event listeners para os links do menu principal (fora dos submenus) se eles também usarem data-section-id
-    document.querySelectorAll('.sidebar-body-menu > li > a[data-section-id]').forEach(link => {
-         link.addEventListener('click', function(e) {
+    const menuLinks = document.querySelectorAll('.navbar-nav .nav-link[data-section-id]:not(.dropdown-item)');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
             e.preventDefault();
             const sectionId = this.getAttribute('data-section-id');
-             if (sectionId) {
-                showSection(sectionId, e);
-                document.querySelectorAll('.sidebar-body-menu a').forEach(a => a.classList.remove('active'));
-                this.classList.add('active');
-             }
-         });
+            if (sectionId) { showSection(sectionId, e); }
+        });
     });
 
+    // Event listeners para links dos submenus
+    const subMenuLinks = document.querySelectorAll('.dropdown-item[data-section-id]');
+    subMenuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sectionId = this.getAttribute('data-section-id');
+            if (sectionId) { showSection(sectionId, e); }
+        });
+    });
+
+    // Mostrar a seção inicial com base no hash da URL
+    const currentHash = window.location.hash.substring(1);
+    const initialSection = currentHash || 'inicio-section';
+    if (document.getElementById(initialSection)) {
+        showSection(initialSection);
+    } else {
+        showSection('inicio-section');
+    }
+
+    // Configurações de busca para utilizadores
+    const userSearchInput = document.getElementById('userSearch');
+    if (userSearchInput) {
+        userSearchInput.addEventListener('input', function() {
+            const search = this.value;
+            window.loadUsers(1, search);
+        });
+        
+        userSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const search = this.value;
+                window.loadUsers(1, search);
+            }
+        });
+    }
 });
 
 // Remove a função loadContent antiga se não for mais usada

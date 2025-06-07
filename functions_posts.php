@@ -31,11 +31,7 @@ function getPostById($id) {
     $result = $stmt->get_result();
     $post = $result->fetch_assoc();
     
-    if ($post) {
-        // Processar as tags
-        $post['tags'] = array_map('trim', explode(',', $post['tags']));
-    }
-    
+    // As tags ficam como string para o formulário de edição
     return $post;
 }
 

@@ -531,7 +531,7 @@ $avisoData = getAvisolaranjaInicio();
         line-height: 1.6;
         margin-bottom: 1rem;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1686,8 +1686,8 @@ $avisoData = getAvisolaranjaInicio();
                 <div class="container-fluid">
                     <div class="row mb-4">
                         <div class="col-12 d-flex justify-content-between align-items-center">
-                            <h2 class="mb-0">Gerenciar Posts</h2>
-                            <button class="btn btn-primary" onclick="showNewPostForm()">
+                            <h2 class="mb-0">Gerir Posts</h2>
+                            <button id="btnNovoPost" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Novo Post
                             </button>
                         </div>
@@ -1727,7 +1727,7 @@ $avisoData = getAvisolaranjaInicio();
                                     </div>
                                     <div class="post-content">
                                         <h3 class="post-title"><?php echo htmlspecialchars($post['titulo']); ?></h3>
-                                        <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 150)) . '...'; ?></p>
+                                        <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 80)) . '...'; ?></p>
                                         
                                         <?php if (!empty($post['tags'])): ?>
                                         <div class="post-tags">
@@ -3367,7 +3367,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (sectionId === 'users-section') {
                 loadUsers();
             } else if (sectionId === 'posts-section') {
-                // Código para carregar posts se necessário
+                // Carregar posts com paginação e configurar event listeners
+                window.loadPosts(1);
+                currentPostsPage = 1;
             }
             
             console.log('Seção mostrada:', sectionId);
@@ -3475,6 +3477,358 @@ document.addEventListener('DOMContentLoaded', function() {
     window.loadSuggestions = loadSuggestions;
     window.closeSuggestionModal = closeSuggestionModal;
     window.deleteSuggestion = deleteSuggestion;
+});
+
+// ---------------------------- Funções para gerenciar posts (separado para evitar problemas de timing) ----------------------------
+
+// Variáveis globais para controle de paginação de posts
+let currentPostsPage = 1;
+
+// Função auxiliar para alternar entre seções
+function switchToSection(hideSection, showSection) {
+    console.log(`🔄 Alternando de ${hideSection} para ${showSection}`);
+    
+    const hide = document.getElementById(hideSection);
+    const show = document.getElementById(showSection);
+    
+    if (hide) {
+        hide.style.display = 'none';
+        hide.classList.remove('active');
+    }
+    
+    if (show) {
+        show.style.display = 'block';
+        show.classList.add('active');
+        console.log(`✅ Seção ${showSection} mostrada`);
+    }
+}
+
+// Funções para gerenciar posts (definidas globalmente)
+window.showNewPostForm = function() {
+    console.log('🔵 showNewPostForm called');
+    
+    try {
+        // Verificar se elementos existem antes de acessá-los
+        const postsSection = document.getElementById('posts-section');
+        const editorSection = document.getElementById('post-editor-section');
+        
+        if (!postsSection) {
+            console.error('❌ posts-section não encontrada');
+            return;
+        }
+        
+        if (!editorSection) {
+            console.error('❌ post-editor-section não encontrada');
+            return;
+        }
+        
+        console.log('✅ Ambas as seções encontradas, alternando...');
+        
+        // Esconde a seção de posts e mostra o editor
+        switchToSection('posts-section', 'post-editor-section');
+        
+        // Limpa o formulário e configura para novo post
+        const form = document.getElementById('postEditorForm');
+        if (form) {
+            form.reset();
+            console.log('✅ Formulário resetado');
+        } else {
+            console.error('❌ postEditorForm não encontrado');
+        }
+        
+        const postId = document.getElementById('postId');
+        if (postId) postId.value = '';
+        
+        const editorTitle = document.getElementById('post-editor-title');
+        if (editorTitle) {
+            editorTitle.textContent = 'Novo Post';
+            console.log('✅ Título definido');
+        } else {
+            console.error('❌ post-editor-title não encontrado');
+        }
+        
+        const saveBtn = document.getElementById('savePostBtn');
+        if (saveBtn) {
+            saveBtn.textContent = 'Criar';
+            console.log('✅ Botão configurado');
+        } else {
+            console.error('❌ savePostBtn não encontrado');
+        }
+        
+        const dataField = document.getElementById('postDataCriacao');
+        if (dataField) {
+            dataField.value = new Date().toLocaleString('pt-PT');
+            console.log('✅ Data definida');
+        } else {
+            console.error('❌ postDataCriacao não encontrado');
+        }
+        
+        // Esconde todas as imagens de preview
+        document.querySelectorAll('#post-editor-section .image-preview img').forEach(img => {
+            img.style.display = 'none';
+        });
+        
+        console.log('🎉 showNewPostForm concluída com sucesso');
+        
+    } catch (error) {
+        console.error('❌ Erro em showNewPostForm:', error);
+        alert('Erro ao abrir formulário de post: ' + error.message);
+    }
+};
+
+window.editPost = function(postId) {
+    fetch(`get_posts.php?id=${postId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.post) {
+                const post = data.post;
+                
+                // Esconde a seção de posts e mostra o editor
+                switchToSection('posts-section', 'post-editor-section');
+                
+                // Preenche o formulário com os dados do post
+                document.getElementById('postId').value = post.id;
+                document.getElementById('postTitulo').value = post.titulo;
+                document.getElementById('postTexto').value = post.texto;
+                document.getElementById('postTags').value = post.tags;
+                document.getElementById('postImgPrincipal').value = post.img_principal || '';
+                document.getElementById('postDataCriacao').value = new Date(post.data_criacao).toLocaleString('pt-PT');
+                
+                // Preenche as imagens adicionais
+                for (let i = 1; i <= 5; i++) {
+                    const imgField = document.getElementById(`postImg${i}`);
+                    if (imgField) {
+                        imgField.value = post[`img_${i}`] || '';
+                    }
+                }
+                
+                // Atualiza os previews das imagens
+                if (typeof updatePostImagePreviews === 'function') {
+                    updatePostImagePreviews();
+                }
+                
+                // Configura o formulário para edição
+                document.getElementById('post-editor-title').textContent = 'Editar Post';
+                document.getElementById('savePostBtn').textContent = 'Salvar';
+            } else {
+                alert('Erro ao carregar dados do post');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao carregar post: ' + error.message);
+        });
+};
+
+window.deletePost = function(postId) {
+    if (confirm('Tem certeza que deseja apagar este post? Esta ação não pode ser desfeita.')) {
+        // Encontra o card do post para mostrar loading
+        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+        if (postCard) {
+            postCard.style.opacity = '0.5';
+            postCard.style.pointerEvents = 'none';
+        }
+        
+        fetch('delete_post.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `post_id=${postId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                
+                // Recarregar a página atual de posts após apagar
+                // Isso garantirá que outros posts venham preencher o espaço
+                setTimeout(() => {
+                    if (typeof window.loadPosts === 'function') {
+                        window.loadPosts(currentPostsPage);
+                    }
+                }, 500);
+                
+            } else {
+                alert(data.message);
+                // Restaura o estado do card em caso de erro
+                if (postCard) {
+                    postCard.style.opacity = '1';
+                    postCard.style.pointerEvents = 'auto';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao apagar post: ' + error.message);
+            // Restaura o estado do card em caso de erro
+            if (postCard) {
+                postCard.style.opacity = '1';
+                postCard.style.pointerEvents = 'auto';
+            }
+        });
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔵 Posts JavaScript carregado');
+    
+    // Função para carregar posts com paginação
+    window.loadPosts = function(page = 1) {
+        currentPostsPage = page;
+        
+        // Mostrar loading
+        const postsContainer = document.getElementById('postsContainer');
+        const paginationContainer = document.getElementById('paginationContainer');
+        
+        if (postsContainer) {
+            postsContainer.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border" role="status"></div><p class="mt-2">Carregando posts...</p></div>';
+        }
+        
+        fetch(`get_posts.php?page=${page}`)
+            .then(response => response.text())
+            .then(html => {
+                // Criar um elemento temporário para analisar o HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // Extrair o conteúdo dos posts
+                const postsContent = tempDiv.querySelector('#postsContainer');
+                const paginationContent = tempDiv.querySelector('#paginationContainer');
+                
+                if (postsContainer && postsContent) {
+                    postsContainer.innerHTML = postsContent.innerHTML;
+                }
+                
+                if (paginationContainer && paginationContent) {
+                    paginationContainer.innerHTML = paginationContent.innerHTML;
+                    // Reconfigurar event listeners para paginação
+                    setupPostsPaginationEvents();
+                } else if (paginationContainer && !paginationContent) {
+                    // Se não há paginação, limpar o container
+                    paginationContainer.innerHTML = '';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar posts:', error);
+                if (postsContainer) {
+                    postsContainer.innerHTML = '<div class="col-12 text-center py-4"><p class="text-danger">Erro ao carregar posts. Tente novamente.</p></div>';
+                }
+            });
+    };
+    
+    // Função para configurar event listeners de paginação de posts
+    function setupPostsPaginationEvents() {
+        document.querySelectorAll('#paginationContainer .page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                if (page && page !== currentPostsPage.toString()) {
+                    window.loadPosts(parseInt(page));
+                }
+            });
+        });
+    }
+    
+    // Funções já definidas globalmente acima - apenas event listeners aqui
+    
+    // Função para atualizar previews das imagens dos posts
+    function updatePostImagePreviews() {
+        // Preview da imagem principal
+        const imgPrincipal = document.getElementById('postImgPrincipal');
+        const previewPrincipal = document.querySelector('#postImgPrincipalPreview img');
+        if (imgPrincipal && previewPrincipal) {
+            if (imgPrincipal.value) {
+                previewPrincipal.src = imgPrincipal.value;
+                previewPrincipal.style.display = 'block';
+            } else {
+                previewPrincipal.style.display = 'none';
+            }
+        }
+        
+        // Previews das imagens adicionais
+        for (let i = 1; i <= 5; i++) {
+            const imgField = document.getElementById(`postImg${i}`);
+            const preview = document.querySelector(`#postImg${i}Preview img`);
+            if (imgField && preview) {
+                if (imgField.value) {
+                    preview.src = imgField.value;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                }
+            }
+        }
+    }
+    
+    // Event listener para o botão cancelar do editor de posts
+    document.getElementById('cancelPostEdit').addEventListener('click', function() {
+        switchToSection('post-editor-section', 'posts-section');
+    });
+    
+    // Event listener para o formulário de posts
+    document.getElementById('postEditorForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const isEdit = document.getElementById('postId').value !== '';
+        
+        fetch('save_post.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                setTimeout(() => {
+                    switchToSection('post-editor-section', 'posts-section');
+                    
+                    // Recarregar a página de posts para mostrar as mudanças
+                    window.loadPosts(currentPostsPage);
+                }, 1000);
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao salvar post: ' + error.message, 'danger');
+        });
+    });
+    
+    // Event listeners para atualizar previews quando os campos de imagem mudarem
+    document.addEventListener('input', function(e) {
+        if (e.target.id && e.target.id.includes('postImg')) {
+            updatePostImagePreviews();
+        }
+    });
+    
+    // Configurar event listeners iniciais para paginação de posts
+    // (para a paginação que já existe quando a página carrega)
+    setTimeout(() => {
+        setupPostsPaginationEvents();
+    }, 1000);
+    
+    // Event listener para o botão "Novo Post"
+    const btnNovoPost = document.getElementById('btnNovoPost');
+    if (btnNovoPost) {
+        btnNovoPost.addEventListener('click', function() {
+            console.log('🔵 Botão Novo Post clicado via event listener');
+            showNewPostForm();
+        });
+        console.log('✅ Event listener do botão Novo Post configurado');
+    } else {
+        console.error('❌ Botão btnNovoPost não encontrado');
+    }
+    
+    console.log('🎉 Posts JavaScript configurado com sucesso');
+    
+    // Teste se as funções estão disponíveis globalmente
+    console.log('✅ Teste de funções:');
+    console.log('- showNewPostForm:', typeof window.showNewPostForm);
+    console.log('- editPost:', typeof window.editPost);
+    console.log('- deletePost:', typeof window.deletePost);
 });
 </script>
 

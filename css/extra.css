@@ -567,7 +567,7 @@ input[type="text"].form-control {
     line-height: 1.6;
     margin-bottom: 1rem; /* Ajustado margin bottom */
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

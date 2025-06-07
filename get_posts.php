@@ -60,7 +60,7 @@ if ($result->num_rows > 0) {
             </div>
             <div class="post-content">
                 <h3 class="post-title"><?php echo htmlspecialchars($post['titulo']); ?></h3>
-                <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 150)) . '...'; ?></p>
+                <p class="post-excerpt"><?php echo htmlspecialchars(substr($post['texto'], 0, 80)) . '...'; ?></p>
                 <?php if (!empty($post['tags'])): ?>
                 <div class="post-tags">
                     <?php 
@@ -72,11 +72,14 @@ if ($result->num_rows > 0) {
                 </div>
                 <?php endif; ?>
                 <div class="post-meta">
+                    <span class="post-author">
+                        <i class="fas fa-user"></i> <?php echo htmlspecialchars($post['autor_nome']); ?>
+                    </span>
                     <span class="post-date">
-                        Data de criação: <?php echo date('d/m/Y', strtotime($post['data_criacao'])); ?>
+                        <i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($post['data_criacao'])); ?>
                     </span>
                     <span class="post-comments">
-                        Comentários: <?php echo $post['num_comentarios']; ?>
+                        <i class="fas fa-comments"></i> <?php echo $post['num_comentarios']; ?>
                     </span>
                 </div>
                 <div class="post-actions">

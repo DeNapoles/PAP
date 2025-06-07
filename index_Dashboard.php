@@ -128,6 +128,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
     }
 }
 
+// Processamento do formulário do Início/Capa
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
+    $logoseparador = $_POST['LogoSeparador'];
+    $logoprincipal = $_POST['LogoPrincipal'];
+    $textobemvindo = $_POST['TextoBemvindo'];
+    $fundo = $_POST['Fundo'];
+
+    $sql = "UPDATE InicioInicio SET 
+            LogoSeparador = ?,
+            LogoPrincipal = ?,
+            TextoBemvindo = ?,
+            Fundo = ?
+            WHERE id = 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", 
+        $logoseparador,
+        $logoprincipal,
+        $textobemvindo,
+        $fundo
+    );
+
+    if ($stmt->execute()) {
+        $updateMessage = "Dados da Capa atualizados com sucesso!";
+        $updateType = "success";
+        $activeSection = "inicio-section";
+        // Recarrega os dados
+        $capaData = getCapaData();
+    } else {
+        $updateMessage = "Erro ao atualizar dados da Capa: " . $conn->error;
+        $updateType = "danger";
+        $activeSection = "inicio-section";
+    }
+}
+
 // Adicionar o processamento do formulário Sobre Nós
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
     $texto1 = $_POST['Texto1'];
@@ -150,11 +185,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
     if ($stmt->execute()) {
         $updateMessage = "Dados atualizados com sucesso!";
         $updateType = "success";
+        $activeSection = "sobre-section";
     } else {
         $updateMessage = "Erro ao atualizar dados: " . $conn->error;
         $updateType = "danger";
+        $activeSection = "sobre-section";
     }
 }
+
+// Processamento das FAQs agora é feito via AJAX em update_faqs_ajax.php
 
 // Processamento do formulário do Aviso
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
@@ -174,12 +213,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
     if ($stmt->execute()) {
         $updateMessage = "Aviso atualizado com sucesso!";
         $updateType = "success";
+        $activeSection = "aviso-section";
         // Atualiza os dados após o update
         $avisoData = getAvisolaranjaInicio();
     } else {
         $updateMessage = "Erro ao atualizar aviso: " . $conn->error;
         $updateType = "danger";
+        $activeSection = "aviso-section";
     }
+}
+
+// Se há um campo active_section em qualquer POST, define a seção ativa
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['active_section']) && !isset($activeSection)) {
+    $activeSection = $_POST['active_section'];
 }
 
 $capaData = getCapaData();
@@ -1185,7 +1231,8 @@ $avisoData = getAvisolaranjaInicio();
                                         </div>
                                     <?php endif; ?>
 
-                                    <form id="inicioForm">
+                                    <form method="POST" id="inicioForm">
+                                        <input type="hidden" name="active_section" value="inicio-section">
                                         <div class="mb-3">
                                             <label for="LogoSeparador" class="form-label">Logo Separador</label>
                                             <div class="image-upload-container">
@@ -1360,6 +1407,7 @@ $avisoData = getAvisolaranjaInicio();
                                     <?php endif; ?>
 
                                     <form method="POST" id="sobreForm">
+                                        <input type="hidden" name="active_section" value="sobre-section">
                                         <div class="text-input-container">
                                             <div class="form-group">
                                                 <label for="Texto1" class="form-label">Primeiro Texto</label>
@@ -1569,24 +1617,7 @@ $avisoData = getAvisolaranjaInicio();
                                 </div>
                                 <div class="card-body">
                                     <?php 
-                                    // Processamento do formulário de FAQs
-                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_faqs'])) {
-                                        $faqs = $_POST['faqs'] ?? [];
-                                        // Limpa a tabela
-                                        $conn->query("TRUNCATE TABLE FaqPrevisualizacaoInicio");
-                                        // Insere as FAQs na nova ordem
-                                        $stmt = $conn->prepare("INSERT INTO FaqPrevisualizacaoInicio (titulofaq, textofaq, Link, imagemfaq) VALUES (?, ?, ?, ?)");
-                                        foreach ($faqs as $faq) {
-                                            $titulo = $faq['titulofaq'] ?? '';
-                                            $texto = $faq['textofaq'] ?? '';
-                                            $link = $faq['Link'] ?? '';
-                                            $imagem = $faq['imagemfaq'] ?? '';
-                                            $stmt->bind_param("ssss", $titulo, $texto, $link, $imagem);
-                                            $stmt->execute();
-                                        }
-                                        $updateMessage = "FAQs atualizadas com sucesso!";
-                                        $updateType = "success";
-                                    }
+                                    // Busca os dados das FAQs
                                     $faqsData = [];
                                     $result = $conn->query("SELECT * FROM FaqPrevisualizacaoInicio ORDER BY id");
                                     while($row = $result->fetch_assoc()) {
@@ -1599,7 +1630,8 @@ $avisoData = getAvisolaranjaInicio();
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </div>
                                     <?php endif; ?>
-                                    <form method="POST" id="faqsForm" onsubmit="return submitFaqsForm(event)">
+                                    <form method="POST" id="faqsForm" onsubmit="return submitFaqsFormAjax(event)">
+                                        <input type="hidden" name="active_section" value="faqs-section">
                                         <div id="faqsContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
                                             <?php foreach ($faqsData as $index => $faq): ?>
                                             <div class="faq-item" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
@@ -1619,12 +1651,12 @@ $avisoData = getAvisolaranjaInicio();
                                                 <div class="mb-2">
                                                     <label class="form-label">Imagem</label>
                                                     <div class="image-upload-container">
-                                                        <input type="text" class="form-control mb-2" name="faqs[<?php echo $index; ?>][imagemfaq]" value="<?php echo htmlspecialchars($faq['imagemfaq']); ?>" required>
+                                                        <input type="text" class="form-control mb-2" id="faq_<?php echo $index; ?>_imagemfaq" name="faqs[<?php echo $index; ?>][imagemfaq]" value="<?php echo htmlspecialchars($faq['imagemfaq']); ?>" required>
                                                         <div class="image-preview mb-2">
                                                             <img src="<?php echo htmlspecialchars($faq['imagemfaq']); ?>" alt="Preview" 
                                                                  onerror="this.style.display='none'" style="max-width: 100px; max-height: 100px;">
                                                         </div>
-                                                        <div class="drop-zone" data-target="faq_<?php echo $index; ?>">
+                                                        <div class="drop-zone" data-target="faq_<?php echo $index; ?>_imagemfaq">
                                                             <i class="fas fa-cloud-upload-alt mb-2"></i>
                                                             <p class="mb-0">Arraste uma imagem aqui ou clique para selecionar</p>
                                                         </div>
@@ -1634,7 +1666,7 @@ $avisoData = getAvisolaranjaInicio();
                                             <?php endforeach; ?>
                                         </div>
                                         <div class="d-flex justify-content-end mt-4">
-                                            <button type="submit" class="btn btn-primary">
+                                            <button type="submit" name="update_faqs" class="btn btn-primary">
                                                 <i class="fas fa-save"></i> Salvar Alterações
                                             </button>
                                         </div>
@@ -1692,6 +1724,7 @@ $avisoData = getAvisolaranjaInicio();
                                     <?php endif; ?>
 
                                     <form method="POST" id="avisoForm">
+                                        <input type="hidden" name="active_section" value="aviso-section">
                                         <div class="text-input-container">
                                             <div class="form-group">
                                                 <label for="texto" class="form-label">Texto do Aviso</label>
@@ -2431,6 +2464,82 @@ $avisoData = getAvisolaranjaInicio();
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Página carregada');
     
+    // Debug: Verificar se existe seção ativa definida pelo PHP
+    <?php if (isset($activeSection)): ?>
+        console.log('DEBUG: activeSection definida no PHP como:', '<?php echo $activeSection; ?>');
+    <?php else: ?>
+        console.log('DEBUG: Nenhuma activeSection definida no PHP');
+    <?php endif; ?>
+    
+    // Função auxiliar para mostrar alertas
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.style.maxWidth = '400px';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        // Remove automaticamente após 5 segundos
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Expõe a função globalmente
+    window.showAlert = showAlert;
+    
+
+    
+    // Função para submeter FAQs via AJAX (sem sair da seção)
+    window.submitFaqsFormAjax = function(event) {
+        event.preventDefault(); // Impede o submit normal
+        
+        const form = document.getElementById('faqsForm');
+        const formData = new FormData(form);
+        formData.append('update_faqs', '1'); // Adiciona o campo necessário
+        
+        // Mostra loading no botão
+        const submitBtn = form.querySelector('button[name="update_faqs"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        submitBtn.disabled = true;
+        
+        fetch('update_faqs_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao salvar FAQs: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            // Restaura o botão
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
+        return false; // Impede qualquer redirecionamento
+    };
+    
+
+    
     // Inicializa os ícones do Feather
     if (typeof feather !== 'undefined') {
         feather.replace();
@@ -2438,18 +2547,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para mostrar/esconder seções
     function showSection(sectionId) {
+        console.log('showSection chamada para:', sectionId);
+        
         // Esconde todas as seções
         document.querySelectorAll('.content-section').forEach(section => {
             section.style.display = 'none';
+            console.log('Escondendo seção:', section.id);
         });
 
         // Mostra a seção selecionada
         const selectedSection = document.getElementById(sectionId);
         if (selectedSection) {
             selectedSection.style.display = 'block';
-            console.log('Seção mostrada:', sectionId);
+            console.log('Seção mostrada com sucesso:', sectionId);
+            
+            // Remove classes ativas dos links do menu
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Adiciona classe ativa ao link correspondente
+            const activeLink = document.querySelector(`[onclick*="${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+                console.log('Link do menu ativado para:', sectionId);
+            }
         } else {
             console.error('Seção não encontrada:', sectionId);
+            console.log('Seções disponíveis:', Array.from(document.querySelectorAll('.content-section')).map(s => s.id));
         }
     }
 
@@ -2459,12 +2584,18 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const sectionId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
             showSection(sectionId);
-            console.log('Link clicado:', sectionId);
         });
     });
 
-    // Mostra a seção de boas-vindas por padrão
-    showSection('welcome-section');
+    // Verifica se há uma seção ativa definida (após form submit)
+    <?php if (isset($activeSection)): ?>
+        console.log('Seção ativa definida pelo PHP:', '<?php echo $activeSection; ?>');
+        showSection('<?php echo $activeSection; ?>');
+    <?php else: ?>
+        console.log('Nenhuma seção ativa definida, mostrando welcome-section');
+        // Mostra a seção de boas-vindas por padrão
+        showSection('welcome-section');
+    <?php endif; ?>
 
     // Função para atualizar preview da imagem
     function updateImagePreview(inputId) {
@@ -2512,14 +2643,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para fazer upload do arquivo
     async function handleFileUpload(file, inputId, customName = null) {
+        console.log('handleFileUpload chamada com:', { fileName: file.name, inputId, customName });
+        
         if (file && file.type.startsWith('image/')) {
             const formData = new FormData();
             formData.append('image', file);
             
+            // Tenta encontrar o input por ID, se não encontrar, tenta pela drop zone
+            let input = document.getElementById(inputId);
+            console.log('Input encontrado por ID:', !!input);
+            
+            if (!input) {
+                // Se não encontrar por ID, procura pela drop zone correspondente
+                const dropZone = document.querySelector(`[data-target="${inputId}"]`);
+                console.log('Drop zone encontrada:', !!dropZone);
+                if (dropZone) {
+                    const container = dropZone.closest('.image-upload-container');
+                    if (container) {
+                        input = container.querySelector('input[type="text"]');
+                        console.log('Input encontrado via drop zone:', !!input);
+                    }
+                }
+            }
+            
             // Adiciona a imagem antiga ao FormData
-            const oldImageInput = document.getElementById(inputId);
-            if (oldImageInput && oldImageInput.value) {
-                formData.append('old_image', oldImageInput.value);
+            if (input && input.value) {
+                formData.append('old_image', input.value);
             }
 
             // Adiciona o nome personalizado se fornecido
@@ -2536,10 +2685,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (data.success) {
-                    const input = document.getElementById(inputId);
                     if (input) {
                         input.value = data.url;
-                        // Atualiza o preview imediatamente após definir o valor
+                                                // Atualiza o preview imediatamente após definir o valor
                         const previewContainer = input.closest('.image-upload-container').querySelector('.image-preview');
                         if (previewContainer) {
                             const preview = previewContainer.querySelector('img');
@@ -2548,21 +2696,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                 preview.style.display = 'block';
                             }
                         }
+                        
+                        // Mostra mensagem de sucesso
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-success alert-dismissible fade show mt-2';
+                        alert.innerHTML = `
+                            <i class="fas fa-check-circle"></i> ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        input.closest('.image-upload-container').appendChild(alert);
+                        
+                        console.log('Upload bem-sucedido! URL da imagem:', data.url);
+                        
+                        // Remove a mensagem após 3 segundos
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 3000);
+                    } else {
+                        console.error('Input não encontrado para:', inputId);
                     }
-                    
-                    // Mostra mensagem de sucesso
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show mt-2';
-                    alert.innerHTML = `
-                        ${data.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    `;
-                    document.getElementById(inputId).parentNode.appendChild(alert);
-                    
-                    // Remove a mensagem após 3 segundos
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 3000);
                 } else {
                     throw new Error(data.message);
                 }
@@ -2574,7 +2726,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     Erro ao fazer upload: ${error.message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 `;
-                document.getElementById(inputId).parentNode.appendChild(alert);
+                
+                if (input) {
+                    input.closest('.image-upload-container').appendChild(alert);
+                } else {
+                    // Se não conseguir encontrar o input, mostra no topo da seção
+                    const faqsSection = document.getElementById('faqs-section');
+                    if (faqsSection) {
+                        faqsSection.querySelector('.card-body').prepend(alert);
+                    }
+                }
                 
                 // Remove a mensagem após 5 segundos
                 setTimeout(() => {
@@ -2637,6 +2798,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dropZone.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
             if (file) {
+                console.log('Arquivo selecionado:', file.name, 'Input ID:', inputId);
                 currentFile = file;
                 currentInputId = inputId;
                 showRenameModal(file);
@@ -2809,6 +2971,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.drop-zone').forEach(initializeDropZone);
     });
+    
+
 
     // Garante que o modal de renomear imagem esteja sempre oculto ao carregar a página
     // Always hide the rename image modal on page load
@@ -2990,11 +3154,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="mb-2">
                 <label class="form-label">Imagem</label>
                 <div class="image-upload-container">
-                    <input type="text" class="form-control mb-2" name="faqs[${index}][imagemfaq]" required>
+                    <input type="text" class="form-control mb-2" id="faq_${index}_imagemfaq" name="faqs[${index}][imagemfaq]" required>
                     <div class="image-preview mb-2">
                         <img src="" alt="Preview" style="display: none; max-width: 100px; max-height: 100px;">
                     </div>
-                    <div class="drop-zone" data-target="faq_${index}">
+                    <div class="drop-zone" data-target="faq_${index}_imagemfaq">
                         <i class="fas fa-cloud-upload-alt mb-2"></i>
                         <p class="mb-0">Arraste uma imagem aqui ou clique para selecionar</p>
                     </div>
@@ -3026,13 +3190,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const inputs = item.querySelectorAll('input, textarea');
             inputs.forEach(input => {
                 const name = input.getAttribute('name');
+                const id = input.getAttribute('id');
                 if (name) {
                     input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+                }
+                if (id && id.includes('imagemfaq')) {
+                    input.setAttribute('id', `faq_${index}_imagemfaq`);
                 }
             });
             const dropZone = item.querySelector('.drop-zone');
             if (dropZone) {
-                dropZone.setAttribute('data-target', `faq_${index}`);
+                dropZone.setAttribute('data-target', `faq_${index}_imagemfaq`);
             }
         });
     }
@@ -3056,74 +3224,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Função para submeter o formulário de FAQs via AJAX
-    function submitFaqsForm(event) {
-        event.preventDefault();
-        
-        const form = document.getElementById('faqsForm');
-        const formData = new FormData(form);
-        
-        // Adiciona um campo para identificar que é uma atualização de FAQs
-        formData.append('update_faqs', '1');
-        
-        // Debug: Mostra os dados que estão sendo enviados
-        console.log('Enviando dados do formulário:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-        
-        fetch('update_faqs.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            console.log('Resposta recebida:', response);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Dados processados:', data);
-            if (data.success) {
-                // Mostra mensagem de sucesso
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show';
-                alert.innerHTML = `
-                    ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                form.insertBefore(alert, form.firstChild);
-                
-                // Remove a mensagem após 3 segundos
-                setTimeout(() => {
-                    alert.remove();
-                }, 3000);
-                
-                // Recarrega a página após 1 segundo para mostrar as alterações
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                throw new Error(data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            // Mostra mensagem de erro
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-danger alert-dismissible fade show';
-            alert.innerHTML = `
-                Erro ao salvar: ${error.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            form.insertBefore(alert, form.firstChild);
-            
-            // Remove a mensagem após 5 segundos
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        });
-        
-        return false;
-    }
+
 
     // Adicionar esta nova função para lidar com o submit do formulário de início
     function submitInicioForm(event) {

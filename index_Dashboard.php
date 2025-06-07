@@ -1002,6 +1002,203 @@ $avisoData = getAvisolaranjaInicio();
     .btn-loading {
         pointer-events: none;
     }
+
+    /* Melhorias visuais para cartões de tickets admin - versão ainda mais organizada */
+    .admin-ticket-card {
+      min-height: 420px;
+      border-radius: 1.25rem !important; /* Bootstrap rounded-4 */
+      border: 2px solid #adb5bd !important; /* Bootstrap border-secondary */
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07), 0 1.5px 6px rgba(173,181,189,0.08);
+      padding: 0;
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fff;
+      height: 100%;
+      transition: box-shadow 0.18s, border-color 0.18s;
+    }
+    #admin-tickets-cards {
+      gap: 32px !important;
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .admin-ticket-card .card-header {
+      background: #fff;
+      border-bottom: none;
+      border-radius: 14px 14px 0 0;
+      padding: 20px 28px 8px 28px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-ticket-card .card-body {
+      padding: 18px 28px 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1 1 auto;
+    }
+    .admin-ticket-card .info-block {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-height: 48px;
+      justify-content: center;
+    }
+    .admin-ticket-card .info-label {
+      font-weight: 500;
+      color: #888;
+      font-size: 0.97em;
+      margin-bottom: 2px;
+    }
+    .admin-ticket-card .info-value {
+      color: #222;
+      font-size: 1.01em;
+      font-weight: 500;
+      word-break: break-word;
+    }
+    .admin-ticket-card .badge-outline-warning {
+      color: #ffb648;
+      background: #fff;
+      border: 2px solid #ffb648;
+      font-weight: 600;
+      font-size: 1em;
+      border-radius: 20px;
+      padding: 7px 18px;
+      box-shadow: none;
+    }
+    .admin-ticket-card .badge {
+      font-size: 1em;
+      padding: 7px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      box-shadow: none;
+    }
+    .admin-ticket-card .p-2.bg-light {
+      font-size: 0.99em;
+      margin-top: 4px;
+      margin-bottom: 0;
+      min-height: 44px;
+      background: #f8f9fa !important;
+    }
+    .admin-ticket-card .admin-ticket-actions {
+      display: flex;
+      gap: 18px;
+      margin-top: 18px;
+      justify-content: stretch;
+      flex-wrap: wrap;
+    }
+    .admin-ticket-card .admin-ticket-actions .btn {
+      flex: 1 1 120px;
+      min-width: 120px;
+      /* max-width removido para evitar corte */
+      font-size: 1.08em;
+      padding: 12px 0;
+      border-radius: 14px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+      outline: none;
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-success {
+      background: #218838;
+      color: #fff;
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-success:hover {
+      background: #17692a;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(33,136,56,0.13);
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-danger {
+      background: #dc3545;
+      color: #fff;
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-danger:hover {
+      background: #b52a37;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(220,53,69,0.13);
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-primary {
+      background: #007bff;
+      color: #fff;
+    }
+    .admin-ticket-card .admin-ticket-actions .btn-primary:hover {
+      background: #0056b3;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,123,255,0.13);
+    }
+    .admin-ticket-card .admin-ticket-actions .btn i {
+      font-size: 1.1em;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+      position: relative;
+      top: 0;
+      margin: 0;
+    }
+    @media (max-width: 991px) {
+      .admin-ticket-card .admin-ticket-actions .btn {
+        font-size: 1em;
+        padding: 10px 0;
+        min-width: 100px;
+        max-width: 100%;
+      }
+    }
+    @media (max-width: 767px) {
+      .admin-ticket-card .admin-ticket-actions {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .admin-ticket-card .admin-ticket-actions .btn {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+      }
+    }
+
+    /* ... existing code ... */
+    .badge-estado {
+      display: inline-flex;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1em;
+      border-radius: 20px;
+      padding: 7px 18px;
+      border: 2px solid;
+      background: #fff;
+      gap: 7px;
+      transition: color 0.18s, border-color 0.18s, background 0.18s;
+    }
+    .badge-estado.pendente {
+      color: #ffb648;
+      border-color: #ffb648;
+      background: #fff;
+    }
+    .badge-estado.aceite {
+      color: #198754;
+      border-color: #198754;
+      background: #e9f7ef;
+    }
+    .badge-estado.rejeitado {
+      color: #dc3545;
+      border-color: #dc3545;
+      background: #fbeaea;
+    }
+    .badge-estado.concluido {
+      color: #0d6efd;
+      border-color: #0d6efd;
+      background: #e7f0fd;
+    }
   </style>
 </head>
 
@@ -1094,6 +1291,11 @@ $avisoData = getAvisolaranjaInicio();
                             </a>
                         </li>
                     </ul>
+                </li>
+                <li>
+                    <a href="#" onclick="showSection('tickets-section')">
+                        <i class="fa fa-tools" style="margin-right: 7px;"></i> Gerir Pedidos
+                    </a>
                 </li>
             
             </ul>
@@ -2045,6 +2247,101 @@ $avisoData = getAvisolaranjaInicio();
                                 <!-- Será preenchido via JavaScript -->
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Gerir Pedidos (escondida por padrão) -->
+            <div id="tickets-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="mb-0">Gerir Pedidos de Reparação</h2>
+                        </div>
+                    </div>
+                    <div class="row" id="admin-tickets-cards">
+                        <?php
+                        $sql = "SELECT t.*, u.Nome as NomeAluno FROM Tickets t LEFT JOIN Utilizadores u ON t.ID_Utilizador = u.ID_Utilizador ORDER BY t.Data_Submissao DESC";
+                        $result = $conn->query($sql);
+                        if ($result->num_rows === 0): ?>
+                            <div class="col-12">
+                                <div class="alert alert-info d-flex align-items-center">
+                                    <i class="fa fa-info-circle me-3 fs-4"></i>
+                                    <div>
+                                        <h5 class="alert-heading mb-1">Nenhum pedido de reparação encontrado</h5>
+                                        <p class="mb-0">Ainda não existem tickets submetidos por alunos.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php while ($ticket = $result->fetch_assoc()):
+                            $dataSub = date('d/m/Y H:i', strtotime($ticket['Data_Submissao']));
+                            $dataMarc = $ticket['Data_Marcada'] ? date('d/m/Y H:i', strtotime($ticket['Data_Marcada'])) : '-';
+                            $estado = $ticket['Estado'];
+                            // Estado visual
+                            $estadoClass = '';
+                            $estadoIcon = '';
+                            switch (strtolower($estado)) {
+                                case 'pendente': $estadoClass = 'pendente'; $estadoIcon = 'fa-clock'; break;
+                                case 'aceite': $estadoClass = 'aceite'; $estadoIcon = 'fa-check'; break;
+                                case 'rejeitado': $estadoClass = 'rejeitado'; $estadoIcon = 'fa-times-circle'; break;
+                                case 'concluído':
+                                case 'concluido': $estadoClass = 'concluido'; $estadoIcon = 'fa-check-circle'; break;
+                                default: $estadoClass = 'pendente'; $estadoIcon = 'fa-clock';
+                            }
+                        ?>
+                        <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex align-items-stretch">
+                            <div class="card shadow-sm h-100 border-0 admin-ticket-card">
+                                <div class="card-header">
+                                    <span class="badge-estado <?= $estadoClass ?>">
+                                        <i class="fa <?= $estadoIcon ?> me-1"></i> <?= htmlspecialchars($estado) ?>
+                                    </span>
+                                    <span class="text-muted small"><i class="fa fa-calendar me-1"></i> <?= $dataSub ?></span>
+                                </div>
+                                <div class="card-body pt-2">
+                                    <div class="info-block">
+                                        <span class="info-label">Aluno</span>
+                                        <span class="info-value"><i class="fa fa-user me-2 text-primary"></i><?= htmlspecialchars($ticket['NomeAluno']) ?></span>
+                                    </div>
+                                    <div class="info-block">
+                                        <span class="info-label">Equipamento</span>
+                                        <span class="info-value"><i class="fa fa-laptop me-2"></i><?= htmlspecialchars($ticket['Tipo_Equipamento']) ?></span>
+                                    </div>
+                                    <?php if ($ticket['Numero_Serie']): ?>
+                                    <div class="info-block">
+                                        <span class="info-label">Nº Série</span>
+                                        <span class="info-value">#<?= htmlspecialchars($ticket['Numero_Serie']) ?></span>
+                                    </div>
+                                    <?php endif; ?>
+                                    <div class="info-block">
+                                        <span class="info-label">Título</span>
+                                        <span class="info-value"><?= htmlspecialchars($ticket['Titulo']) ?></span>
+                                    </div>
+                                    <div class="info-block">
+                                        <span class="info-label">Data Agendada</span>
+                                        <span class="info-value"><?= $dataMarc ?></span>
+                                    </div>
+                                    <div class="info-block">
+                                        <span class="info-label">Descrição</span>
+                                        <div class="p-2 bg-light rounded mt-1 info-value" style="white-space:pre-line;">
+                                            <?= nl2br(htmlspecialchars($ticket['Descricao'])) ?>
+                                        </div>
+                                    </div>
+                                    <div class="admin-ticket-actions">
+                                        <button class="btn btn-success" onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Aceite')">
+                                            <i class="fa fa-check"></i> Aceitar
+                                        </button>
+                                        <button class="btn btn-danger" onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Rejeitado')">
+                                            <i class="fa fa-times"></i> Rejeitar
+                                        </button>
+                                        <button class="btn btn-primary" onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Concluído')">
+                                            <i class="fa fa-check-circle"></i> Concluído
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endwhile; ?>
                     </div>
                 </div>
             </div>

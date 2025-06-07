@@ -69,6 +69,40 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <link rel="stylesheet" href="css/jquery-ui.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/extra.css">
+    <style>
+        .badge-estado {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1em;
+            border-radius: 20px;
+            padding: 7px 18px;
+            border: 2px solid;
+            background: #fff;
+            gap: 7px;
+            transition: color 0.18s, border-color 0.18s, background 0.18s;
+        }
+        .badge-estado.pendente {
+            color: #ffb648;
+            border-color: #ffb648;
+            background: #fff;
+        }
+        .badge-estado.aceite {
+            color: #198754;
+            border-color: #198754;
+            background: #e9f7ef;
+        }
+        .badge-estado.rejeitado {
+            color: #dc3545;
+            border-color: #dc3545;
+            background: #fbeaea;
+        }
+        .badge-estado.concluido {
+            color: #0d6efd;
+            border-color: #0d6efd;
+            background: #e7f0fd;
+        }
+    </style>
 </head>
 
 <body>
@@ -172,28 +206,32 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                 <?php
                                                 $estadoClass = '';
                                                         $estadoIcon = '';
-                                                switch ($ticket['Estado']) {
-                                                    case 'Pendente':
-                                                        $estadoClass = 'warning';
+                                                switch (strtolower($ticket['Estado'])) {
+                                                    case 'pendente':
+                                                        $estadoClass = 'pendente';
                                                                 $estadoIcon = 'fa-clock';
                                                         break;
-                                                    case 'Em Progresso':
-                                                        $estadoClass = 'info';
-                                                                $estadoIcon = 'fa-cog fa-spin';
+                                                    case 'aceite':
+                                                        $estadoClass = 'aceite';
+                                                                $estadoIcon = 'fa-check';
                                                         break;
-                                                    case 'Concluído':
-                                                        $estadoClass = 'success';
-                                                                $estadoIcon = 'fa-check-circle';
-                                                        break;
-                                                    case 'Cancelado':
-                                                        $estadoClass = 'danger';
+                                                    case 'rejeitado':
+                                                        $estadoClass = 'rejeitado';
                                                                 $estadoIcon = 'fa-times-circle';
                                                         break;
+                                                    case 'concluído':
+                                                    case 'concluido':
+                                                        $estadoClass = 'concluido';
+                                                                $estadoIcon = 'fa-check-circle';
+                                                        break;
+                                                    default:
+                                                        $estadoClass = 'pendente';
+                                                        $estadoIcon = 'fa-clock';
                                                 }
                                                 ?>
-                                                        <span class="badge bg-<?php echo $estadoClass; ?> p-2">
-                                                            <i class="fa <?php echo $estadoIcon; ?> me-1"></i>
-                                                    <?php echo $ticket['Estado']; ?>
+                                                        <span class="badge-estado <?= $estadoClass ?>">
+                                                            <i class="fa <?= $estadoIcon ?> me-1"></i>
+                                                    <?= htmlspecialchars($ticket['Estado']) ?>
                                                 </span>
                                             </td>
                                                     <td class="align-middle text-center">
@@ -260,9 +298,9 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                                                 <p class="mb-2"><strong>Data de Submissão:</strong> <?php echo $ticket['Data_Submissao_Formatada']; ?></p>
                                                                                 <p class="mb-2"><strong>Data Agendada:</strong> <?php echo $ticket['Data_Marcada_Formatada']; ?></p>
                                                                                 <p class="mb-0"><strong>Estado:</strong> 
-                                                                                    <span class="badge bg-<?php echo $estadoClass; ?> p-2">
-                                                                                        <i class="fa <?php echo $estadoIcon; ?> me-1"></i>
-                                                                        <?php echo $ticket['Estado']; ?>
+                                                                                    <span class="badge-estado <?= $estadoClass ?>">
+                                                                                        <i class="fa <?= $estadoIcon ?> me-1"></i>
+                                                                        <?= htmlspecialchars($ticket['Estado']) ?>
                                                                     </span>
                                                                 </p>
                                                                             </div>

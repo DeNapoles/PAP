@@ -1047,3 +1047,23 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadContent(section) { ... }
 */
 // Remove ou comenta a função loadContent se não for mais
+
+// Função para atualizar o estado do ticket
+window.updateTicketStatus = function(ticketId, newStatus) {
+    if (!confirm('Tem certeza que deseja alterar o estado deste pedido para "' + newStatus + '"?')) return;
+    fetch('manage_ticket.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'action=update_status&id=' + ticketId + '&status=' + encodeURIComponent(newStatus)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Estado atualizado com sucesso!', 'success');
+            setTimeout(() => location.reload(), 700);
+        } else {
+            showAlert('Erro: ' + data.message, 'danger');
+        }
+    })
+    .catch(() => showAlert('Erro ao comunicar com o servidor.', 'danger'));
+};

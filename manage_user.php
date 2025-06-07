@@ -1,8 +1,12 @@
 <?php
-// Enable error reporting for debugging (should be disabled in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Não mostrar erros na tela para não quebrar JSON
+// Desabilitar completamente qualquer output de erro
+error_reporting(0);
+ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
+
+// Iniciar buffer de output para controle completo
+ob_start();
 
 // Limpar qualquer output anterior que possa interferir com o JSON
 ob_clean();
@@ -12,15 +16,50 @@ require_once 'connection.php';
 // Ensure session is started to get admin ID for logging
 session_start();
 
-// Set header to indicate JSON content
-header('Content-Type: application/json');
+// Set header to indicate JSON content - fazer depois de session_start
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 
 // Garantir que autocommit está ativado para mudanças imediatas
 $conn->autocommit(true);
 
 // Function to send JSON response
 function sendJsonResponse($success, $message, $data = []) {
-    echo json_encode(['success' => $success, 'message' => $message] + $data);
+    // Capturar e descartar qualquer output indesejado
+    while (ob_get_level()) {
+        $content = ob_get_contents();
+        if ($content !== false && !empty(trim($content))) {
+            error_log("Descartando output indesejado: " . $content);
+        }
+        ob_end_clean();
+    }
+    
+    // Iniciar novo buffer limpo
+    ob_start();
+    
+    // Garantir que headers estão corretos
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
+    }
+    
+    // Criar resposta JSON
+    $response = ['success' => $success, 'message' => $message] + $data;
+    $json = json_encode($response, JSON_UNESCAPED_UNICODE);
+    
+    // Verificar se JSON foi criado corretamente
+    if ($json === false) {
+        $json = json_encode(['success' => false, 'message' => 'Erro interno na codificação JSON']);
+    }
+    
+    // Log para debug
+    error_log("Sending clean JSON response: " . $json);
+    
+    // Limpar o buffer e enviar apenas o JSON
+    ob_clean();
+    echo $json;
     exit;
 }
 
@@ -193,15 +232,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
 
             $id = (int)$_POST['id'];
-            $status = $_POST['status']; // Expected: 'Ativo' or 'Inativo'
+            $status = trim($_POST['status']); // Expected: 'Ativo' or 'Inativo'
 
             // Validate status value
             if ($status !== 'Ativo' && $status !== 'Inativo') {
-                sendJsonResponse(false, 'Status inválido fornecido.');
+                sendJsonResponse(false, 'Status inválido fornecido: ' . $status);
             }
 
             // Verificar se o utilizador existe
-            $checkStmt = $conn->prepare("SELECT ID_Utilizador, Estado FROM Utilizadores WHERE ID_Utilizador = ?");
+            $checkStmt = $conn->prepare("SELECT ID_Utilizador, Estado, Nome FROM Utilizadores WHERE ID_Utilizador = ?");
             $checkStmt->bind_param("i", $id);
             $checkStmt->execute();
             $checkResult = $checkStmt->get_result();
@@ -214,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             // Verificar se realmente precisa de atualização
             if ($existingUser['Estado'] === $status) {
-                sendJsonResponse(true, 'Estado já está definido como ' . $status . '.');
+                sendJsonResponse(true, 'Estado do utilizador ' . $existingUser['Nome'] . ' já está definido como ' . $status . '.');
             }
 
             // Update user status
@@ -225,14 +264,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $affectedRows = $stmt->affected_rows;
                 
                 if ($affectedRows > 0) {
-                    logUserChange($id, 'update_status', 'Alterou o status do utilizador ID ' . $id . ' para ' . $status . '.');
-                    sendJsonResponse(true, 'Status do utilizador atualizado com sucesso!');
+                    logUserChange($id, 'update_status', 'Alterou o status do utilizador ' . $existingUser['Nome'] . ' (ID: ' . $id . ') para ' . $status . '.');
+                    sendJsonResponse(true, 'Status do utilizador ' . $existingUser['Nome'] . ' alterado para ' . $status . ' com sucesso!');
                 } else {
-                    sendJsonResponse(false, 'Nenhuma alteração foi feita.');
+                    sendJsonResponse(false, 'Nenhuma alteração foi feita no estado do utilizador.');
                 }
             } else {
                 error_log("Error updating user status: " . $stmt->error);
-                sendJsonResponse(false, 'Erro ao atualizar status do utilizador.');
+                sendJsonResponse(false, 'Erro interno ao atualizar status do utilizador.');
             }
             $stmt->close();
             break;
@@ -299,5 +338,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     sendJsonResponse(false, 'Método de requisição inválido ou ação não especificada.');
 }
 
-$conn->close();
-?> 
+$conn->close(); 

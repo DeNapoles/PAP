@@ -1,6 +1,12 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0); // Não mostrar erros diretamente na página, mas logar ou capturar
+// Desabilitar completamente qualquer output de erro
+error_reporting(0);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
+
+// Iniciar buffer de output para controle completo
+ob_start();
 
 // Limpar qualquer output anterior que possa interferir com o JSON
 ob_clean();
@@ -8,11 +14,30 @@ ob_clean();
 require_once 'connection.php';
 
 // Configurar o cabeçalho para JSON no início
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-cache, must-revalidate');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 
 // Função para enviar resposta de erro em JSON
 function sendErrorResponse($message) {
-    echo json_encode(['success' => false, 'message' => $message]);
+    // Limpar TODOS os buffers de output
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    // Garantir que headers estão corretos
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+    }
+    
+    $response = ['success' => false, 'message' => $message];
+    $json = json_encode($response);
+    
+    // Log para debug
+    error_log("Sending JSON error response: " . $json);
+    
+    echo $json;
     exit;
 }
 
@@ -77,10 +102,28 @@ if (isset($_GET['id'])) {
     $user = $result->fetch_assoc();
     
     if ($user) {
-        echo json_encode([
+        // Limpar TODOS os buffers de output
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Garantir headers
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            header('Cache-Control: no-cache, must-revalidate');
+        }
+        
+        $response = [
             'success' => true,
             'user' => $user
-        ]);
+        ];
+        
+        $json = json_encode($response);
+        
+        // Log para debug
+        error_log("Sending JSON user response: " . $json);
+        
+        echo $json;
     } else {
         sendErrorResponse('Utilizador não encontrado');
     }
@@ -140,7 +183,7 @@ $result = $stmt->get_result();
 $html = '';
 if ($result->num_rows > 0) {
     while($user = $result->fetch_assoc()) {
-        $html .= '<tr class="user-row" data-user-id="' . $user['ID_Utilizador'] . '">';
+        $html .= '<tr class="user-row" data-user-id="' . $user['ID_Utilizador'] . '" id="user-row-' . $user['ID_Utilizador'] . '">';
         // Coluna Nome (avatar, nome)
         $html .= '<td class="align-middle">';
         $html .= '<div class="d-flex align-items-center gap-3">';
@@ -171,8 +214,7 @@ if ($result->num_rows > 0) {
         $estadoBtnClass = $user['Estado'] == 'Ativo' ? 'btn-success' : 'btn-secondary';
         $estadoBtnText = $user['Estado'] == 'Ativo' ? 'Ativo' : 'Inativo';
         $html .= '<button type="button" class="btn btn-sm ' . $estadoBtnClass . ' status-toggle-btn" style="min-width:70px;" ';
-        $html .= 'data-user-id="' . $user['ID_Utilizador'] . '" data-current-status="' . $user['Estado'] . '" ';
-        $html .= 'onclick="toggleUserStatus(' . $user['ID_Utilizador'] . ', \'' . $user['Estado'] . '\', this)">';
+        $html .= 'data-user-id="' . $user['ID_Utilizador'] . '" data-current-status="' . $user['Estado'] . '">';
         $html .= $estadoBtnText . '</button>';
         $html .= '</td>';
         // Coluna Ações
@@ -219,22 +261,39 @@ if ($total_pages > 1) {
 }
 
 // Retornar o HTML
-echo json_encode([
+// Limpar TODOS os buffers de output
+while (ob_get_level()) {
+    ob_end_clean();
+}
+
+// Garantir headers
+if (!headers_sent()) {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, must-revalidate');
+}
+
+$response = [
     'success' => true,
     'html' => $html,
     'pagination' => $pagination,
     'total' => $total_users,
     'total_pages' => $total_pages
-]); 
+];
+
+$json = json_encode($response);
+
+// Log para debug
+error_log("Sending JSON list response: " . $json);
+
+echo $json; 
 
 } catch (mysqli_sql_exception $e) {
     // Log any SQL errors
     error_log("SQL Error in get_users.php: " . $e->getMessage());
     // Send a generic error response to the client
-    sendErrorResponse('Ocorreu um erro ao carregar os utilizadores. Detalhes: ' . $e->getMessage()); // Pode remover o $e->getMessage() em produção
+    sendErrorResponse('Erro ao carregar utilizadores.');
 } catch (Exception $e) {
     // Catch any other unexpected errors
     error_log("Unexpected Error in get_users.php: " . $e->getMessage());
-    sendErrorResponse('Ocorreu um erro inesperado ao carregar os utilizadores.');
-}
-?> 
+    sendErrorResponse('Erro inesperado ao carregar utilizadores.');
+} 

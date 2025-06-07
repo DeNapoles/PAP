@@ -1038,7 +1038,7 @@ $avisoData = getAvisolaranjaInicio();
                     </a>
                     <ul class="cat-sub-menu">
                         <li>
-                            <a href="#" data-section-id="users-section">
+                            <a href="#" onclick="showSection('users-section')">
                                 <i class="fas fa-users"></i> Gerir Utilizadores
                             </a>
                         </li>

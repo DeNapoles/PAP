@@ -339,6 +339,7 @@ $avisoData = getAvisolaranjaInicio();
         cursor: pointer;
         transition: all 0.3s ease;
         background-color: #f8f9fa;
+        margin-top: 12px;
     }
 
     .drop-zone:hover {
@@ -356,6 +357,8 @@ $avisoData = getAvisolaranjaInicio();
         color: #6c757d;
         margin-bottom: 10px;
     }
+
+
 
     .image-preview {
         text-align: center;
@@ -477,6 +480,48 @@ $avisoData = getAvisolaranjaInicio();
         min-width: 270px;
         max-width: 340px;
         flex: 1 1 270px;
+    }
+
+    /* Estilo especial para o campo de texto (textarea) */
+    #postTexto {
+        min-height: 120px;
+        max-height: 200px;
+        width: 100%;
+        resize: vertical;
+        border: 1px solid #d1d3e2;
+        border-radius: 0.35rem;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        font-family: inherit;
+        background-color: #fff;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        margin-top: 15px;
+    }
+
+    #postTexto:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: 0;
+        background-color: #fff;
+    }
+
+    /* Espaçamento entre campos */
+    .mb-3 + .mb-3 {
+        margin-top: 20px;
+    }
+
+    /* Espaçamento específico para data de criação */
+    #post-editor-section .mb-3:has(label:contains("Data de Criação")) {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    /* Espaçamento para os botões */
+    #post-editor-section .card-body > .d-flex:last-child {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e3e6f0;
     }
 
     #posts-section .post-card:hover {
@@ -1839,29 +1884,29 @@ $avisoData = getAvisolaranjaInicio();
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Imagens Adicionais</label>
-                                            <div class="row">
-                                                <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                <div class="col-md-4 mb-2">
-                                                    <div class="image-upload-container">
-                                                        <input type="text" class="form-control mb-2" id="postImg<?php echo $i; ?>" name="img_<?php echo $i; ?>">
-                                                        <div class="image-preview mb-2" id="postImg<?php echo $i; ?>Preview">
-                                                            <img src="" alt="Preview" style="display: none; max-width: 200px; max-height: 150px;">
-                                                        </div>
-                                                        <div class="drop-zone" data-target="postImg<?php echo $i; ?>">
-                                                            Arraste uma imagem aqui ou clique para selecionar
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <?php endfor; ?>
-                                            </div>
+                                                                <div class="mb-3" style="margin-bottom: 2rem;">
+                            <label class="form-label">Imagens Adicionais</label>
+                            <div class="row">
+                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                <div class="col-md-4 mb-3">
+                                    <div class="image-upload-container">
+                                        <input type="text" class="form-control mb-2" id="postImg<?php echo $i; ?>" name="img_<?php echo $i; ?>">
+                                        <div class="image-preview mb-2" id="postImg<?php echo $i; ?>Preview">
+                                            <img src="" alt="Preview" style="display: none; max-width: 200px; max-height: 150px;">
                                         </div>
-                                        <div class="mb-3">
+                                        <div class="drop-zone" data-target="postImg<?php echo $i; ?>">
+                                            Arraste uma imagem aqui ou clique para selecionar
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endfor; ?>
+                            </div>
+                        </div>
+                                        <div class="mb-3" style="margin-top: 2.5rem; margin-bottom: 2rem;">
                                             <label class="form-label">Data de Criação</label>
                                             <input type="text" class="form-control" id="postDataCriacao" name="data_criacao" readonly>
                                         </div>
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between" style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #e3e6f0;">
                                             <button type="button" class="btn btn-secondary" id="cancelPostEdit">Cancelar</button>
                                             <button type="submit" class="btn btn-primary" id="savePostBtn">Criar</button>
                                         </div>

@@ -240,7 +240,7 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                         data-bs-target="#ticketModal<?php echo $ticket['ID_Ticket']; ?>">
                                                             <i class="fa fa-eye me-1"></i> Ver Detalhes
                                                         </button>
-                                                        <?php if ($ticket['Estado'] === 'Pendente' || $ticket['Estado'] === 'Em Progresso'): ?>
+                                                        <?php if ($ticket['Estado'] === 'Pendente' || $ticket['Estado'] === 'Em Progresso' || $ticket['Estado'] === 'Aceite'): ?>
                                                             <button type="button" class="btn btn-outline-danger btn-sm btn-cancel-ticket mt-1 mt-md-0 ms-md-1" 
                                                                     data-ticket-id="<?php echo $ticket['ID_Ticket']; ?>"
                                                                     data-bs-toggle="modal"

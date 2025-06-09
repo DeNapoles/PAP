@@ -38,7 +38,7 @@ if (!$ticket) {
 }
 
 // Verificar se o estado permite cancelamento
-if ($ticket['Estado'] !== 'Pendente' && $ticket['Estado'] !== 'Em Progresso') {
+if ($ticket['Estado'] !== 'Pendente' && $ticket['Estado'] !== 'Em Progresso' && $ticket['Estado'] !== 'Aceite') {
     // Estado não permite cancelamento
     header('Location: view_tickets.php?error=cannot_cancel');
     exit;

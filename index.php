@@ -256,7 +256,7 @@ require_once 'functions.php';
 					<h1 style="font-size: 35px;"><?php echo $avisolaranjaInicio['Texto']; ?></h1>
 				</div>
 				<div class="col-lg-4 cta>-right">
-					<a class="primary-btn wh" href="#"><?php echo $avisolaranjaInicio['Textobtn']; ?></a>
+					<a class="primary-btn wh" href="ajuda.php#sugestoes"><?php echo $avisolaranjaInicio['Textobtn']; ?></a>
 				</div>
 			</div>
 		</div>

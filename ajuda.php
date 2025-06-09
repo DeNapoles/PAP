@@ -137,7 +137,7 @@ if (isset($_SESSION['user_id'])) {
 	<!-- ================================= End Disclaimer Section ================================= -->
 
 	<!-- ================================= Start Suggestions Form Section ================================= -->
-	<section class="section-gap bg-light">
+	<section id="sugestoes" class="section-gap bg-light">
 		<div class="container">
 			<div class="row justify-content-center">
 				<div class="col-lg-8">

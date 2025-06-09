@@ -860,3 +860,373 @@ input[type="text"].form-control {
         margin-left: 0;
     }
 }
+
+/* Estilos para os cards das colunas do footer */
+.column-card {
+    border-radius: 15px !important;
+    transition: all 0.3s ease;
+    transform: translateY(0);
+}
+
+.column-card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+}
+
+.column-card-hover:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border-radius: 15px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.column-card .card-header {
+    border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.column-card .card-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.column-card-hover:hover .card-header::after {
+    left: 100%;
+}
+
+.column-card .card-body {
+    border-bottom-left-radius: 15px !important;
+    border-bottom-right-radius: 15px !important;
+}
+
+.column-card .form-label {
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.column-card .form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.column-card .form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.column-card .btn-outline-primary,
+.column-card .btn-outline-success,
+.column-card .btn-outline-info,
+.column-card .btn-outline-warning {
+    border-width: 2px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.column-card .btn-outline-primary:hover,
+.column-card .btn-outline-success:hover,
+.column-card .btn-outline-info:hover,
+.column-card .btn-outline-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Animações para os input-groups */
+.column-card .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.column-card .input-group:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos modernos para a interface simplificada do footer */
+.footer-simple-interface {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+.step-progress {
+    background: white;
+    border-radius: 50px;
+    padding: 10px 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.step-line {
+    height: 3px;
+    background: #e9ecef;
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.step-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: translateX(-100%);
+    animation: progressFill 2s ease-in-out forwards;
+}
+
+@keyframes progressFill {
+    to {
+        transform: translateX(0);
+    }
+}
+
+.modern-card {
+    border: none;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+}
+
+.gradient-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+.form-control-modern {
+    border: 3px solid #e9ecef;
+    border-radius: 15px;
+    padding: 15px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-modern {
+    border: none;
+    border-radius: 15px;
+    padding: 15px 30px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-modern:hover::before {
+    left: 100%;
+}
+
+.preview-container {
+    background: #1a1d29;
+    border-radius: 20px;
+    padding: 30px;
+    margin: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 300% 300%;
+    animation: rainbow 3s ease infinite;
+}
+
+@keyframes rainbow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.column-preview {
+    background: rgba(255,255,255,0.05);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.icon-animated {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.success-animation {
+    animation: successBounce 0.6s ease;
+}
+
+@keyframes successBounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    80% { transform: translateY(-10px); }
+}
+
+/* Responsive melhorias */
+@media (max-width: 768px) {
+    .modern-card {
+        margin-bottom: 20px;
+    }
+    
+    .step-progress .d-flex {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .step-line {
+        display: none;
+    }
+    
+    .preview-container {
+        margin: 10px;
+        padding: 20px;
+    }
+}
+
+/* Modern Color Classes */
+.text-gray-700 { color: #374151 !important; }
+.text-gray-600 { color: #4b5563 !important; }
+.text-indigo-500 { color: #6366f1 !important; }
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-emerald-500 { color: #10b981 !important; }
+.text-emerald-600 { color: #059669 !important; }
+.text-cyan-500 { color: #06b6d4 !important; }
+.text-cyan-600 { color: #0891b2 !important; }
+.text-amber-500 { color: #f59e0b !important; }
+.text-amber-600 { color: #d97706 !important; }
+
+.bg-indigo-100 { background-color: #e0e7ff !important; }
+.bg-emerald-100 { background-color: #d1fae5 !important; }
+.bg-cyan-100 { background-color: #cffafe !important; }
+.bg-amber-100 { background-color: #fef3c7 !important; }
+
+.text-sm { font-size: 0.875rem !important; }
+.fw-semibold { font-weight: 600 !important; }
+
+/* Card Hover Effects */
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button Hover Effects */
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Form Control Modern Styling */
+.form-control:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+}
+
+.form-control-sm:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.15rem rgba(99, 102, 241, 0.1);
+}
+
+/* Responsive text sizes */
+@media (max-width: 768px) {
+    .text-sm {
+        font-size: 0.8rem !important;
+    }
+    
+    .card-header h4 {
+        font-size: 1.1rem !important;
+    }
+    
+    .card-header p {
+        font-size: 0.75rem !important;
+    }
+}

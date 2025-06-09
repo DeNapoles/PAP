@@ -20,6 +20,13 @@ if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
     exit;
 }
 
+// DEBUG: Log para monitorar requisições POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("🔍 POST REQUEST DETECTADO - Keys: " . implode(', ', array_keys($_POST)));
+    error_log("🔍 REQUEST METHOD: " . $_SERVER['REQUEST_METHOD']);
+    error_log("🔍 POST DATA: " . print_r($_POST, true));
+}
+
 // Função para buscar os dados da tabela InicioInicio
 function getCapaData() {
     global $conn;
@@ -31,7 +38,7 @@ function getCapaData() {
 // Função para buscar os dados da tabela CTAInicio
 function getCTAInicioData() {
     global $conn;
-    $sql = "SELECT * FROM CTAInicio LIMIT 1";
+    $sql = "SELECT * FROM CTAInicio WHERE id = 2 LIMIT 1";
     $result = $conn->query($sql);
     return $result->fetch_assoc();
 }
@@ -64,6 +71,38 @@ function getAvisolaranjaInicio() {
     return $result->fetch_assoc();
 }
 
+// Função para buscar os dados da tabela Footer
+function getFooterData() {
+    global $conn;
+    $sql = "SELECT * FROM Footer LIMIT 1";
+    $result = $conn->query($sql);
+    return $result->fetch_assoc();
+}
+
+// Função para buscar os dados da tabela FooterLinks
+function getFooterLinksData() {
+    global $conn;
+    $sql = "SELECT * FROM FooterLinks ORDER BY secao, id";
+    $result = $conn->query($sql);
+    $links = array();
+    while($row = $result->fetch_assoc()) {
+        $links[] = $row;
+    }
+    return $links;
+}
+
+// Função para buscar seções distintas da tabela FooterLinks
+function getFooterSections() {
+    global $conn;
+    $sql = "SELECT DISTINCT secao FROM FooterLinks ORDER BY secao";
+    $result = $conn->query($sql);
+    $sections = array();
+    while($row = $result->fetch_assoc()) {
+        $sections[] = $row['secao'];
+    }
+    return $sections;
+}
+
 // Processar atualização das ligações rápidas
 if (isset($_POST['update_links'])) {
     try {
@@ -91,27 +130,55 @@ if (isset($_POST['update_links'])) {
 
         $updateMessage = "Ligações rápidas atualizadas com sucesso!";
         $updateType = "success";
+        $activeSection = "links-section";
     } catch (PDOException $e) {
         $updateMessage = "Erro ao atualizar ligações rápidas: " . $e->getMessage();
         $updateType = "danger";
+        $activeSection = "links-section";
     }
 }
 
 // Processar atualização do Login Rápido
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
+    // DEBUG: Log para verificar se chegou aqui
+    error_log("🚨 PROCESSAMENTO LOGIN INICIADO - POST recebido");
+    error_log("📊 DADOS RECEBIDOS: " . print_r($_POST, true));
+    
+    // Output direto no HTML para debug
+    echo "<!-- DEBUG: PROCESSAMENTO LOGIN INICIADO -->";
+    echo "<!-- DEBUG: POST DATA: " . print_r($_POST, true) . " -->";
+    
+    // Verificar se a tabela existe e tem dados
+    $checkResult = $conn->query("SELECT * FROM CTAInicio WHERE id = 2");
+    if ($checkResult) {
+        $existingData = $checkResult->fetch_assoc();
+        error_log("🔍 DADOS ATUAIS NA BD (id=2): " . print_r($existingData, true));
+        if (!$existingData) {
+            error_log("⚠️ NENHUM REGISTRO ENCONTRADO COM ID=2!");
+        }
+    } else {
+        error_log("❌ ERRO AO CONSULTAR TABELA CTAInicio: " . $conn->error);
+    }
+    
     $titulo = $_POST['Titulo'];
     $texto = $_POST['texto'];
     $btntext = $_POST['btntext'];
     $fundo = $_POST['fundo'];
+
+    error_log("📝 VALORES EXTRAÍDOS: Titulo=$titulo, texto=$texto, btntext=$btntext, fundo=$fundo");
 
     $sql = "UPDATE CTAInicio SET 
             Titulo = ?,
             texto = ?,
             btntext = ?,
             fundo = ?
-            WHERE id = 1";
+            WHERE id = 2";
 
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        error_log("❌ ERRO AO PREPARAR SQL: " . $conn->error);
+    }
+    
     $stmt->bind_param("ssss", 
         $titulo,
         $texto,
@@ -120,11 +187,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
     );
 
     if ($stmt->execute()) {
+        error_log("✅ UPDATE EXECUTADO COM SUCESSO! Linhas afetadas: " . $stmt->affected_rows);
         $updateMessage = "Dados do Login Rápido atualizados com sucesso!";
         $updateType = "success";
+        $activeSection = "login-section";
+        
+        // Output direto para debug
+        echo "<!-- DEBUG: UPDATE LOGIN SUCESSO - Linhas afetadas: " . $stmt->affected_rows . " -->";
+        
+        // Recarrega os dados após o update
+        $ctaInicio = getCTAInicioData();
+        error_log("🔄 DADOS RECARREGADOS: " . print_r($ctaInicio, true));
+        
+        // Verificar novamente os dados na BD após update
+        $verifyResult = $conn->query("SELECT * FROM CTAInicio WHERE id = 2");
+        if ($verifyResult) {
+            $verifiedData = $verifyResult->fetch_assoc();
+            error_log("🔎 VERIFICAÇÃO PÓS-UPDATE: " . print_r($verifiedData, true));
+            echo "<!-- DEBUG: DADOS PÓS-UPDATE: " . print_r($verifiedData, true) . " -->";
+        }
+        
     } else {
+        error_log("❌ ERRO AO EXECUTAR UPDATE: " . $stmt->error);
+        echo "<!-- DEBUG: ERRO UPDATE LOGIN: " . $stmt->error . " -->";
         $updateMessage = "Erro ao atualizar dados do Login Rápido: " . $conn->error;
         $updateType = "danger";
+        $activeSection = "login-section";
     }
 }
 
@@ -199,16 +287,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
     $texto = $_POST['texto'];
     $textobtn = $_POST['textobtn'];
-    $link = $_POST['link'];
 
     $sql = "UPDATE AvisolaranjaInicio SET 
             Texto = ?,
-            Textobtn = ?,
-            link = ?
+            Textobtn = ?
             WHERE id = 1";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $texto, $textobtn, $link);
+    $stmt->bind_param("ss", $texto, $textobtn);
 
     if ($stmt->execute()) {
         $updateMessage = "Aviso atualizado com sucesso!";
@@ -223,6 +309,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
     }
 }
 
+// Processamento do formulário das Colunas do Footer
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_footer_columns'])) {
+    try {
+        // Coletar dados das colunas
+        $coluna1_titulo = trim($_POST['coluna1_titulo']);
+        $coluna2_titulo = trim($_POST['coluna2_titulo']);
+        $coluna3_titulo = trim($_POST['coluna3_titulo']);
+        $coluna4_titulo = trim($_POST['coluna4_titulo']);
+        
+        $coluna1_links = isset($_POST['coluna1_links']) ? array_filter($_POST['coluna1_links'], 'trim') : [];
+        $coluna2_links = isset($_POST['coluna2_links']) ? array_filter($_POST['coluna2_links'], 'trim') : [];
+        $coluna3_links = isset($_POST['coluna3_links']) ? array_filter($_POST['coluna3_links'], 'trim') : [];
+        $coluna4_links = isset($_POST['coluna4_links']) ? array_filter($_POST['coluna4_links'], 'trim') : [];
+        
+        // Construir conteúdo das colunas (título + links separados por quebra de linha)
+        $textoEsquerda = $coluna1_titulo . "\n" . implode("\n", $coluna1_links);
+        $textoCentro = $coluna2_titulo . "\n" . implode("\n", $coluna2_links);
+        $textoDireita = $coluna3_titulo . "\n" . implode("\n", $coluna3_links);
+        
+        $sql = "UPDATE Footer SET 
+                TextoEsquerda = ?,
+                TextoCentro = ?,
+                TextoDireita = ?
+                WHERE id = 1";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sss", $textoEsquerda, $textoCentro, $textoDireita);
+        
+        if ($stmt->execute()) {
+            $updateMessage = "Colunas do footer atualizadas com sucesso!";
+            $updateType = "success";
+            $activeSection = "footer-section";
+            // Recarregar dados do footer após atualização
+            $footerData = getFooterData();
+        } else {
+            throw new Exception("Erro ao atualizar: " . $stmt->error);
+        }
+        $stmt->close();
+    } catch (Exception $e) {
+        $updateMessage = "Erro ao atualizar colunas: " . $e->getMessage();
+        $updateType = "danger";
+        $activeSection = "footer-section";
+    }
+}
+
+// Processamento do formulário do Copyright
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_footer'])) {
+    $copyright = trim($_POST['Copyright']);
+
+    $sql = "UPDATE Footer SET Copyright = ? WHERE id = 1";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $copyright);
+
+    if ($stmt->execute()) {
+        $updateMessage = "Copyright atualizado com sucesso!";
+        $updateType = "success";
+        $activeSection = "footer-section";
+        // Recarregar dados do footer após atualização
+        $footerData = getFooterData();
+    } else {
+        $updateMessage = "Erro ao atualizar copyright: " . $conn->error;
+        $updateType = "danger";
+        $activeSection = "footer-section";
+    }
+}
+
+
+
+// Processamento do formulário do FooterLinks
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_footer_links'])) {
+    try {
+        // Limpar a tabela atual
+        $stmt = $conn->prepare("DELETE FROM FooterLinks");
+        $stmt->execute();
+
+        // Inserir os novos links
+        if (isset($_POST['footer_links']) && is_array($_POST['footer_links'])) {
+            $stmt = $conn->prepare("INSERT INTO FooterLinks (secao, nome, link) VALUES (?, ?, ?)");
+            
+            foreach ($_POST['footer_links'] as $link) {
+                // Permite salvar mesmo com campos vazios, desde que a seção esteja definida
+                if (isset($link['secao']) && !empty($link['secao'])) {
+                    $secao = $link['secao'];
+                    $nome = isset($link['nome']) ? $link['nome'] : '';
+                    $linkUrl = isset($link['link']) ? $link['link'] : '';
+                    
+                    $stmt->bind_param("sss", $secao, $nome, $linkUrl);
+                    $stmt->execute();
+                }
+            }
+        }
+
+        $updateMessage = "Links do Footer atualizados com sucesso!";
+        $updateType = "success";
+        $activeSection = "footer-section";
+        // Recarregar dados dos links do footer após atualização
+        $footerLinksData = getFooterLinksData();
+    } catch (Exception $e) {
+        $updateMessage = "Erro ao atualizar links do footer: " . $e->getMessage();
+        $updateType = "danger";
+        $activeSection = "footer-section";
+    }
+}
+
 // Se há um campo active_section em qualquer POST, define a seção ativa
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['active_section']) && !isset($activeSection)) {
     $activeSection = $_POST['active_section'];
@@ -232,6 +423,29 @@ $capaData = getCapaData();
 $sobreNos = getSobreNosData();
 $ctaInicio = getCTAInicioData();
 $avisoData = getAvisolaranjaInicio();
+
+// Carregar dados do Footer (após todos os processamentos)
+if (!isset($footerData)) $footerData = getFooterData();
+if (!isset($footerLinksData)) $footerLinksData = getFooterLinksData();
+$footerSections = getFooterSections();
+
+// Garantir que $footerData não seja null
+if (!$footerData) {
+    $footerData = array(
+        'LogoFooter' => '',
+        'TextoEsquerda' => '',
+        'TextoCentro' => '',
+        'TextoDireita' => '',
+        'Copyright' => '',
+        'CorFundo' => '#333333',
+        'CorTexto' => '#ffffff'
+    );
+}
+
+// Garantir que $footerLinksData seja um array
+if (!$footerLinksData) {
+    $footerLinksData = array();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1199,6 +1413,119 @@ $avisoData = getAvisolaranjaInicio();
       border-color: #0d6efd;
       background: #e7f0fd;
     }
+
+    /* Estilos específicos para a seção do Aviso */
+    .aviso-textarea {
+      background-color: #f8f9fa !important;
+      border: 1px solid #dee2e6 !important;
+      border-radius: 6px !important;
+      padding: 12px 16px !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      color: #495057 !important;
+      resize: vertical !important;
+      min-height: 120px !important;
+    }
+
+    .aviso-textarea:focus {
+      background-color: #ffffff !important;
+      border-color: #86b7fe !important;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+      outline: none !important;
+    }
+
+    .aviso-textarea::placeholder {
+      color: #6c757d !important;
+      opacity: 0.8 !important;
+    }
+
+    /* Melhorar espaçamento entre campos do aviso */
+    #aviso-section .form-group {
+      margin-bottom: 1.5rem !important;
+    }
+
+    #aviso-section .form-label {
+      font-weight: 600 !important;
+      color: #343a40 !important;
+      margin-bottom: 8px !important;
+      display: block !important;
+    }
+
+    #aviso-section .form-control {
+      transition: all 0.2s ease-in-out !important;
+    }
+
+    #aviso-section .form-control:focus {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15) !important;
+    }
+
+    /* Estender a textarea do aviso para ocupar mais espaço horizontal */
+    .aviso-textarea {
+      width: 100% !important;
+      max-width: none !important;
+      resize: vertical !important;
+    }
+
+    /* Ajustar o container da seção aviso para dar mais espaço */
+    #aviso-section .text-input-container {
+      max-width: 800px !important;
+    }
+
+    /* Melhorar espaçamento entre campos do login */
+    #login-section .form-group {
+      margin-bottom: 1.5rem !important;
+    }
+
+    #login-section .form-label {
+      font-weight: 600 !important;
+      color: #343a40 !important;
+      margin-bottom: 8px !important;
+      display: block !important;
+    }
+
+    #login-section .form-control {
+      transition: all 0.2s ease-in-out !important;
+    }
+
+    #login-section .form-control:focus {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15) !important;
+    }
+
+    /* Estilo especial para os campos de texto e textarea da seção login */
+    .login-input, .login-textarea {
+      background-color: #f8f9fa !important;
+      border: 1px solid #e9ecef !important;
+      border-radius: 8px !important;
+      padding: 12px 15px !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .login-input:focus, .login-textarea:focus {
+      background-color: #ffffff !important;
+      border-color: #80bdff !important;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1) !important;
+      outline: 0 !important;
+    }
+
+    .login-input:hover, .login-textarea:hover {
+      border-color: #ced4da !important;
+    }
+
+    /* Estender a textarea do login para ocupar mais espaço horizontal */
+    .login-textarea {
+      width: 100% !important;
+      max-width: none !important;
+      resize: vertical !important;
+    }
+
+    /* Ajustar o container da seção login para dar mais espaço */
+    #login-section .text-input-container {
+      max-width: 800px !important;
+    }
   </style>
 </head>
 
@@ -1267,6 +1594,11 @@ $avisoData = getAvisolaranjaInicio();
                     <li>
                       <a class="nav-link" href="#" onclick="showSection('aviso-section')">
                           <i class="fas fa-exclamation-circle"></i> Aviso
+                      </a>
+                    </li>
+                    <li>
+                      <a class="nav-link" href="#" onclick="showSection('footer-section')">
+                          <i class="fas fa-window-maximize"></i> Footer
                       </a>
                     </li>
                   </ul>
@@ -1426,7 +1758,7 @@ $avisoData = getAvisolaranjaInicio();
                                     <h3 class="card-title">Editar Conteúdo do Início</h3>
                                 </div>
                                 <div class="card-body">
-                                    <?php if (isset($updateMessage)): ?>
+                                    <?php if (isset($updateMessage) && isset($activeSection) && $activeSection == 'inicio-section'): ?>
                                         <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
                                             <?php echo $updateMessage; ?>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -1526,8 +1858,14 @@ $avisoData = getAvisolaranjaInicio();
                                     <h3 class="card-title">Editar Ligações Rápidas</h3>
                                 </div>
                                 <div class="card-body">
-                                    <div id="linksAlert"></div>
+                                    <?php if (isset($updateMessage) && isset($activeSection) && $activeSection == 'links-section'): ?>
+                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
+                                            <?php echo $updateMessage; ?>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    <?php endif; ?>
                                     <form method="POST" id="linksForm">
+                                        <input type="hidden" name="active_section" value="links-section">
                                         <div id="linksContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
                                             <?php 
                                             $ligacoesRapidas = getLigacoesRapidasData();
@@ -1601,7 +1939,7 @@ $avisoData = getAvisolaranjaInicio();
                                     <h3 class="card-title">Editar Conteúdo Sobre Nós</h3>
                                 </div>
                                 <div class="card-body">
-                                    <?php if (isset($updateMessage)): ?>
+                                    <?php if (isset($updateMessage) && isset($activeSection) && $activeSection == 'sobre-section'): ?>
                                         <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
                                             <?php echo $updateMessage; ?>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -1657,16 +1995,8 @@ $avisoData = getAvisolaranjaInicio();
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="card-header">
                                     <h3 class="card-title mb-0">Editar Avaliações</h3>
-                                    <div>
-                                        <button type="button" class="btn btn-success me-2" onclick="addNewAvaliacao()">
-                                            <i class="fas fa-plus"></i> Nova Avaliação
-                                        </button>
-                                        <button type="button" class="btn btn-danger" onclick="clearAllAvaliacoes()">
-                                            <i class="fas fa-trash"></i> Apagar Tudo
-                                        </button>
-                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <?php 
@@ -1686,6 +2016,7 @@ $avisoData = getAvisolaranjaInicio();
                                         }
                                         $updateMessage = "Avaliações atualizadas com sucesso!";
                                         $updateType = "success";
+                                        $activeSection = "avaliacoes-section";
                                     }
                                     $avaliacoesData = [];
                                     $result = $conn->query("SELECT * FROM TabelaAvaliacoesInicio ORDER BY id");
@@ -1693,13 +2024,15 @@ $avisoData = getAvisolaranjaInicio();
                                         $avaliacoesData[] = $row;
                                     }
                                     ?>
-                                    <?php if (isset($updateMessage)): ?>
+                                    <?php if (isset($updateMessage) && isset($activeSection) && $activeSection == 'avaliacoes-section'): ?>
                                         <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
                                             <?php echo $updateMessage; ?>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </div>
                                     <?php endif; ?>
-                                    <form method="POST" id="avaliacoesForm">
+                                    <form id="avaliacoes-form-ajax" onsubmit="return submitAvaliacoesAjax(event)">
+                                        <input type="hidden" name="update_avaliacoes">
+                                        <input type="hidden" name="active_section" value="avaliacoes-section">
                                         <div id="avaliacoesContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
                                             <?php foreach ($avaliacoesData as $index => $avaliacao): ?>
                                             <div class="avaliacao-item" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
@@ -1729,8 +2062,13 @@ $avisoData = getAvisolaranjaInicio();
                                             <?php endforeach; ?>
                                         </div>
                                         <div class="d-flex justify-content-end mt-4">
-                                            <button type="submit" name="update_avaliacoes" class="btn btn-primary">
-                                                <i class="fas fa-save"></i> Salvar Alterações
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">
+                                                    <i class="fas fa-save"></i> Salvar Alterações
+                                                </span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
                                             </button>
                                         </div>
                                     </form>
@@ -1751,41 +2089,37 @@ $avisoData = getAvisolaranjaInicio();
                                     <h3 class="card-title">Editar Conteúdo do Login Rápido</h3>
                                 </div>
                                 <div class="card-body">
-                                    <?php if (isset($updateMessage)): ?>
-                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
-                                            <?php echo $updateMessage; ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <form method="POST" id="loginForm">
+                                    <form id="login-form-ajax" onsubmit="return submitLoginAjax(event)">
+                                        <input type="hidden" name="update_login">
+                                        <input type="hidden" name="active_section" value="login-section">
                                         <div class="text-input-container">
-                                            <div class="form-group">
+                                            <div class="form-group mb-4">
                                                 <label for="Titulo" class="form-label">Título</label>
-                                                <input type="text" class="form-control" id="Titulo" name="Titulo" 
+                                                <input type="text" class="form-control login-input" id="Titulo" name="Titulo" 
                                                        value="<?php echo htmlspecialchars($ctaInicio['Titulo']); ?>"
                                                        placeholder="Digite o título...">
                                             </div>
 
-                                            <div class="form-group">
+                                            <div class="form-group mb-4">
                                                 <label for="texto" class="form-label">Texto</label>
-                                                <textarea class="form-control" id="texto" name="texto" rows="4" 
+                                                <textarea class="form-control login-textarea" id="texto" name="texto" rows="4" 
                                                           placeholder="Digite o texto..."><?php echo htmlspecialchars($ctaInicio['texto']); ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
+                                            <div class="form-group mb-4">
                                                 <label for="btntext" class="form-label">Texto do Botão</label>
-                                                <input type="text" class="form-control" id="btntext" name="btntext" 
+                                                <input type="text" class="form-control login-input" id="btntext" name="btntext" 
                                                        value="<?php echo htmlspecialchars($ctaInicio['btntext']); ?>"
                                                        placeholder="Digite o texto do botão...">
                                             </div>
                                         </div>
 
-                                        <div class="mb-3">
+                                        <div class="form-group mb-4">
                                             <label for="fundo" class="form-label">Imagem de Fundo</label>
                                             <div class="image-upload-container">
-                                                <input type="text" class="form-control" id="fundo" name="fundo" 
-                                                       value="<?php echo htmlspecialchars($ctaInicio['fundo']); ?>">
+                                                <input type="text" class="form-control login-input" id="fundo" name="fundo" 
+                                                       value="<?php echo htmlspecialchars($ctaInicio['fundo']); ?>"
+                                                       placeholder="URL da imagem de fundo...">
                                                 <div class="image-preview" id="fundoPreview">
                                                     <img src="<?php echo htmlspecialchars($ctaInicio['fundo']); ?>" alt="Fundo Preview" 
                                                          onerror="this.style.display='none'" style="max-width: 200px; max-height: 150px;">
@@ -1796,9 +2130,13 @@ $avisoData = getAvisolaranjaInicio();
                                             </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between">
-                                            <button type="submit" name="update_login" class="btn btn-primary">Salvar Alterações</button>
-                                            <button type="button" class="btn btn-danger" onclick="clearLoginFields()">Apagar tudo</button>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">Salvar Alterações</span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -1826,7 +2164,7 @@ $avisoData = getAvisolaranjaInicio();
                                         $faqsData[] = $row;
                                     }
                                     ?>
-                                    <?php if (isset($updateMessage)): ?>
+                                    <?php if (isset($updateMessage) && isset($activeSection) && $activeSection == 'faqs-section'): ?>
                                         <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
                                             <?php echo $updateMessage; ?>
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -1890,70 +2228,162 @@ $avisoData = getAvisolaranjaInicio();
                                     <h3 class="card-title">Editar Conteúdo do Aviso</h3>
                                 </div>
                                 <div class="card-body">
-                                    <?php 
-                                    // Processamento do formulário do Aviso
-                                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_aviso'])) {
-                                        $texto = $_POST['texto'];
-                                        $textobtn = $_POST['textobtn'];
-                                        $link = $_POST['link'];
-
-                                        $sql = "UPDATE AvisolaranjaInicio SET 
-                                                Texto = ?,
-                                                Textobtn = ?,
-                                                link = ?
-                                                WHERE id = 1";
-
-                                        $stmt = $conn->prepare($sql);
-                                        $stmt->bind_param("sss", $texto, $textobtn, $link);
-
-                                        if ($stmt->execute()) {
-                                            $updateMessage = "Aviso atualizado com sucesso!";
-                                            $updateType = "success";
-                                            // Atualiza os dados após o update
-                                            $avisoData = getAvisolaranjaInicio();
-                                        } else {
-                                            $updateMessage = "Erro ao atualizar aviso: " . $conn->error;
-                                            $updateType = "danger";
-                                        }
-                                    }
-                                    ?>
-
-                                    <?php if (isset($updateMessage)): ?>
-                                        <div class="alert alert-<?php echo $updateType; ?> alert-dismissible fade show" role="alert">
-                                            <?php echo $updateMessage; ?>
-                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                        </div>
-                                    <?php endif; ?>
-
-                                    <form method="POST" id="avisoForm">
+                                    <form id="aviso-form-ajax" onsubmit="return submitAvisoAjax(event)">
+                                        <input type="hidden" name="update_aviso">
                                         <input type="hidden" name="active_section" value="aviso-section">
                                         <div class="text-input-container">
-                                            <div class="form-group">
+                                            <div class="form-group mb-4">
                                                 <label for="texto" class="form-label">Texto do Aviso</label>
-                                                <textarea class="form-control" id="texto" name="texto" rows="4" 
+                                                <textarea class="form-control aviso-textarea" id="texto" name="texto" rows="4" 
                                                           placeholder="Digite o texto do aviso..."><?php echo isset($avisoData['Texto']) ? htmlspecialchars($avisoData['Texto']) : ''; ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
+                                            <div class="form-group mb-4">
                                                 <label for="textobtn" class="form-label">Texto do Botão</label>
                                                 <input type="text" class="form-control" id="textobtn" name="textobtn" 
                                                        value="<?php echo isset($avisoData['Textobtn']) ? htmlspecialchars($avisoData['Textobtn']) : ''; ?>"
                                                        placeholder="Digite o texto do botão...">
                                             </div>
-
-                                            <div class="form-group">
-                                                <label for="link" class="form-label">Link do Botão</label>
-                                                <input type="text" class="form-control" id="link" name="link" 
-                                                       value="<?php echo isset($avisoData['link']) ? htmlspecialchars($avisoData['link']) : ''; ?>"
-                                                       placeholder="Digite o link para onde o botão deve direcionar...">
-                                            </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between">
-                                            <button type="submit" name="update_aviso" class="btn btn-primary">Salvar Alterações</button>
-                                            <button type="button" class="btn btn-danger" onclick="clearAvisoFields()">Apagar tudo</button>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">Salvar Alterações</span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
+                                            </button>
                                         </div>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Footer (escondida por padrão) -->
+            <div id="footer-section" class="content-section" style="display: none;">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Editar Footer</h3>
+                                </div>
+                                <div class="card-body">
+                    <!-- Formulários de Edição do Footer -->
+                    <form id="footer-form-ajax" onsubmit="return submitFooterAjax(event)">
+                        <input type="hidden" name="update_footer_links">
+                        <input type="hidden" name="active_section" value="footer-section">
+                        
+                        <!-- Seção Ligações Úteis -->
+                        <div class="mb-5">
+                            <h4 class="mb-3">Ligações Úteis</h4>
+                            <div id="ligacoes-container">
+                                <?php 
+                                $ligacoes = array_filter($footerLinksData, function($link) {
+                                    return $link['secao'] === 'LigacoesUteis';
+                                });
+                                foreach ($ligacoes as $index => $link): 
+                                ?>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" name="footer_links[<?php echo $index; ?>][nome]" 
+                                               value="<?php echo htmlspecialchars($link['nome']); ?>" placeholder="Nome do link">
+                                        <input type="hidden" name="footer_links[<?php echo $index; ?>][secao]" value="LigacoesUteis">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" class="form-control mb-2" name="footer_links[<?php echo $index; ?>][link]" 
+                                               value="<?php echo htmlspecialchars($link['link']); ?>" placeholder="https://">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Seção Contactos -->
+                        <div class="mb-5">
+                            <h4 class="mb-3 mt-5">Contactos</h4>
+                            <div id="contactos-container">
+                                <?php 
+                                $contactos = array_filter($footerLinksData, function($link) {
+                                    return $link['secao'] === 'Contactos';
+                                });
+                                foreach ($contactos as $index => $link): 
+                                ?>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" name="footer_links[<?php echo $index + 1000; ?>][nome]" 
+                                               value="<?php echo htmlspecialchars($link['nome']); ?>" placeholder="Tipo de contacto">
+                                        <input type="hidden" name="footer_links[<?php echo $index + 1000; ?>][secao]" value="Contactos">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" name="footer_links[<?php echo $index + 1000; ?>][link]" 
+                                               value="<?php echo htmlspecialchars($link['link']); ?>" placeholder="Informação de contacto">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Seção FAQ's -->
+                        <div class="mb-5">
+                            <h4 class="mb-3 mt-5">FAQ's</h4>
+                            <div id="faqs-container">
+                                <?php 
+                                $faqs = array_filter($footerLinksData, function($link) {
+                                    return $link['secao'] === 'Faqs';
+                                });
+                                foreach ($faqs as $index => $link): 
+                                ?>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" name="footer_links[<?php echo $index + 2000; ?>][nome]" 
+                                               value="<?php echo htmlspecialchars($link['nome']); ?>" placeholder="Pergunta">
+                                        <input type="hidden" name="footer_links[<?php echo $index + 2000; ?>][secao]" value="Faqs">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" class="form-control mb-2" name="footer_links[<?php echo $index + 2000; ?>][link]" 
+                                               value="<?php echo htmlspecialchars($link['link']); ?>" placeholder="https://">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Seção Tickets -->
+                        <div class="mb-5">
+                            <h4 class="mb-3 mt-5">Tickets</h4>
+                            <div id="tickets-container">
+                                <?php 
+                                $tickets = array_filter($footerLinksData, function($link) {
+                                    return $link['secao'] === 'Tickets';
+                                });
+                                foreach ($tickets as $index => $link): 
+                                ?>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control mb-2" name="footer_links[<?php echo $index + 3000; ?>][nome]" 
+                                               value="<?php echo htmlspecialchars($link['nome']); ?>" placeholder="Nome do link">
+                                        <input type="hidden" name="footer_links[<?php echo $index + 3000; ?>][secao]" value="Tickets">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="url" class="form-control mb-2" name="footer_links[<?php echo $index + 3000; ?>][link]" 
+                                               value="<?php echo htmlspecialchars($link['link']); ?>" placeholder="https://">
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Salvar Links do Footer</button>
+                        </div>
+                    </form>
+
+                    <!-- Seção Copyright removida conforme solicitado -->
+
                                 </div>
                             </div>
                         </div>
@@ -2735,7 +3165,173 @@ $avisoData = getAvisolaranjaInicio();
         padding-right: 20px;
     }
 }
+
+/* CSS para Modal de Confirmação Simples */
+.custom-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+.custom-confirm-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: scale(0.9);
+    animation: modalSlideIn 0.2s ease forwards;
+    border: 1px solid #dee2e6;
+}
+
+.custom-confirm-header {
+    padding: 20px 24px 16px 24px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.custom-confirm-icon {
+    font-size: 2rem;
+    color: #ffc107;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.custom-confirm-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.custom-confirm-body {
+    padding: 20px 24px;
+    text-align: center;
+}
+
+.custom-confirm-body p {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
+    line-height: 1.5;
+}
+
+.custom-confirm-footer {
+    padding: 16px 24px 20px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.custom-confirm-footer .btn {
+    min-width: 100px;
+    padding: 8px 16px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.custom-confirm-cancel {
+    background: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #6c757d !important;
+}
+
+.custom-confirm-cancel:hover {
+    background: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #495057 !important;
+}
+
+.custom-confirm-ok {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+
+.custom-confirm-ok:hover {
+    background: #c82333 !important;
+    border-color: #bd2130 !important;
+}
+
+/* Animações Simples */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { 
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes modalSlideOut {
+    from { 
+        transform: scale(1);
+        opacity: 1;
+    }
+    to { 
+        transform: scale(0.9);
+        opacity: 0;
+    }
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+    .custom-confirm-modal {
+        width: 320px;
+    }
+    
+    .custom-confirm-footer {
+        flex-direction: column;
+    }
+    
+    .custom-confirm-footer .btn {
+        width: 100%;
+    }
+}
 </style>
+
+<!-- Modal de Confirmação Simples -->
+<div id="customConfirmModal" class="custom-confirm-overlay" style="display: none;">
+    <div class="custom-confirm-modal">
+        <div class="custom-confirm-header">
+            <i class="fas fa-exclamation-triangle custom-confirm-icon"></i>
+            <h4 class="custom-confirm-title">Confirmar</h4>
+        </div>
+        <div class="custom-confirm-body">
+            <p id="customConfirmMessage">Tem certeza que deseja realizar esta ação?</p>
+        </div>
+        <div class="custom-confirm-footer">
+            <button type="button" class="btn btn-secondary custom-confirm-cancel" onclick="closeCustomConfirm(false)">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-danger custom-confirm-ok" onclick="closeCustomConfirm(true)">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- jQuery primeiro -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -2793,6 +3389,64 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Expõe a função globalmente
     window.showAlert = showAlert;
+
+    // Funções para o modal de confirmação customizado
+    let customConfirmResolve = null;
+
+    function showCustomConfirm(message) {
+        return new Promise((resolve) => {
+            customConfirmResolve = resolve;
+            
+            // Define a mensagem
+            document.getElementById('customConfirmMessage').textContent = message;
+            
+            // Mostra o modal
+            const modal = document.getElementById('customConfirmModal');
+            modal.style.display = 'flex';
+            
+            // Foca no botão cancelar para acessibilidade
+            setTimeout(() => {
+                document.querySelector('.custom-confirm-cancel').focus();
+            }, 150);
+        });
+    }
+
+    function closeCustomConfirm(result) {
+        const modal = document.getElementById('customConfirmModal');
+        
+        // Adiciona animação de saída
+        modal.style.animation = 'fadeOut 0.2s ease forwards';
+        modal.querySelector('.custom-confirm-modal').style.animation = 'modalSlideOut 0.2s ease forwards';
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.style.animation = '';
+            modal.querySelector('.custom-confirm-modal').style.animation = '';
+            
+            if (customConfirmResolve) {
+                customConfirmResolve(result);
+                customConfirmResolve = null;
+            }
+        }, 150);
+    }
+
+    // Expõe as funções globalmente
+    window.showCustomConfirm = showCustomConfirm;
+    window.closeCustomConfirm = closeCustomConfirm;
+
+    // Fechar modal clicando no overlay
+    document.getElementById('customConfirmModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCustomConfirm(false);
+        }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('customConfirmModal').style.display === 'flex') {
+            closeCustomConfirm(false);
+        }
+    });
     
 
     
@@ -2834,8 +3488,45 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return false; // Impede qualquer redirecionamento
     };
-    
 
+    // Função para submeter Avaliações via AJAX (sem sair da seção)
+    window.submitAvaliacoesAjax = function(event) {
+        event.preventDefault(); // Impede o submit normal
+        
+        const form = document.getElementById('avaliacoes-form-ajax');
+        const formData = new FormData(form);
+        
+        // Mostra loading no botão
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline';
+        submitBtn.disabled = true;
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            // Se chegou aqui, deu tudo certo
+            showAlert('Avaliações atualizadas com sucesso!', 'success');
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao salvar avaliações: ' + error.message, 'danger');
+        })
+        .finally(() => {
+            // Restaura o botão
+            buttonText.style.display = 'inline';
+            buttonLoading.style.display = 'none';
+            submitBtn.disabled = false;
+        });
+        
+        return false; // Impede qualquer redirecionamento
+    };
     
     // Inicializa os ícones do Feather
     if (typeof feather !== 'undefined') {
@@ -2845,6 +3536,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para mostrar/esconder seções
     function showSection(sectionId) {
         console.log('showSection chamada para:', sectionId);
+        
+        // Debug específico para footer
+        if (sectionId === 'footer-section') {
+            console.log('🚨 FOOTER SECTION SENDO ATIVADA 🚨');
+        }
         
         // Esconde todas as seções
         document.querySelectorAll('.content-section').forEach(section => {
@@ -2857,6 +3553,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedSection) {
             selectedSection.style.display = 'block';
             console.log('Seção mostrada com sucesso:', sectionId);
+            
+            // Debug específico para footer
+            if (sectionId === 'footer-section') {
+                console.log('✅ FOOTER SECTION ATIVADA COM SUCESSO!');
+                // Força scroll para o topo da seção
+                selectedSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             
             // Remove classes ativas dos links do menu
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -2887,7 +3590,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verifica se há uma seção ativa definida (após form submit)
     <?php if (isset($activeSection)): ?>
         console.log('Seção ativa definida pelo PHP:', '<?php echo $activeSection; ?>');
+        // Força imediatamente a exibição da seção correta
         showSection('<?php echo $activeSection; ?>');
+        
+        // Força novamente após um delay para garantir
+        setTimeout(() => {
+            showSection('<?php echo $activeSection; ?>');
+            console.log('Seção forçada novamente:', '<?php echo $activeSection; ?>');
+        }, 100);
     <?php else: ?>
         console.log('Nenhuma seção ativa definida, mostrando welcome-section');
         // Mostra a seção de boas-vindas por padrão
@@ -2937,6 +3647,304 @@ document.addEventListener('DOMContentLoaded', function() {
         
         modal.show();
     }
+
+    // Função AJAX para enviar o formulário footer SEM redirecionamento
+    window.submitFooterAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 FOOTER AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('footer-form-ajax');
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        
+        // Envia via AJAX
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+            console.log('✅ FOOTER SALVO COM SUCESSO VIA AJAX!');
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de sucesso
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle"></i> Links do Footer atualizados com sucesso!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Salvar Links do Footer';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção footer
+            showSection('footer-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO FOOTER - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar footer:', error);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Salvar Links do Footer';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // JavaScript para garantir que o footer funcione via AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 FOOTER AJAX SYSTEM ATIVO!');
+        
+        // Força a exibição da seção footer se necessário (apenas para compatibilidade)
+        <?php if (isset($activeSection) && $activeSection == 'footer-section'): ?>
+            console.log('🔥 EXIBINDO SEÇÃO FOOTER 🔥');
+            showSection('footer-section');
+        <?php endif; ?>
+    });
+
+    // Função AJAX para enviar o formulário do aviso SEM redirecionamento
+    window.submitAvisoAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 AVISO AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('aviso-form-ajax');
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-block';
+        
+        // Envia via AJAX
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+            console.log('✅ AVISO SALVO COM SUCESSO VIA AJAX!');
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de sucesso
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle"></i> Aviso atualizado com sucesso!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção aviso
+            showSection('aviso-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO AVISO - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar aviso:', error);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // JavaScript para garantir que o aviso funcione via AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 AVISO AJAX SYSTEM ATIVO!');
+        
+        // Força a exibição da seção aviso se necessário (apenas para compatibilidade)
+        <?php if (isset($activeSection) && $activeSection == 'aviso-section'): ?>
+            console.log('🔥 EXIBINDO SEÇÃO AVISO 🔥');
+            showSection('aviso-section');
+        <?php endif; ?>
+    });
+
+    // Função AJAX para enviar o formulário do login SEM redirecionamento
+    window.submitLoginAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 LOGIN AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('login-form-ajax');
+        const formData = new FormData(form);
+        
+        // DEBUG: Verificar os dados que estão sendo enviados
+        console.log('📊 DADOS DO FORMULÁRIO LOGIN:');
+        for (let [key, value] of formData.entries()) {
+            console.log(key + ': ' + value);
+        }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-block';
+        
+        // Envia via AJAX
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('📡 RESPOSTA RECEBIDA - Status:', response.status);
+            console.log('📡 RESPOSTA HEADERS:', response.headers);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('✅ LOGIN SALVO COM SUCESSO VIA AJAX!');
+            console.log('📄 RESPOSTA HTML (primeiros 500 chars):', html.substring(0, 500));
+            
+            // Verificar se há mensagens de erro no HTML
+            if (html.includes('erro') || html.includes('error')) {
+                console.warn('⚠️ POSSÍVEL ERRO DETECTADO NA RESPOSTA');
+            }
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de sucesso
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle"></i> Login Rápido atualizado com sucesso!
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção login
+            showSection('login-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO LOGIN - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar login:', error);
+            console.error('🔍 DETALHES DO ERRO:', error.stack);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // JavaScript para garantir que o login funcione via AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 LOGIN AJAX SYSTEM ATIVO!');
+        
+        // Força a exibição da seção login se necessário (apenas para compatibilidade)
+        <?php if (isset($activeSection) && $activeSection == 'login-section'): ?>
+            console.log('🔥 EXIBINDO SEÇÃO LOGIN 🔥');
+            showSection('login-section');
+        <?php endif; ?>
+    });
 
     // Função para fazer upload do arquivo
     async function handleFileUpload(file, inputId, customName = null) {
@@ -3314,17 +4322,22 @@ document.addEventListener('DOMContentLoaded', function() {
         initStarRating(newCard.querySelector('.star-rating'));
         initDragAndDrop();
     }
-    function removeAvaliacao(button) {
-        if (confirm('Tem certeza que deseja remover esta avaliação?')) {
+    
+    // Exponha a função globalmente para que o onclick possa acessá-la
+    window.addNewAvaliacao = addNewAvaliacao;
+    
+    async function removeAvaliacao(button) {
+        const confirmed = await showCustomConfirm('Tem certeza que deseja remover esta avaliação? Esta ação não pode ser desfeita.');
+        if (confirmed) {
             button.closest('.avaliacao-item').remove();
             updateAvaliacaoNumbers();
+            showAlert('Avaliação removida com sucesso!', 'success');
         }
     }
-    function clearAllAvaliacoes() {
-        if (confirm('Tem certeza que deseja apagar todas as avaliações? Esta ação não pode ser desfeita.')) {
-            document.getElementById('avaliacoesContainer').innerHTML = '';
-        }
-    }
+    
+    // Exponha a função globalmente para que o onclick possa acessá-la
+    window.removeAvaliacao = removeAvaliacao;
+
     function updateAvaliacaoNumbers() {
         const items = document.querySelectorAll('.avaliacao-item');
         items.forEach((item, index) => {
@@ -3466,17 +4479,25 @@ document.addEventListener('DOMContentLoaded', function() {
         updateFaqNumbers();
         initDragAndDrop();
     }
+    
+    // Expõe as funções das FAQs globalmente
+    window.addNewFaq = addNewFaq;
+    window.removeFaq = removeFaq;
 
-    function removeFaq(button) {
-        if (confirm('Tem certeza que deseja remover esta FAQ?')) {
+    async function removeFaq(button) {
+        const confirmed = await showCustomConfirm('Tem certeza que deseja remover esta FAQ? Esta ação não pode ser desfeita.');
+        if (confirmed) {
             button.closest('.faq-item').remove();
             updateFaqNumbers();
+            showAlert('FAQ removida com sucesso!', 'success');
         }
     }
 
-    function clearAllFaqs() {
-        if (confirm('Tem certeza que deseja apagar todas as FAQs? Esta ação não pode ser desfeita.')) {
+    async function clearAllFaqs() {
+        const confirmed = await showCustomConfirm('Tem certeza que deseja apagar todas as FAQs? Esta ação não pode ser desfeita.');
+        if (confirmed) {
             document.getElementById('faqsContainer').innerHTML = '';
+            showAlert('Todas as FAQs foram removidas!', 'success');
         }
     }
 
@@ -3502,16 +4523,194 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Adicionar a função JavaScript para limpar os campos do formulário do Aviso
-    function clearAvisoFields() {
-        if (confirm('Tem certeza que deseja apagar todos os campos?')) {
-            document.querySelectorAll('#avisoForm input[type="text"], #avisoForm textarea').forEach(input => {
-                input.value = '';
-            });
+
+
+    // ---------------------------- Funções para Footer ----------------------------
+    
+    // Função para atualizar preview da imagem do footer
+    function updateFooterImagePreview(inputId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(inputId + 'Preview');
+        
+        if (input && preview) {
+            if (input.value) {
+                preview.src = input.value;
+                preview.style.display = 'block';
+                preview.onerror = function() {
+                    this.style.display = 'none';
+                };
+            } else {
+                preview.style.display = 'none';
+            }
         }
     }
 
-    // Função para atualizar o preview da imagem
+
+
+    // Funções para gerenciar links das colunas do footer
+    function addLink(containerId) {
+        const container = document.getElementById(containerId);
+        
+        const newLinkHtml = `
+            <div class="input-group mb-2" style="animation: slideInDown 0.3s;">
+                <input type="text" class="form-control" name="${containerId.replace('Links', '_links[]')}" 
+                       value="" placeholder="${getPlaceholderText(containerId)}">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeLink(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        // Inserir antes do botão "Adicionar"
+        const addButton = container.nextElementSibling;
+        addButton.insertAdjacentHTML('beforebegin', newLinkHtml);
+        
+        // Atualizar preview
+        updateFooterPreview();
+    }
+
+    function removeLink(button) {
+        if (confirm('Tem certeza que deseja remover este item?')) {
+            const linkItem = button.closest('.input-group');
+            linkItem.style.animation = 'slideOutUp 0.3s';
+            
+            setTimeout(() => {
+                linkItem.remove();
+                updateFooterPreview();
+            }, 300);
+        }
+    }
+
+    function getPlaceholderText(containerId) {
+        switch(containerId) {
+            case 'coluna1Links':
+            case 'coluna3Links':
+            case 'coluna4Links':
+                return 'Nome do link';
+            case 'coluna2Links':
+                return 'Informação de contacto';
+            default:
+                return 'Digite o texto';
+        }
+    }
+
+    // Função para atualizar o preview do footer em tempo real
+    function updateFooterPreview() {
+        // Coletar dados das colunas
+        const coluna1Titulo = document.querySelector('input[name="coluna1_titulo"]')?.value || 'Ligações Úteis';
+        const coluna2Titulo = document.querySelector('input[name="coluna2_titulo"]')?.value || 'Contactos';
+        const coluna3Titulo = document.querySelector('input[name="coluna3_titulo"]')?.value || 'FAQ\'s';
+        const coluna4Titulo = document.querySelector('input[name="coluna4_titulo"]')?.value || 'Tickets';
+        
+        const coluna1Links = Array.from(document.querySelectorAll('input[name="coluna1_links[]"]')).map(input => input.value).filter(val => val);
+        const coluna2Links = Array.from(document.querySelectorAll('input[name="coluna2_links[]"]')).map(input => input.value).filter(val => val);
+        const coluna3Links = Array.from(document.querySelectorAll('input[name="coluna3_links[]"]')).map(input => input.value).filter(val => val);
+        const coluna4Links = Array.from(document.querySelectorAll('input[name="coluna4_links[]"]')).map(input => input.value).filter(val => val);
+        
+        const copyright = document.getElementById('Copyright')?.value || 'Copyright © 2025 Todos os direitos reservados | Criado com ♥ por Tomás Nápoles & Salvador Coimbras';
+        
+        // Atualizar preview
+        const preview = document.getElementById('footerPreview');
+        if (preview) {
+            
+            preview.innerHTML = `
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <h6 style="color: white; margin-bottom: 20px; font-weight: bold;">${coluna1Titulo}</h6>
+                        <div style="line-height: 2;">
+                            ${coluna1Links.map(link => `<div>${link}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <h6 style="color: white; margin-bottom: 20px; font-weight: bold;">${coluna2Titulo}</h6>
+                        <div style="line-height: 1.8;">
+                            ${coluna2Links.map(link => `<div>${link}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <h6 style="color: white; margin-bottom: 20px; font-weight: bold;">${coluna3Titulo}</h6>
+                        <div style="line-height: 2;">
+                            ${coluna3Links.map(link => `<div>${link}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <h6 style="color: white; margin-bottom: 20px; font-weight: bold;">${coluna4Titulo}</h6>
+                        <div style="line-height: 2;">
+                            ${coluna4Links.map(link => `<div>${link}</div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <hr style="border-color: #333; margin: 30px 0;">
+                <div style="text-align: center; font-size: 14px;">
+                    ${copyright.replace(/♥/g, '<span style="color: #ff6b6b;">♥</span>')}
+                </div>
+            `;
+        }
+    }
+
+    // Event listeners para preview em tempo real
+    document.addEventListener('DOMContentLoaded', function() {
+        const copyrightInput = document.getElementById('Copyright');
+        
+        // Copyright
+        if (copyrightInput) {
+            copyrightInput.addEventListener('input', updateFooterPreview);
+        }
+        
+        // Títulos das colunas
+        document.querySelectorAll('input[name*="_titulo"]').forEach(input => {
+            input.addEventListener('input', updateFooterPreview);
+        });
+        
+        // Links das colunas
+        document.querySelectorAll('input[name*="_links[]"]').forEach(input => {
+            input.addEventListener('input', updateFooterPreview);
+        });
+        
+        // Chamada inicial para configurar preview
+        updateFooterPreview();
+    });
+
+    // Adicionar estilos CSS para animações do footer
+    const footerStyle = document.createElement('style');
+    footerStyle.textContent = `
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+        
+        .input-group {
+            transition: all 0.3s ease;
+        }
+        
+        /* Hover removido conforme solicitado */
+        
+        #footerPreview {
+            transition: all 0.3s ease;
+        }
+        
+        /* Card hover removido conforme solicitado */
+    `;
+    document.head.appendChild(footerStyle);
+
+    // Função para atualizar o preview da imagem (mantém compatibilidade)
     function updateImagePreview(inputId) {
         const input = document.getElementById(inputId);
         const preview = input.closest('.image-upload-container').querySelector('.image-preview');
@@ -3520,6 +4719,288 @@ document.addEventListener('DOMContentLoaded', function() {
             preview.style.display = 'block';
         }
     }
+
+    // ========================= Funções para Footer Links =========================
+
+    let footerLinkCounter = 10000; // Contador global para índices únicos
+
+    // Função para adicionar link ao footer
+    function addFooterLink(containerId, secao) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const linkRow = document.createElement('div');
+        linkRow.className = 'row mb-2';
+        
+        linkRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="footer_links[${footerLinkCounter}][nome]" 
+                       placeholder="${getPlaceholderForSection(secao, 'nome')}">
+                <input type="hidden" name="footer_links[${footerLinkCounter}][secao]" value="${secao}">
+            </div>
+            <div class="col-md-5">
+                <input type="${secao === 'Contactos' ? 'text' : 'url'}" class="form-control" 
+                       name="footer_links[${footerLinkCounter}][link]" 
+                       placeholder="${getPlaceholderForSection(secao, 'link')}">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeFooterLink(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(linkRow);
+        footerLinkCounter++;
+    }
+
+    // Função para remover link do footer
+    function removeFooterLink(button) {
+        const row = button.closest('.row');
+        if (row) {
+            row.style.animation = 'slideOutUp 0.3s ease-out';
+            setTimeout(() => {
+                row.remove();
+            }, 300);
+        }
+    }
+
+    // Função para obter placeholders adequados por seção
+    function getPlaceholderForSection(secao, tipo) {
+        const placeholders = {
+            'LigacoesUteis': {
+                'nome': 'Nome do link',
+                'link': 'https://'
+            },
+            'Contactos': {
+                'nome': 'Tipo de contacto',
+                'link': 'Informação de contacto'
+            },
+            'Faqs': {
+                'nome': 'Pergunta',
+                'link': 'https://'
+            },
+            'Tickets': {
+                'nome': 'Nome do link',
+                'link': 'https://'
+            }
+        };
+        
+        return placeholders[secao] ? placeholders[secao][tipo] : 'Digite aqui';
+    }
+
+    // ========================= Funções para Gestão de Links por Seção =========================
+
+    // Contador global para índices de links
+    let footerLinkIndex = <?php echo count($footerLinksData); ?>;
+
+    // Função para adicionar link a uma seção específica
+    function addSectionLink(section) {
+        const containers = {
+            'ligacoes-uteis': 'ligacoes-uteis-links',
+            'faqs': 'faqs-links',
+            'tickets': 'tickets-links',
+            'contactos': 'contactos-links'
+        };
+
+        const sectionNames = {
+            'ligacoes-uteis': 'LigacoesUteis',
+            'faqs': 'FAQs',
+            'tickets': 'Tickets',
+            'contactos': 'Contactos'
+        };
+
+        const colors = {
+            'ligacoes-uteis': 'primary',
+            'faqs': 'info',
+            'tickets': 'warning',
+            'contactos': 'success'
+        };
+
+        const containerId = containers[section];
+        const container = document.getElementById(containerId);
+        
+        if (!container) return;
+
+        // Remove mensagem "nenhum link" se existir
+        const noLinksMsg = container.parentElement.querySelector('.text-center.py-3');
+        if (noLinksMsg) {
+            noLinksMsg.remove();
+        }
+
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-item mb-3 p-3 border rounded bg-light';
+        linkItem.style.animation = 'slideInDown 0.3s ease-out';
+        
+        linkItem.innerHTML = `
+            <div class="mb-2">
+                <label class="form-label fw-bold text-${colors[section]} small">Nome do Link</label>
+                <input type="text" class="form-control form-control-sm" name="footer_links[${footerLinkIndex}][nome]" 
+                       placeholder="Ex: ${section === 'ligacoes-uteis' ? 'GIAE' : section === 'faqs' ? 'Como usar o GIAE?' : section === 'tickets' ? 'Submeter Ticket' : 'Email da Escola'}">
+                <input type="hidden" name="footer_links[${footerLinkIndex}][secao]" value="${sectionNames[section]}">
+            </div>
+            <div class="mb-2">
+                <label class="form-label fw-bold text-${colors[section]} small">URL</label>
+                <input type="url" class="form-control form-control-sm" name="footer_links[${footerLinkIndex}][link]" 
+                       placeholder="${section === 'contactos' ? 'mailto:... ou https://...' : 'https://...'}">
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeSectionLink(this)">
+                <i class="fas fa-trash me-1"></i>Remover
+            </button>
+        `;
+
+        container.appendChild(linkItem);
+        footerLinkIndex++;
+
+        // Foca no primeiro input do novo link
+        const firstInput = linkItem.querySelector('input[type="text"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+
+        // Mostra notificação de sucesso
+        showFooterNotification(`Link adicionado à seção ${sectionNames[section]}!`, 'success');
+    }
+
+    // Função para remover link de seção
+    function removeSectionLink(button) {
+        const linkItem = button.closest('.link-item');
+        if (!linkItem) return;
+
+        // Animação de saída
+        linkItem.style.animation = 'slideOutUp 0.3s ease-in';
+        
+        setTimeout(() => {
+            const container = linkItem.parentElement;
+            linkItem.remove();
+
+            // Se não há mais links, mostra mensagem
+            if (container.children.length === 0) {
+                const section = container.id.replace('-links', '');
+                const icons = {
+                    'ligacoes-uteis': 'link',
+                    'faqs': 'question-circle',
+                    'tickets': 'ticket-alt',
+                    'contactos': 'address-book'
+                };
+
+                const messages = {
+                    'ligacoes-uteis': 'Nenhum link adicionado',
+                    'faqs': 'Nenhum FAQ adicionado',
+                    'tickets': 'Nenhum link adicionado',
+                    'contactos': 'Nenhum contacto adicionado'
+                };
+
+                container.innerHTML = `
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-${icons[section]} fa-2x mb-2"></i>
+                        <p class="small mb-0">${messages[section]}</p>
+                    </div>
+                `;
+            }
+        }, 300);
+
+        showFooterNotification('Link removido com sucesso!', 'info');
+    }
+
+    // Função para mostrar notificações do footer
+    function showFooterNotification(message, type = 'success') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Remove automaticamente após 3 segundos
+        setTimeout(() => {
+            if (alertDiv.parentElement) {
+                alertDiv.remove();
+            }
+        }, 3000);
+    }
+
+    // Adicionar estilos para animações dos links
+    const linkAnimationStyles = document.createElement('style');
+    linkAnimationStyles.textContent = `
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+        
+        .link-item {
+            transition: all 0.3s ease;
+        }
+        
+        /* Link-item hover removido conforme solicitado */
+        
+        /* Card border hovers removidos conforme solicitado */
+    `;
+    document.head.appendChild(linkAnimationStyles);
+
+    // Estilos para os cards das colunas melhorados
+    const columnCardsStyles = document.createElement('style');
+    columnCardsStyles.textContent = `
+        .hover-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        /* Hover-card efeito removido conforme solicitado */
+        
+        .hover-card .card-header {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hover-card .card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        /* Card header hover effect removido conforme solicitado */
+        
+        .input-group .btn {
+            transition: all 0.2s ease;
+        }
+        
+        /* Input-group btn hover removido conforme solicitado */
+    `;
+    document.head.appendChild(columnCardsStyles);
 
 
 
@@ -4267,14 +5748,62 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('🎉 Posts JavaScript configurado com sucesso');
     
+    // Event listeners para Footer
+    const corFundoInput = document.getElementById('CorFundo');
+    const corTextoInput = document.getElementById('CorTexto');
+    
+    if (corFundoInput) {
+        corFundoInput.addEventListener('input', function() {
+            updateColorPreview('CorFundo', 'corFundoPreview');
+        });
+    }
+    
+    if (corTextoInput) {
+        corTextoInput.addEventListener('input', function() {
+            updateColorPreview('CorTexto', 'corTextoPreview');
+        });
+    }
+    
     // Teste se as funções estão disponíveis globalmente
     console.log('✅ Teste de funções:');
     console.log('- showNewPostForm:', typeof window.showNewPostForm);
     console.log('- editPost:', typeof window.editPost);
     console.log('- deletePost:', typeof window.deletePost);
+    console.log('- addFooterLink:', typeof window.addFooterLink);
+    console.log('- removeFooterLink:', typeof window.removeFooterLink);
 });
+
+// Função para atualizar status dos tickets
+function updateTicketStatus(ticketId, novoEstado) {
+    if (confirm(`Tem certeza que deseja alterar o estado para "${novoEstado}"?`)) {
+        fetch('update_ticket_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `ticket_id=${ticketId}&novo_estado=${encodeURIComponent(novoEstado)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(`Ticket ${novoEstado.toLowerCase()} com sucesso!`, 'success');
+                // Recarregar a página após 1 segundo para mostrar as mudanças
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showAlert('Erro ao atualizar ticket: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showAlert('Erro ao atualizar ticket', 'danger');
+        });
+    }
+}
 </script>
 
 </body>
 
+</html>
 </html>

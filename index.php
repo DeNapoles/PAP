@@ -364,6 +364,11 @@ require_once 'functions.php';
 	</script>
 
 	<?php include 'modals.php'; ?>
+	<script>
+	function topFunction() {
+	  window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+	</script>
 </body>
 
 </html>

@@ -1,5 +1,17 @@
 <?php
 require_once 'functions.php';
+session_start();
+
+// Buscar dados do utilizador logado, se houver
+$user = null;
+if (isset($_SESSION['user_id'])) {
+    require_once 'connection.php';
+    $stmt = $conn->prepare("SELECT Nome, Email FROM Utilizadores WHERE ID_Utilizador = ?");
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+}
 ?>
 
 <!DOCTYPE html>
@@ -132,21 +144,19 @@ require_once 'functions.php';
 					<div class="card shadow-lg rounded-3 p-4">
 						<h3 class="text-center mb-4 text-dark">Formulário de Sugestões</h3>
 						<p class="text-center text-muted mb-4">Tem alguma sugestão para melhorar o nosso site? Partilhe connosco!</p>
-						
+						<?php if ($user): ?>
 						<form action="process_suggestions.php" method="POST" id="suggestionsForm">
 							<div class="row">
 								<!-- Nome -->
 								<div class="col-lg-6 form-group mb-4">
 									<label for="nome" class="form-label text-dark">Nome *</label>
-									<input type="text" class="form-control border-2" id="nome" name="nome" placeholder="O seu nome" required>
+									<input type="text" class="form-control border-2" id="nome" name="nome" value="<?php echo htmlspecialchars($user['Nome']); ?>" readonly required>
 								</div>
-
 								<!-- Email -->
 								<div class="col-lg-6 form-group mb-4">
 									<label for="email_sugestao" class="form-label text-dark">Email *</label>
-									<input type="email" class="form-control border-2" id="email_sugestao" name="email" placeholder="O seu email" required>
+									<input type="email" class="form-control border-2" id="email_sugestao" name="email" value="<?php echo htmlspecialchars($user['Email']); ?>" readonly required>
 								</div>
-
 								<!-- Tipo de Sugestão -->
 								<div class="col-lg-12 form-group mb-4">
 									<label for="tipo_sugestao" class="form-label text-dark">Tipo de Sugestão *</label>
@@ -159,14 +169,12 @@ require_once 'functions.php';
 										<option value="outro">Outro</option>
 									</select>
 								</div>
-
 								<!-- Mensagem -->
 								<div class="col-lg-12 form-group mb-4">
 									<label for="mensagem" class="form-label text-dark">Sugestão/Mensagem *</label>
 									<textarea class="form-control border-2" id="mensagem" name="mensagem" rows="6" 
 											  placeholder="Descreva a sua sugestão em detalhe..." required></textarea>
 								</div>
-
 								<!-- Prioridade -->
 								<div class="col-lg-12 form-group mb-4">
 									<label class="form-label text-dark">Prioridade</label>
@@ -185,7 +193,6 @@ require_once 'functions.php';
 										</div>
 									</div>
 								</div>
-
 								<!-- Botão de Envio -->
 								<div class="col-lg-12 text-center">
 									<button type="submit" class="btn btn-primary btn-lg px-5 py-3 rounded-pill shadow">
@@ -194,11 +201,15 @@ require_once 'functions.php';
 								</div>
 							</div>
 						</form>
-
 						<!-- Mensagem de Sucesso -->
 						<div id="success-message" class="alert alert-success mt-4" style="display: none;">
 							<i class="fa fa-check-circle me-2"></i>Obrigado pela sua sugestão! A sua mensagem foi enviada com sucesso.
 						</div>
+						<?php else: ?>
+							<div class="alert alert-info text-center mb-0">
+								<i class="fa fa-info-circle me-2"></i>Para enviar uma sugestão, por favor <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">faça login</a> na sua conta.
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>

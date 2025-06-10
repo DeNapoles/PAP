@@ -3,7 +3,8 @@ session_start();
 require_once 'connection.php';
 
 // Verificar se o usuário está logado e é admin
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
+$tiposPermitidos = ['admin', 'tecnico'];
+if (!isset($_SESSION['user_id']) || !in_array(strtolower($_SESSION['user_type']), $tiposPermitidos)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado']);
     exit;

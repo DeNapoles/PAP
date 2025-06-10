@@ -189,7 +189,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                             </ul>
                             <div class="user-details row">
                                 <p class="user-name col-lg-12 col-md-12 col-6">
-                                    <a href="#"><?php echo htmlspecialchars($post['autor_nome']); ?></a>
+                                    <a href="#"><?php echo htmlspecialchars($post['autor_nome'] ?? ''); ?></a>
                                     <span class="lnr lnr-user"></span>
                                 </p>
                                 <p class="date col-lg-12 col-md-12 col-6">

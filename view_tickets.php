@@ -205,24 +205,24 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                     <td class="align-middle">
                                                 <?php
                                                 $estadoClass = '';
-                                                        $estadoIcon = '';
+                                                $estadoIcon = '';
                                                 switch (strtolower($ticket['Estado'])) {
                                                     case 'pendente':
                                                         $estadoClass = 'pendente';
-                                                                $estadoIcon = 'fa-clock';
+                                                        $estadoIcon = 'fa-clock';
                                                         break;
                                                     case 'aceite':
                                                         $estadoClass = 'aceite';
-                                                                $estadoIcon = 'fa-check';
+                                                        $estadoIcon = 'fa-check';
                                                         break;
                                                     case 'rejeitado':
                                                         $estadoClass = 'rejeitado';
-                                                                $estadoIcon = 'fa-times-circle';
+                                                        $estadoIcon = 'fa-times-circle';
                                                         break;
                                                     case 'concluído':
                                                     case 'concluido':
                                                         $estadoClass = 'concluido';
-                                                                $estadoIcon = 'fa-check-circle';
+                                                        $estadoIcon = 'fa-check-circle';
                                                         break;
                                                     default:
                                                         $estadoClass = 'pendente';
@@ -260,78 +260,6 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                                                         <?php endif; ?>
                                                     </td>
                                         </tr>
-
-                                        <!-- Modal para detalhes do ticket -->
-                                        <div class="modal fade" id="ticketModal<?php echo $ticket['ID_Ticket']; ?>" tabindex="-1" 
-                                             aria-labelledby="ticketModalLabel<?php echo $ticket['ID_Ticket']; ?>" aria-hidden="true">
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                            <div class="modal-header bg-light">
-                                                        <h5 class="modal-title" id="ticketModalLabel<?php echo $ticket['ID_Ticket']; ?>">
-                                                                    <i class="fa fa-ticket-alt me-2"></i>
-                                                            Detalhes da Reparação
-                                                        </h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="row mb-4">
-                                                                    <div class="col-md-6">
-                                                                        <div class="card h-100 border-0 shadow-sm">
-                                                                            <div class="card-body">
-                                                                                <h6 class="card-title text-primary mb-3">
-                                                                                    <i class="fa fa-info-circle me-2"></i>
-                                                                                    Informações Básicas
-                                                                                </h6>
-                                                                                <p class="mb-2"><strong>Título:</strong> <?php echo htmlspecialchars($ticket['Titulo']); ?></p>
-                                                                                <p class="mb-2"><strong>Tipo de Equipamento:</strong> <?php echo htmlspecialchars($ticket['Tipo_Equipamento']); ?></p>
-                                                                                <p class="mb-0"><strong>Número de Série:</strong> <?php echo htmlspecialchars($ticket['Numero_Serie'] ?? 'Não especificado'); ?></p>
-                                                                            </div>
-                                                                        </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                        <div class="card h-100 border-0 shadow-sm">
-                                                                            <div class="card-body">
-                                                                                <h6 class="card-title text-primary mb-3">
-                                                                                    <i class="fa fa-calendar me-2"></i>
-                                                                                    Datas e Estado
-                                                                                </h6>
-                                                                                <p class="mb-2"><strong>Data de Submissão:</strong> <?php echo $ticket['Data_Submissao_Formatada']; ?></p>
-                                                                                <p class="mb-2"><strong>Data Agendada:</strong> <?php echo $ticket['Data_Marcada_Formatada']; ?></p>
-                                                                                <p class="mb-0"><strong>Estado:</strong> 
-                                                                                    <span class="badge-estado <?= $estadoClass ?>">
-                                                                                        <i class="fa <?= $estadoIcon ?> me-1"></i>
-                                                                        <?= htmlspecialchars($ticket['Estado']) ?>
-                                                                    </span>
-                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="row">
-                                                            <div class="col-12">
-                                                                        <div class="card border-0 shadow-sm">
-                                                                            <div class="card-body">
-                                                                                <h6 class="card-title text-primary mb-3">
-                                                                                    <i class="fa fa-comment me-2"></i>
-                                                                                    Descrição do Problema
-                                                                                </h6>
-                                                                <div class="p-3 bg-light rounded">
-                                                                    <?php echo nl2br(htmlspecialchars($ticket['Descricao'])); ?>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer bg-light">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                    <i class="fa fa-times me-1"></i>
-                                                                    Fechar
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                            </div>
-                                        </div>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -343,6 +271,106 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
     </section>
+
+    <!-- Modais para detalhes dos tickets -->
+    <?php foreach ($tickets as $ticket): 
+        // Definir classes e ícones para o estado
+        $estadoClass = '';
+        $estadoIcon = '';
+        switch (strtolower($ticket['Estado'])) {
+            case 'pendente':
+                $estadoClass = 'pendente';
+                $estadoIcon = 'fa-clock';
+                break;
+            case 'aceite':
+                $estadoClass = 'aceite';
+                $estadoIcon = 'fa-check';
+                break;
+            case 'rejeitado':
+                $estadoClass = 'rejeitado';
+                $estadoIcon = 'fa-times-circle';
+                break;
+            case 'concluído':
+            case 'concluido':
+                $estadoClass = 'concluido';
+                $estadoIcon = 'fa-check-circle';
+                break;
+            default:
+                $estadoClass = 'pendente';
+                $estadoIcon = 'fa-clock';
+        }
+    ?>
+    <div class="modal fade" id="ticketModal<?php echo $ticket['ID_Ticket']; ?>" tabindex="-1" 
+         aria-labelledby="ticketModalLabel<?php echo $ticket['ID_Ticket']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title" id="ticketModalLabel<?php echo $ticket['ID_Ticket']; ?>">
+                        <i class="fa fa-ticket-alt me-2"></i>
+                        Detalhes da Reparação
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary mb-3">
+                                        <i class="fa fa-info-circle me-2"></i>
+                                        Informações Básicas
+                                    </h6>
+                                    <p class="mb-2"><strong>Título:</strong> <?php echo htmlspecialchars($ticket['Titulo']); ?></p>
+                                    <p class="mb-2"><strong>Tipo de Equipamento:</strong> <?php echo htmlspecialchars($ticket['Tipo_Equipamento']); ?></p>
+                                    <p class="mb-0"><strong>Número de Série:</strong> <?php echo htmlspecialchars($ticket['Numero_Serie'] ?? 'Não especificado'); ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary mb-3">
+                                        <i class="fa fa-calendar me-2"></i>
+                                        Datas e Estado
+                                    </h6>
+                                    <p class="mb-2"><strong>Data de Submissão:</strong> <?php echo $ticket['Data_Submissao_Formatada']; ?></p>
+                                    <p class="mb-2"><strong>Data Agendada:</strong> <?php echo $ticket['Data_Marcada_Formatada']; ?></p>
+                                    <p class="mb-0"><strong>Estado:</strong> 
+                                        <span class="badge-estado <?= $estadoClass ?>">
+                                            <i class="fa <?= $estadoIcon ?> me-1"></i>
+                                            <?= htmlspecialchars($ticket['Estado']) ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary mb-3">
+                                        <i class="fa fa-comment me-2"></i>
+                                        Descrição do Problema
+                                    </h6>
+                                    <div class="p-3 bg-light rounded">
+                                        <?php echo nl2br(htmlspecialchars($ticket['Descricao'])); ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa fa-times me-1"></i>
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
 
     <!-- Footer -->
     <footer class="footer-area section-gap">
@@ -606,6 +634,29 @@ $tickets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     editDateFeedback.classList.add('alert-danger');
                     editDateFeedback.textContent = 'Ocorreu um erro ao comunicar com o servidor.';
                 }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializa todos os modais do Bootstrap
+            var modals = document.querySelectorAll('.modal');
+            modals.forEach(function(modal) {
+                new bootstrap.Modal(modal);
+            });
+
+            // Previne o comportamento padrão do botão de fechar
+            var closeButtons = document.querySelectorAll('.btn-close, [data-bs-dismiss="modal"]');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var modal = this.closest('.modal');
+                    var bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) {
+                        bsModal.hide();
+                    }
+                });
             });
         });
     </script>

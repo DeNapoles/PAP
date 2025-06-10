@@ -1050,7 +1050,15 @@ function loadContent(section) { ... }
 
 // Função para atualizar o estado do ticket
 window.updateTicketStatus = function(ticketId, newStatus) {
+    // Usar a função do modal customizado se estiver disponível
+    if (typeof showCustomConfirmModal === 'function') {
+        showCustomConfirmModal(ticketId, newStatus);
+        return;
+    }
+    
+    // Fallback para confirm() se o modal não estiver disponível
     if (!confirm('Tem certeza que deseja alterar o estado deste pedido para "' + newStatus + '"?')) return;
+    
     fetch('manage_ticket.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},

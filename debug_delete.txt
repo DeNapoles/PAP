@@ -1,0 +1,12 @@
+2025-06-10 21:54:24 - PEDIDO RECEBIDO
+POST: Array
+(
+    [id] => 6
+)
+
+METHOD: POST
+
+ID processado: 6
+Linhas afetadas: 1
+Script finalizado
+

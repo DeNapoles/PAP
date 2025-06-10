@@ -201,44 +201,43 @@ require_once 'functions.php';
 				</div>
 			</div>
 			
-			<!-- Formulário de Avaliação - FORA DO CARROSSEL -->
-			<div class="row" id="avaliacao-form-area" style="display: none; margin-top: 30px;">
-				<div class="col-12">
-					<div class="avaliacao-form-wrapper" style="background: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 10px;">
-						<div class="d-flex justify-content-between align-items-center mb-4">
-							<h4 style="color: white; margin: 0;">Adicionar Nova Avaliação</h4>
-							<button type="button" onclick="cancelarAvaliacao()" class="btn-close-custom" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+			<!-- Formulário de Avaliação -->
+			<div class="row" id="avaliacao-form-area" style="display: none; margin-top: 40px;">
+				<div class="col-lg-8 mx-auto">
+					<div id="avaliacaoForm" style="background: rgba(255,255,255,0.9); padding: 30px; border-radius: 5px;">
+						<h4 class="text-center mb-4" style="color: #222;">Adicionar Avaliação</h4>
+						
+						<div class="row mb-3">
+							<div class="col-md-6">
+								<input type="text" class="form-control" id="nome" name="nome" placeholder="Nome *" required>
+							</div>
+							<div class="col-md-6">
+								<input type="email" class="form-control" id="avaliacao-email" name="email" placeholder="Email (opcional)">
+							</div>
 						</div>
 						
-						<div id="avaliacaoForm">
-							<div class="row">
-								<div class="col-md-6 mb-3">
-									<input type="text" class="form-control" id="nome" name="nome" placeholder="Seu Nome" required>
-								</div>
-								<div class="col-md-6 mb-3">
-									<input type="email" class="form-control" id="avaliacao-email" name="email" placeholder="Seu Email" required>
-								</div>
+						<div class="form-group mb-3 text-center">
+							<label style="color: #222; margin-bottom: 10px;">Classificação:</label>
+							<div class="star-rating" style="font-size: 24px;">
+								<span id="star1" onclick="selectStar(1)" style="color: #ddd; cursor: pointer; margin: 0 3px; transition: color 0.2s;">★</span>
+								<span id="star2" onclick="selectStar(2)" style="color: #ddd; cursor: pointer; margin: 0 3px; transition: color 0.2s;">★</span>
+								<span id="star3" onclick="selectStar(3)" style="color: #ddd; cursor: pointer; margin: 0 3px; transition: color 0.2s;">★</span>
+								<span id="star4" onclick="selectStar(4)" style="color: #ddd; cursor: pointer; margin: 0 3px; transition: color 0.2s;">★</span>
+								<span id="star5" onclick="selectStar(5)" style="color: #ddd; cursor: pointer; margin: 0 3px; transition: color 0.2s;">★</span>
+								<input type="hidden" id="estrelas" name="estrelas" value="0">
 							</div>
-							<div class="mb-3">
-								<label class="form-label text-white">Classificação:</label>
-								<div class="star-rating">
-									<span class="star" data-rating="1">★</span>
-									<span class="star" data-rating="2">★</span>
-									<span class="star" data-rating="3">★</span>
-									<span class="star" data-rating="4">★</span>
-									<span class="star" data-rating="5">★</span>
-									<input type="hidden" id="estrelas" name="estrelas" value="0">
-								</div>
-							</div>
-							<div class="mb-3">
-								<textarea class="form-control" id="texto" name="texto" rows="4" placeholder="Escreva sua avaliação aqui..." required></textarea>
-							</div>
-							<div class="mb-3">
-								<button type="button" onclick="enviarAvaliacao()" class="primary-btn">Enviar Avaliação</button>
-								<button type="button" onclick="cancelarAvaliacao()" class="primary-btn" style="background-color: #6c757d; margin-left: 10px;">Cancelar</button>
-							</div>
-							<div id="form-message" style="display: none;"></div>
 						</div>
+						
+						<div class="form-group mb-4">
+							<textarea class="form-control" id="texto" name="texto" rows="3" placeholder="A sua avaliação... *" required></textarea>
+						</div>
+						
+						<div class="text-center">
+							<button type="button" onclick="enviarAvaliacao()" class="primary-btn">Enviar</button>
+							<button type="button" onclick="cancelarAvaliacao()" class="primary-btn" style="background: #6c757d; margin-left: 10px;">Cancelar</button>
+						</div>
+						
+						<div id="form-message" style="display: none; margin-top: 20px;"></div>
 					</div>
 				</div>
 			</div>
@@ -443,43 +442,41 @@ require_once 'functions.php';
 		const nomeInput = document.getElementById('nome');
 		const emailInput = document.getElementById('avaliacao-email');
 		const textoInput = document.getElementById('texto');
-		const estrelasInput = document.getElementById('estrelas');
-		const stars = document.querySelectorAll('#avaliacao-form-area .star');
 		const formMessage = document.getElementById('form-message');
 		
 		if (nomeInput) nomeInput.value = '';
 		if (emailInput) emailInput.value = '';
 		if (textoInput) textoInput.value = '';
-		if (estrelasInput) estrelasInput.value = '0';
 		
-		stars.forEach(star => {
-			star.classList.remove('active');
-			star.style.color = '#ddd';
-		});
+		// Limpar classificação de estrelas
+		clearStars();
+		
 		if (formMessage) formMessage.style.display = 'none';
 	}
 
 	function enviarAvaliacao() {
-		// Verificar se o usuário está logado
-		const user = localStorage.getItem('user') || getCookie('user');
-		if (!user) {
-			showMessageAvaliacao('Por favor, inicie sessão para enviar uma avaliação.', 'error');
-			return;
-		}
+		console.log('Função enviarAvaliacao() chamada');
 
 		// Coletar dados do formulário
-		const nome = document.getElementById('nome').value;
-		const email = document.getElementById('avaliacao-email').value;
+		const nome = document.getElementById('nome').value.trim();
+		const email = document.getElementById('avaliacao-email').value.trim();
 		const estrelas = document.getElementById('estrelas').value;
-		const texto = document.getElementById('texto').value;
+		const texto = document.getElementById('texto').value.trim();
 
-		// Validações
-		if (!nome || !email || !texto) {
-			showMessageAvaliacao('Por favor, preencha todos os campos obrigatórios.', 'error');
+		console.log('Dados do formulário:', {nome, email, estrelas, texto});
+
+		// Validações (email não é obrigatório)
+		if (!nome) {
+			showMessageAvaliacao('Por favor, preencha o seu nome.', 'error');
 			return;
 		}
 
-		if (estrelas === '0') {
+		if (!texto) {
+			showMessageAvaliacao('Por favor, escreva a sua avaliação.', 'error');
+			return;
+		}
+
+		if (!estrelas || estrelas === '0') {
 			showMessageAvaliacao('Por favor, selecione uma classificação de estrelas.', 'error');
 			return;
 		}
@@ -490,12 +487,21 @@ require_once 'functions.php';
 		formData.append('estrelas', estrelas);
 		formData.append('texto', texto);
 
+		console.log('Enviando dados para process_avaliacao.php...');
+
 		fetch('process_avaliacao.php', {
 			method: 'POST',
 			body: formData
 		})
-		.then(response => response.json())
+		.then(response => {
+			console.log('Resposta recebida:', response);
+			if (!response.ok) {
+				throw new Error('Erro na resposta do servidor');
+			}
+			return response.json();
+		})
 		.then(data => {
+			console.log('Dados da resposta:', data);
 			if (data.success) {
 				showMessageAvaliacao(data.message, 'success');
 				limparFormularioAvaliacao();
@@ -505,12 +511,12 @@ require_once 'functions.php';
 					window.location.reload();
 				}, 2000);
 			} else {
-				showMessageAvaliacao(data.message, 'error');
+				showMessageAvaliacao(data.message || 'Erro desconhecido', 'error');
 			}
 		})
 		.catch(error => {
-			console.error('Erro:', error);
-			showMessageAvaliacao('Erro ao enviar avaliação. Tente novamente.', 'error');
+			console.error('Erro completo:', error);
+			showMessageAvaliacao('Erro ao conectar com o servidor. Verifique sua conexão.', 'error');
 		});
 	}
 
@@ -528,56 +534,46 @@ require_once 'functions.php';
 		if (parts.length === 2) return parts.pop().split(';').shift();
 	}
 
-	// Sistema de estrelas
-	document.addEventListener('DOMContentLoaded', function() {
-		const stars = document.querySelectorAll('#avaliacao-form-area .star');
-		const estrelasInput = document.getElementById('estrelas');
+	// Sistema de estrelas - versão simples e funcional
+	var selectedRating = 0;
 
-		stars.forEach((star) => {
-			star.addEventListener('click', function() {
-				const rating = parseInt(this.dataset.rating);
-				if (estrelasInput) {
-					estrelasInput.value = rating;
-				}
-				
-				stars.forEach((s, i) => {
-					if (i < rating) {
-						s.classList.add('active');
-						s.style.color = '#ffa500';
-					} else {
-						s.classList.remove('active');
-						s.style.color = '#ddd';
-					}
-				});
-			});
-
-			star.addEventListener('mouseover', function() {
-				const rating = parseInt(this.dataset.rating);
-				stars.forEach((s, i) => {
-					if (i < rating) {
-						s.style.color = '#ffa500';
-					} else {
-						s.style.color = '#ddd';
-					}
-				});
-			});
-		});
-
-		// Restaurar cor das estrelas ao sair do hover
-		const starRating = document.querySelector('#avaliacao-form-area .star-rating');
-		if (starRating) {
-			starRating.addEventListener('mouseleave', function() {
-				const currentRating = parseInt(estrelasInput ? estrelasInput.value : 0);
-				stars.forEach((s, i) => {
-					if (i < currentRating) {
-						s.style.color = '#ffa500';
-					} else {
-						s.style.color = '#ddd';
-					}
-				});
-			});
+	function selectStar(rating) {
+		selectedRating = rating;
+		// Atualizar o input hidden
+		const starsInput = document.getElementById('estrelas');
+		if (starsInput) {
+			starsInput.value = rating;
 		}
-	});
+		
+		// Atualizar as estrelas visualmente
+		for (let i = 1; i <= 5; i++) {
+			const star = document.getElementById('star' + i);
+			if (star) {
+				if (i <= rating) {
+					star.style.color = '#FFD700'; // Amarelo
+				} else {
+					star.style.color = '#ddd'; // Cinzento
+				}
+			}
+		}
+		
+		console.log('Estrelas selecionadas:', rating);
+	}
+
+	// Função para limpar as estrelas
+	function clearStars() {
+		selectedRating = 0;
+		for (let i = 1; i <= 5; i++) {
+			const star = document.getElementById('star' + i);
+			if (star) {
+				star.style.color = '#ddd';
+			}
+		}
+		const starsInput = document.getElementById('estrelas');
+		if (starsInput) {
+			starsInput.value = '0';
+		}
+	}
 	</script>
 </body>
 

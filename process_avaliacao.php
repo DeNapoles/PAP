@@ -1,52 +1,58 @@
 <?php
+// Ativar debug
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
-require_once 'functions.php';
+require_once 'connection.php';
 
 header('Content-Type: application/json');
 
-// Verificar se o utilizador está autenticado
+// Log para debug
+error_log("process_avaliacao.php iniciado");
+
 $response = ['success' => false, 'message' => ''];
 
-// Verificar autenticação
-$user = null;
-if (isset($_SESSION['user_id'])) {
-    $user = $_SESSION['user_id'];
-} else if (isset($_COOKIE['user'])) {
-    $userData = json_decode($_COOKIE['user'], true);
-    if ($userData && isset($userData['id'])) {
-        $user = $userData['id'];
-    }
-}
-
-if (!$user) {
-    $response['message'] = 'Por favor, inicie sessão para comentar.';
+// Verificar se é uma requisição POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $response['message'] = 'Método não permitido';
     echo json_encode($response);
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
-    $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-    $estrelas = isset($_POST['estrelas']) ? (int)$_POST['estrelas'] : 0;
-    $texto = isset($_POST['texto']) ? trim($_POST['texto']) : '';
-    
-    // Validações
-    if (empty($nome)) {
-        $response['message'] = 'O nome é obrigatório';
-    } elseif (empty($email)) {
-        $response['message'] = 'O email é obrigatório';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $response['message'] = 'Email inválido';
-    } elseif ($estrelas < 1 || $estrelas > 5) {
-        $response['message'] = 'Selecione uma classificação de 1 a 5 estrelas';
-    } elseif (empty($texto)) {
-        $response['message'] = 'O comentário é obrigatório';
-    } else {
-        // Inserir na tabela TabelaAvaliacoesInicio
-        $sql = "INSERT INTO TabelaAvaliacoesInicio (Nome, Email, Estrelas, Texto, data_criacao) 
-                VALUES (?, ?, ?, ?, NOW())";
+// Log dos dados recebidos
+error_log("POST data: " . print_r($_POST, true));
+
+// Coletar e validar dados
+$nome = isset($_POST['nome']) ? trim($_POST['nome']) : '';
+$email = isset($_POST['email']) ? trim($_POST['email']) : '';
+$estrelas = isset($_POST['estrelas']) ? (int)$_POST['estrelas'] : 0;
+$texto = isset($_POST['texto']) ? trim($_POST['texto']) : '';
+
+error_log("Dados processados - Nome: $nome, Email: $email, Estrelas: $estrelas, Texto: $texto");
+
+// Validações (email não é obrigatório pois não é armazenado na BD)
+if (empty($nome)) {
+    $response['message'] = 'O nome é obrigatório';
+} elseif ($estrelas < 1 || $estrelas > 5) {
+    $response['message'] = 'Selecione uma classificação de 1 a 5 estrelas';
+} elseif (empty($texto)) {
+    $response['message'] = 'O comentário é obrigatório';
+} else {
+    try {
+        error_log("Tentando inserir na tabela TabelaAvaliacoesInicio");
+        
+        // Inserir na tabela TabelaAvaliacoesInicio (apenas colunas que existem)
+        $sql = "INSERT INTO TabelaAvaliacoesInicio (Nome, Estrelas, Texto) 
+                VALUES (?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssis", $nome, $email, $estrelas, $texto);
+        
+        if (!$stmt) {
+            throw new Exception("Erro na preparação da query: " . $conn->error);
+        }
+        
+        $stmt->bind_param("sis", $nome, $estrelas, $texto);
         
         if ($stmt->execute()) {
             $response = [
@@ -58,9 +64,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'Texto' => $texto
                 ]
             ];
+            error_log("Avaliação inserida com sucesso. ID: " . $conn->insert_id);
         } else {
-            $response['message'] = 'Erro ao salvar a avaliação. Tente novamente.';
+            throw new Exception("Erro ao executar query: " . $stmt->error);
         }
+        
+        $stmt->close();
+        
+    } catch (Exception $e) {
+        error_log("Erro no process_avaliacao.php: " . $e->getMessage());
+        $response['message'] = 'Erro interno: ' . $e->getMessage();
     }
 }
 

@@ -2691,7 +2691,7 @@ if (!$footerLinksData) {
                     </div>
                     <div class="row" id="admin-tickets-cards">
                         <?php
-                        $sql = "SELECT t.*, u.Nome as NomeAluno FROM Tickets t LEFT JOIN Utilizadores u ON t.ID_Utilizador = u.ID_Utilizador ORDER BY t.Data_Submissao DESC";
+                        $sql = "SELECT t.*, u.Nome as NomeAluno, u.Email as EmailAluno, u.Tipo_Utilizador as TipoAluno, u.Estado as EstadoAluno FROM Tickets t LEFT JOIN Utilizadores u ON t.ID_Utilizador = u.ID_Utilizador ORDER BY t.Data_Submissao DESC";
                         $result = $conn->query($sql);
                         if ($result->num_rows === 0): ?>
                             <div class="col-12">
@@ -2729,31 +2729,34 @@ if (!$footerLinksData) {
                                     <span class="text-muted small"><i class="fa fa-calendar me-1"></i> <?= $dataSub ?></span>
                                 </div>
                                 <div class="card-body pt-2">
-                                    <div class="info-block">
-                                        <span class="info-label">Aluno</span>
-                                        <span class="info-value"><i class="fa fa-user me-2 text-primary"></i><?= htmlspecialchars($ticket['NomeAluno']) ?></span>
+                                    <!-- Bloco: Dados do Utilizador -->
+                                    <div class="mb-4">
+                                        <h6 class="section-title mb-3 text-primary" style="font-size:1.05em;"><i class="fa fa-user me-1"></i> Utilizador</h6>
+                                        <div class="d-flex flex-wrap align-items-center gap-4">
+                                            <div class="mb-2"><span class="info-label">Nome:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['NomeAluno']) ?></span></div>
+                                            <div class="mb-2"><span class="info-label">Email:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['EmailAluno']) ?></span></div>
+                                            <div class="mb-2"><span class="info-label">Tipo:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['TipoAluno']) ?></span></div>
+                                            <div class="mb-2"><span class="info-label">Estado:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['EstadoAluno']) ?></span></div>
+                                            <div class="mb-2"><span class="info-label">Nº Processo:</span> <span class="info-value ms-1">#<?= htmlspecialchars($ticket['Numero_Processo_Aluno']) ?></span></div>
+                                        </div>
                                     </div>
-                                    <div class="info-block">
-                                        <span class="info-label">Equipamento</span>
-                                        <span class="info-value"><i class="fa fa-laptop me-2"></i><?= htmlspecialchars($ticket['Tipo_Equipamento']) ?></span>
+                                    <!-- Bloco: Dados do Equipamento -->
+                                    <div class="mb-4">
+                                        <h6 class="section-title mb-3 text-primary" style="font-size:1.05em;"><i class="fa fa-laptop me-1"></i> Equipamento</h6>
+                                        <div class="">
+                                            <div class="mb-2"><span class="info-label">Tipo:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['Tipo_Equipamento']) ?></span></div>
+                                            <?php if ($ticket['Numero_Serie']): ?>
+                                            <div class="mb-2"><span class="info-label">Nº Série:</span> <span class="info-value ms-1">#<?= htmlspecialchars($ticket['Numero_Serie']) ?></span></div>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                    <?php if ($ticket['Numero_Serie']): ?>
-                                    <div class="info-block">
-                                        <span class="info-label">Nº Série</span>
-                                        <span class="info-value">#<?= htmlspecialchars($ticket['Numero_Serie']) ?></span>
-                                    </div>
-                                    <?php endif; ?>
-                                    <div class="info-block">
-                                        <span class="info-label">Título</span>
-                                        <span class="info-value"><?= htmlspecialchars($ticket['Titulo']) ?></span>
-                                    </div>
-                                    <div class="info-block">
-                                        <span class="info-label">Data Agendada</span>
-                                        <span class="info-value"><?= $dataMarc ?></span>
-                                    </div>
-                                    <div class="info-block">
-                                        <span class="info-label">Descrição</span>
-                                        <div class="p-2 bg-light rounded mt-1 info-value" style="white-space:pre-line;">
+                                    <!-- Bloco: Dados do Pedido -->
+                                    <div class="mb-4">
+                                        <h6 class="section-title mb-3 text-primary" style="font-size:1.05em;"><i class="fa fa-ticket-alt me-1"></i> Pedido</h6>
+                                        <div class="mb-2"><span class="info-label">Título:</span> <span class="info-value ms-1"><?= htmlspecialchars($ticket['Titulo']) ?></span></div>
+                                        <div class="mb-2"><span class="info-label">Data Agendada:</span> <span class="info-value ms-1"><?= $dataMarc ?></span></div>
+                                        <div class="mb-2"><span class="info-label">Descrição:</span></div>
+                                        <div class="p-2 bg-light rounded info-value mb-2" style="white-space:pre-line;">
                                             <?= nl2br(htmlspecialchars($ticket['Descricao'])) ?>
                                         </div>
                                     </div>

@@ -16,8 +16,8 @@ const auth = getAuth(app);
 auth.languageCode = 'pt';
 const provider = new GoogleAuthProvider();
 
-// Função para atualizar a navbar para o estado de login
-function updateNavbarForLogin(user) {
+// Função para atualizar a navbar para o estado de login do Google
+function updateNavbarForGoogleLogin(user) {
     const loginLink = document.querySelector('a.nav-link[data-bs-toggle="modal"][data-bs-target="#loginModal"]');
     if (!loginLink) {
         console.log('Link de login não encontrado');
@@ -101,45 +101,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // Adicionar evento de submit ao formulário de login
-    loginForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        
-        signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                const user = userCredential.user;
-                console.log("Login bem-sucedido:", user);
-                
-                // Fechar o modal
-                closeLoginModal();
-
-                // Atualizar a navbar
-                updateNavbarForLogin(user);
-            })
-            .catch((error) => {
-                console.error("Erro no login:", error);
-                const errorMessage = document.getElementById("loginError");
-                if (errorMessage) {
-                    switch (error.code) {
-                        case 'auth/invalid-email':
-                            errorMessage.textContent = "Email inválido.";
-                            break;
-                        case 'auth/user-not-found':
-                            errorMessage.textContent = "Utilizador não encontrado.";
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage.textContent = "Password incorreta.";
-                            break;
-                        default:
-                            errorMessage.textContent = "Erro ao iniciar sessão. Tente novamente.";
-                    }
-                    errorMessage.style.display = "block";
-                }
-            });
-    });
+    // REMOVIDO: Event listener do formulário de login tradicional
+    // O login tradicional é agora gerido apenas pelo extra.js usando PHP
+    // Este script gere apenas o login com Google
 
     const errorMessage = document.getElementById("loginError");
     if (errorMessage) {
@@ -166,7 +130,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 localStorage.setItem('user', JSON.stringify(userData));
                 localStorage.setItem('loginOrigem', 'google');
                 closeLoginModal();
-                updateNavbarForLogin(userData);
+                updateNavbarForGoogleLogin(userData);
                 location.reload();
             })
             .catch((error) => {
@@ -188,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 uid: user.uid,
                 tipo: 'Google'
             };
-            updateNavbarForLogin(userData);
+            updateNavbarForGoogleLogin(userData);
         }
     });
 

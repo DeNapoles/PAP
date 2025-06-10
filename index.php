@@ -184,15 +184,61 @@ require_once 'functions.php';
 							</p>
 						</div>
 					<?php endforeach; ?>
-					<div class="single-review item">
-						<div class="title justify-content-start d-flex">
-							<a href="#">
-								<h4>Adicionar Comentário</h4>
-							</a>
+					<div class="single-review item add-review-card">
+						<div class="add-review-content">
+							<div class="add-review-icon">
+								<i class="fa fa-plus-circle"></i>
+							</div>
+							<h4 class="add-review-title">Adicionar Nova Avaliação</h4>
+							<p class="add-review-text">Partilhe a sua experiência connosco</p>
+							<button type="button" class="btn-add-review" onclick="toggleAvaliacaoForm(); return false;">
+								<i class="fa fa-star"></i>
+								Escrever Avaliação
+								<i class="fa fa-arrow-right"></i>
+							</button>
 						</div>
-						<p>
-							Clique aqui para adicionar seu comentário.
-						</p>
+					</div>
+				</div>
+			</div>
+			
+			<!-- Formulário de Avaliação - FORA DO CARROSSEL -->
+			<div class="row" id="avaliacao-form-area" style="display: none; margin-top: 30px;">
+				<div class="col-12">
+					<div class="avaliacao-form-wrapper" style="background: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 10px;">
+						<div class="d-flex justify-content-between align-items-center mb-4">
+							<h4 style="color: white; margin: 0;">Adicionar Nova Avaliação</h4>
+							<button type="button" onclick="cancelarAvaliacao()" class="btn-close-custom" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+						</div>
+						
+						<div id="avaliacaoForm">
+							<div class="row">
+								<div class="col-md-6 mb-3">
+									<input type="text" class="form-control" id="nome" name="nome" placeholder="Seu Nome" required>
+								</div>
+								<div class="col-md-6 mb-3">
+									<input type="email" class="form-control" id="avaliacao-email" name="email" placeholder="Seu Email" required>
+								</div>
+							</div>
+							<div class="mb-3">
+								<label class="form-label text-white">Classificação:</label>
+								<div class="star-rating">
+									<span class="star" data-rating="1">★</span>
+									<span class="star" data-rating="2">★</span>
+									<span class="star" data-rating="3">★</span>
+									<span class="star" data-rating="4">★</span>
+									<span class="star" data-rating="5">★</span>
+									<input type="hidden" id="estrelas" name="estrelas" value="0">
+								</div>
+							</div>
+							<div class="mb-3">
+								<textarea class="form-control" id="texto" name="texto" rows="4" placeholder="Escreva sua avaliação aqui..." required></textarea>
+							</div>
+							<div class="mb-3">
+								<button type="button" onclick="enviarAvaliacao()" class="primary-btn">Enviar Avaliação</button>
+								<button type="button" onclick="cancelarAvaliacao()" class="primary-btn" style="background-color: #6c757d; margin-left: 10px;">Cancelar</button>
+							</div>
+							<div id="form-message" style="display: none;"></div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -368,6 +414,170 @@ require_once 'functions.php';
 	function topFunction() {
 	  window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
+
+	// Funções globais para o formulário de avaliação
+	function toggleAvaliacaoForm() {
+		const formArea = document.getElementById('avaliacao-form-area');
+		
+		if (formArea) {
+			if (formArea.style.display === 'none' || formArea.style.display === '') {
+				formArea.style.display = 'block';
+				// Scroll suave para o formulário
+				formArea.scrollIntoView({ behavior: 'smooth' });
+			} else {
+				formArea.style.display = 'none';
+			}
+		}
+	}
+
+	function cancelarAvaliacao() {
+		const formArea = document.getElementById('avaliacao-form-area');
+		
+		if (formArea) {
+			formArea.style.display = 'none';
+		}
+		limparFormularioAvaliacao();
+	}
+
+	function limparFormularioAvaliacao() {
+		const nomeInput = document.getElementById('nome');
+		const emailInput = document.getElementById('avaliacao-email');
+		const textoInput = document.getElementById('texto');
+		const estrelasInput = document.getElementById('estrelas');
+		const stars = document.querySelectorAll('#avaliacao-form-area .star');
+		const formMessage = document.getElementById('form-message');
+		
+		if (nomeInput) nomeInput.value = '';
+		if (emailInput) emailInput.value = '';
+		if (textoInput) textoInput.value = '';
+		if (estrelasInput) estrelasInput.value = '0';
+		
+		stars.forEach(star => {
+			star.classList.remove('active');
+			star.style.color = '#ddd';
+		});
+		if (formMessage) formMessage.style.display = 'none';
+	}
+
+	function enviarAvaliacao() {
+		// Verificar se o usuário está logado
+		const user = localStorage.getItem('user') || getCookie('user');
+		if (!user) {
+			showMessageAvaliacao('Por favor, inicie sessão para enviar uma avaliação.', 'error');
+			return;
+		}
+
+		// Coletar dados do formulário
+		const nome = document.getElementById('nome').value;
+		const email = document.getElementById('avaliacao-email').value;
+		const estrelas = document.getElementById('estrelas').value;
+		const texto = document.getElementById('texto').value;
+
+		// Validações
+		if (!nome || !email || !texto) {
+			showMessageAvaliacao('Por favor, preencha todos os campos obrigatórios.', 'error');
+			return;
+		}
+
+		if (estrelas === '0') {
+			showMessageAvaliacao('Por favor, selecione uma classificação de estrelas.', 'error');
+			return;
+		}
+
+		const formData = new FormData();
+		formData.append('nome', nome);
+		formData.append('email', email);
+		formData.append('estrelas', estrelas);
+		formData.append('texto', texto);
+
+		fetch('process_avaliacao.php', {
+			method: 'POST',
+			body: formData
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				showMessageAvaliacao(data.message, 'success');
+				limparFormularioAvaliacao();
+				
+				// Recarregar a página após alguns segundos para mostrar a nova avaliação
+				setTimeout(() => {
+					window.location.reload();
+				}, 2000);
+			} else {
+				showMessageAvaliacao(data.message, 'error');
+			}
+		})
+		.catch(error => {
+			console.error('Erro:', error);
+			showMessageAvaliacao('Erro ao enviar avaliação. Tente novamente.', 'error');
+		});
+	}
+
+	function showMessageAvaliacao(message, type) {
+		const formMessage = document.getElementById('form-message');
+		if (formMessage) {
+			formMessage.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}">${message}</div>`;
+			formMessage.style.display = 'block';
+		}
+	}
+
+	function getCookie(name) {
+		const value = `; ${document.cookie}`;
+		const parts = value.split(`; ${name}=`);
+		if (parts.length === 2) return parts.pop().split(';').shift();
+	}
+
+	// Sistema de estrelas
+	document.addEventListener('DOMContentLoaded', function() {
+		const stars = document.querySelectorAll('#avaliacao-form-area .star');
+		const estrelasInput = document.getElementById('estrelas');
+
+		stars.forEach((star) => {
+			star.addEventListener('click', function() {
+				const rating = parseInt(this.dataset.rating);
+				if (estrelasInput) {
+					estrelasInput.value = rating;
+				}
+				
+				stars.forEach((s, i) => {
+					if (i < rating) {
+						s.classList.add('active');
+						s.style.color = '#ffa500';
+					} else {
+						s.classList.remove('active');
+						s.style.color = '#ddd';
+					}
+				});
+			});
+
+			star.addEventListener('mouseover', function() {
+				const rating = parseInt(this.dataset.rating);
+				stars.forEach((s, i) => {
+					if (i < rating) {
+						s.style.color = '#ffa500';
+					} else {
+						s.style.color = '#ddd';
+					}
+				});
+			});
+		});
+
+		// Restaurar cor das estrelas ao sair do hover
+		const starRating = document.querySelector('#avaliacao-form-area .star-rating');
+		if (starRating) {
+			starRating.addEventListener('mouseleave', function() {
+				const currentRating = parseInt(estrelasInput ? estrelasInput.value : 0);
+				stars.forEach((s, i) => {
+					if (i < currentRating) {
+						s.style.color = '#ffa500';
+					} else {
+						s.style.color = '#ddd';
+					}
+				});
+			});
+		}
+	});
 	</script>
 </body>
 

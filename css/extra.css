@@ -1230,3 +1230,432 @@ input[type="text"].form-control {
         font-size: 0.75rem !important;
     }
 }
+
+/* Estilos para o formulário de avaliação */
+#avaliacao-form-area .form-control {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#avaliacao-form-area .form-control:focus {
+    background-color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+#avaliacao-form-area .star-rating {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+#avaliacao-form-area .star-rating .star {
+    font-size: 24px;
+    color: #ddd !important;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+#avaliacao-form-area .star-rating .star:hover,
+#avaliacao-form-area .star-rating .star.active {
+    color: #ffa500;
+}
+
+#avaliacao-form-area .alert {
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+#avaliacao-form-area .alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+#avaliacao-form-area .alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+/* Estilos específicos para a área do formulário */
+#avaliacao-form-area {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.avaliacao-form-wrapper {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.btn-close-custom:hover {
+    color: #ff6b35 !important;
+    transform: scale(1.1);
+    transition: all 0.3s ease;
+}
+
+/* Estilos para o card de adicionar avaliação */
+.add-review-card {
+    background: rgba(52, 73, 94, 0.9) !important;
+    border: 1px solid rgba(255, 107, 53, 0.3) !important;
+    border-radius: 5px !important;
+    text-align: center !important;
+    padding: 30px 20px !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+}
+
+.add-review-card:hover {
+    background: rgba(44, 62, 80, 0.95) !important;
+}
+
+.add-review-content {
+    position: relative;
+}
+
+.add-review-icon {
+    margin-bottom: 15px;
+}
+
+.add-review-icon i {
+    font-size: 28px !important;
+    color: #ff6b35 !important;
+}
+
+.add-review-title {
+    color: white !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    margin-bottom: 8px !important;
+}
+
+.add-review-text {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 14px !important;
+    margin-bottom: 20px !important;
+}
+
+.btn-add-review {
+    background: #ff6b35 !important;
+    border: none !important;
+    color: white !important;
+    padding: 10px 20px !important;
+    border-radius: 3px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.btn-add-review:hover {
+    background: #e55a2b !important;
+}
+
+.btn-add-review i {
+    font-size: 12px !important;
+}
+
+/* Garantir que o formulário seja visível no carrossel */
+.single-review.item {
+    min-height: auto !important;
+}
+
+#avaliacao-form-container {
+    width: 100%;
+    z-index: 10;
+    position: relative;
+}
+
+#avaliacaoForm {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+#avaliacaoForm.show {
+    display: block !important;
+}
+
+/* Melhor visibilidade para os links */
+#mostrar-form, #mostrar-form-link {
+    cursor: pointer !important;
+    text-decoration: underline !important;
+}
+
+#mostrar-form:hover, #mostrar-form-link:hover {
+    opacity: 0.8;
+}
+
+/* Estilos específicos para a secção Sobre Nós - Seguindo exatamente o design do Aviso Laranja */
+#sobre-section .text-input-container {
+    background-color: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+#sobre-section .form-group {
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+}
+
+#sobre-section .form-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+    font-size: 0.875rem !important;
+}
+
+#sobre-section .form-control {
+    width: 100% !important;
+    border-radius: 0.375rem !important;
+    border: 1px solid #d1d5db !important;
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    background-color: #fff !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+#sobre-section .form-control:focus {
+    border-color: #3b82f6 !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+#sobre-section textarea.form-control {
+    min-height: 120px !important;
+    resize: vertical !important;
+}
+
+#sobre-section .btn-primary {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    border-radius: 0.375rem !important;
+    font-weight: 500 !important;
+}
+
+#sobre-section .btn-primary:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}
+
+#sobre-section .btn-primary:focus {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Garantir que os estilos do image upload também funcionem */
+#sobre-section .image-upload-container {
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
+}
+
+#sobre-section .image-upload-container .form-control {
+    margin-bottom: 0.5rem !important;
+}
+
+#sobre-section .drop-zone {
+    border: 2px dashed #d1d5db !important;
+    border-radius: 0.375rem !important;
+    padding: 1.5rem !important;
+    text-align: center !important;
+    margin-top: 0.5rem !important;
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    font-size: 0.875rem !important;
+    cursor: pointer !important;
+    transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out !important;
+}
+
+#sobre-section .drop-zone:hover {
+    border-color: #3b82f6 !important;
+    background-color: #eff6ff !important;
+}
+
+#sobre-section .image-preview img {
+    border-radius: 0.375rem !important;
+    margin-top: 0.5rem !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    max-width: 200px !important;
+    max-height: 150px !important;
+}
+
+/* Garantir que o layout seja limpo e consistente */
+#sobre-section .d-flex {
+    margin-top: 1.5rem !important;
+}
+
+/* CSS SUPER ESPECÍFICO PARA SEÇÃO SOBRE NÓS - FORÇA MÁXIMA */
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container {
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container .form-group {
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container .form-group label.form-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+    font-size: 0.875rem !important;
+    width: 100% !important;
+}
+
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container .form-group textarea.form-control {
+    width: 100% !important;
+    border-radius: 0.375rem !important;
+    border: 1px solid #d1d5db !important;
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    background-color: #f8f9fa !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    min-height: 120px !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+}
+
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container .form-group textarea.form-control:focus {
+    border-color: #3b82f6 !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    background-color: #fff !important;
+}
+
+div#sobre-section.content-section .card .card-body form#sobreForm .text-input-container .form-group textarea.form-control:hover {
+    border-color: #9ca3af !important;
+    background-color: #fff !important;
+}
+
+/* Específico para os IDs das textareas */
+div#sobre-section textarea#Texto1,
+div#sobre-section textarea#Texto2 {
+    width: 100% !important;
+    border-radius: 0.375rem !important;
+    border: 1px solid #d1d5db !important;
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    background-color: #f8f9fa !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    min-height: 120px !important;
+    resize: vertical !important;
+    box-sizing: border-box !important;
+    display: block !important;
+}
+
+div#sobre-section textarea#Texto1:focus,
+div#sobre-section textarea#Texto2:focus {
+    border-color: #3b82f6 !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+    background-color: #fff !important;
+}
+
+div#sobre-section textarea#Texto1:hover,
+div#sobre-section textarea#Texto2:hover {
+    border-color: #9ca3af !important;
+    background-color: #fff !important;
+}
+
+/* Remover qualquer estilo da .text-input-container global que possa interferir */
+#sobre-section * {
+    box-sizing: border-box !important;
+}
+
+/* Garantir que não há override do Bootstrap ou outros CSS */
+div#sobre-section .text-input-container,
+div#sobre-section .form-group,
+div#sobre-section .form-control {
+    all: unset !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Re-aplicar apenas os estilos que queremos */
+div#sobre-section .form-group {
+    margin-bottom: 1.5rem !important;
+}
+
+div#sobre-section .form-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 0.5rem !important;
+    font-size: 0.875rem !important;
+    font-family: inherit !important;
+}
+
+div#sobre-section textarea.form-control {
+    border-radius: 0.375rem !important;
+    border: 1px solid #d1d5db !important;
+    padding: 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    background-color: #f8f9fa !important;
+    min-height: 120px !important;
+    resize: vertical !important;
+    font-family: inherit !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+div#sobre-section textarea.form-control:focus {
+    border-color: #3b82f6 !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Botão também */
+div#sobre-section .btn-primary {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.375rem !important;
+    font-weight: 500 !important;
+}
+
+div#sobre-section .btn-primary:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+}

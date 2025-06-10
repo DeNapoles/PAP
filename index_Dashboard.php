@@ -20,13 +20,6 @@ if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
     exit;
 }
 
-// DEBUG: Log para monitorar requisições POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    error_log("🔍 POST REQUEST DETECTADO - Keys: " . implode(', ', array_keys($_POST)));
-    error_log("🔍 REQUEST METHOD: " . $_SERVER['REQUEST_METHOD']);
-    error_log("🔍 POST DATA: " . print_r($_POST, true));
-}
-
 // Função para buscar os dados da tabela InicioInicio
 function getCapaData() {
     global $conn;
@@ -103,40 +96,7 @@ function getFooterSections() {
     return $sections;
 }
 
-// Processar atualização das ligações rápidas
-if (isset($_POST['update_links'])) {
-    try {
-        // Limpar a tabela atual
-        $stmt = $conn->prepare("TRUNCATE TABLE LigacoesRapidasInicio");
-        $stmt->execute();
-
-        // Inserir as novas ligações
-        if (isset($_POST['links']) && is_array($_POST['links'])) {
-            $stmt = $conn->prepare("INSERT INTO LigacoesRapidasInicio (Nome, Link, Imagem, Largura, Altura) VALUES (?, ?, ?, ?, ?)");
-            
-            foreach ($_POST['links'] as $link) {
-                $largura = !empty($link['Largura']) ? $link['Largura'] : null;
-                $altura = !empty($link['Altura']) ? $link['Altura'] : null;
-                
-                $stmt->execute([
-                    $link['Nome'],
-                    $link['Link'],
-                    $link['Imagem'],
-                    $largura,
-                    $altura
-                ]);
-            }
-        }
-
-        $updateMessage = "Ligações rápidas atualizadas com sucesso!";
-        $updateType = "success";
-        $activeSection = "links-section";
-    } catch (PDOException $e) {
-        $updateMessage = "Erro ao atualizar ligações rápidas: " . $e->getMessage();
-        $updateType = "danger";
-        $activeSection = "links-section";
-    }
-}
+// Processamento das ligações rápidas agora é feito via AJAX em update_links.php
 
 // Processar atualização do Login Rápido
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
@@ -216,40 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_login'])) {
     }
 }
 
-// Processamento do formulário do Início/Capa
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_capa'])) {
-    $logoseparador = $_POST['LogoSeparador'];
-    $logoprincipal = $_POST['LogoPrincipal'];
-    $textobemvindo = $_POST['TextoBemvindo'];
-    $fundo = $_POST['Fundo'];
-
-    $sql = "UPDATE InicioInicio SET 
-            LogoSeparador = ?,
-            LogoPrincipal = ?,
-            TextoBemvindo = ?,
-            Fundo = ?
-            WHERE id = 1";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssss", 
-        $logoseparador,
-        $logoprincipal,
-        $textobemvindo,
-        $fundo
-    );
-
-    if ($stmt->execute()) {
-        $updateMessage = "Dados da Capa atualizados com sucesso!";
-        $updateType = "success";
-        $activeSection = "inicio-section";
-        // Recarrega os dados
-        $capaData = getCapaData();
-    } else {
-        $updateMessage = "Erro ao atualizar dados da Capa: " . $conn->error;
-        $updateType = "danger";
-        $activeSection = "inicio-section";
-    }
-}
+// Processamento do início/capa agora é feito via AJAX em update_inicio_ajax.php
 
 // Adicionar o processamento do formulário Sobre Nós
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
@@ -274,10 +201,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_sobre'])) {
         $updateMessage = "Dados atualizados com sucesso!";
         $updateType = "success";
         $activeSection = "sobre-section";
+        
+        // Se for requisição AJAX, retorna JSON e para a execução
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => $updateMessage]);
+            exit;
+        }
     } else {
         $updateMessage = "Erro ao atualizar dados: " . $conn->error;
         $updateType = "danger";
         $activeSection = "sobre-section";
+        
+        // Se for requisição AJAX, retorna JSON e para a execução
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $updateMessage]);
+            exit;
+        }
     }
 }
 
@@ -661,6 +602,173 @@ if (!$footerLinksData) {
     .btn-primary {
         background-color: #0d6efd;
         border-color: #0d6efd;
+    }
+
+    /* Design Bonito das Estrelas ⭐ */
+    .star-rating {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 8px 0;
+    }
+
+    .star-rating .star {
+        font-size: 28px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #e0e0e0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: relative;
+        user-select: none;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+    }
+
+    .star-rating .star:hover {
+        transform: scale(1.15) rotate(5deg);
+        color: #ffb400;
+        filter: drop-shadow(0 4px 8px rgba(255, 180, 0, 0.3));
+    }
+
+    /* Efeito cascata no hover */
+    .star-rating .star:hover ~ .star {
+        transform: scale(0.95);
+        color: #f0f0f0;
+    }
+
+    .star-rating .star.active {
+        background: linear-gradient(135deg, #ffd700 0%, #ffb400 50%, #ff8c00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 3px 6px rgba(255, 180, 0, 0.4));
+        animation: starGlow 0.6s ease-out;
+        position: relative;
+    }
+
+    .star-rating .star.active::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120%;
+        height: 120%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    @keyframes starGlow {
+        0% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 0 rgba(255, 180, 0, 0));
+        }
+        50% {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 20px rgba(255, 180, 0, 0.6));
+        }
+        100% {
+            transform: scale(1);
+            filter: drop-shadow(0 3px 6px rgba(255, 180, 0, 0.4));
+        }
+    }
+
+    .star-rating .rating-value {
+        margin-left: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #495057;
+        padding: 6px 14px;
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 50%, #e9ecef 100%);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 180, 0, 0.15);
+        box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .star-rating .rating-value::before {
+        content: '⭐';
+        margin-right: 6px;
+        font-size: 12px;
+        filter: drop-shadow(0 1px 2px rgba(255, 180, 0, 0.3));
+    }
+
+    /* Desabilitar interação com estrelas readonly */
+    .star-rating.readonly .star {
+        cursor: default !important;
+        pointer-events: none !important;
+        opacity: 0.9;
+    }
+
+    .star-rating.readonly .star:hover {
+        transform: none !important;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05)) !important;
+    }
+
+    .star-rating.readonly .star.active {
+        background: linear-gradient(135deg, #ffd700 0%, #ffb400 50%, #ff8c00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 2px 6px rgba(255, 180, 0, 0.3));
+        animation: none;
+    }
+
+    .star-rating.readonly .rating-value {
+        opacity: 0.85;
+        background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
+    }
+
+    /* Estilo para exibição de texto das avaliações */
+    .name-text-display {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #495057;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+    }
+
+    .comment-text-display {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 16px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #495057;
+        min-height: 120px;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .comment-text-display::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .comment-text-display::-webkit-scrollbar-track {
+        background: #f1f3f4;
+        border-radius: 3px;
+    }
+
+    .comment-text-display::-webkit-scrollbar-thumb {
+        background: #c1c8cd;
+        border-radius: 3px;
+    }
+
+    .comment-text-display::-webkit-scrollbar-thumb:hover {
+        background: #a8b2ba;
     }
 
     .btn-primary:hover {
@@ -1765,7 +1873,8 @@ if (!$footerLinksData) {
                                         </div>
                                     <?php endif; ?>
 
-                                    <form method="POST" id="inicioForm">
+                                    <form id="inicio-form-ajax" onsubmit="return submitInicioAjax(event)">
+                                        <input type="hidden" name="update_capa">
                                         <input type="hidden" name="active_section" value="inicio-section">
                                         <div class="mb-3">
                                             <label for="LogoSeparador" class="form-label">Logo Separador</label>
@@ -1797,25 +1906,32 @@ if (!$footerLinksData) {
                                             </div>
                                         </div>
 
-                                        <div class="text-input-container">
-                                            <div class="form-group">
-                                                <label for="TextoBemvindo" class="form-label">Texto de Boas-vindas</label>
-                                                <textarea class="form-control" id="TextoBemvindo" name="TextoBemvindo" rows="3" placeholder="Digite o texto de boas-vindas..."><?php echo htmlspecialchars($capaData['TextoBemvindo']); ?></textarea>
+                                        <div class="text-input-container" style="background: transparent !important; padding: 0 !important; border: none !important; margin: 0 !important; box-shadow: none !important; display: block !important; width: 100% !important;">
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="TextoBemvindo" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Texto de Boas-vindas</label>
+                                                <textarea class="form-control" id="TextoBemvindo" name="TextoBemvindo" rows="2" 
+                                                          style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; min-height: 70px !important; resize: vertical !important; box-sizing: border-box !important; display: block !important;"
+                                                          placeholder="Digite o texto de boas-vindas..."><?php echo htmlspecialchars($capaData['TextoBemvindo']); ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
-                                                <label for="TextoInicial" class="form-label">Texto Inicial</label>
-                                                <textarea class="form-control" id="TextoInicial" name="TextoInicial" rows="3" placeholder="Digite o texto inicial..."><?php echo htmlspecialchars($capaData['TextoInicial']); ?></textarea>
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="TextoInicial" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Texto Inicial</label>
+                                                <textarea class="form-control" id="TextoInicial" name="TextoInicial" rows="2" 
+                                                          style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; min-height: 70px !important; resize: vertical !important; box-sizing: border-box !important; display: block !important;"
+                                                          placeholder="Digite o texto inicial..."><?php echo htmlspecialchars($capaData['TextoInicial']); ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
-                                                <label for="TextoInicial2" class="form-label">Texto Inicial 2</label>
-                                                <textarea class="form-control" id="TextoInicial2" name="TextoInicial2" rows="4" placeholder="Digite o texto inicial 2..."><?php echo htmlspecialchars($capaData['TextoInicial2']); ?></textarea>
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="TextoInicial2" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Texto Inicial 2</label>
+                                                <textarea class="form-control" id="TextoInicial2" name="TextoInicial2" rows="3" 
+                                                          style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; min-height: 85px !important; resize: vertical !important; box-sizing: border-box !important; display: block !important;"
+                                                          placeholder="Digite o texto inicial 2..."><?php echo htmlspecialchars($capaData['TextoInicial2']); ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
-                                                <label for="BotaoInicial" class="form-label">Texto do Botão</label>
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="BotaoInicial" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Texto do Botão</label>
                                                 <input type="text" class="form-control" id="BotaoInicial" name="BotaoInicial" 
+                                                       style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; box-sizing: border-box !important; display: block !important;"
                                                        value="<?php echo htmlspecialchars($capaData['BotaoInicial']); ?>"
                                                        placeholder="Digite o texto do botão...">
                                             </div>
@@ -1836,9 +1952,15 @@ if (!$footerLinksData) {
                                             </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between">
-                                            <button type="submit" name="update_capa" class="btn btn-primary">Salvar Alterações</button>
-                                            <button type="button" class="btn btn-danger" onclick="clearAllFields()">Apagar tudo</button>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">
+                                                    <i class="fas fa-save"></i> Salvar Alterações
+                                                </span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -1864,7 +1986,8 @@ if (!$footerLinksData) {
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </div>
                                     <?php endif; ?>
-                                    <form method="POST" id="linksForm">
+                                    <form id="links-form-ajax" onsubmit="return submitLinksAjax(event)">
+                                        <input type="hidden" name="update_links">
                                         <input type="hidden" name="active_section" value="links-section">
                                         <div id="linksContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
                                             <?php 
@@ -1917,8 +2040,13 @@ if (!$footerLinksData) {
                                         </div>
 
                                         <div class="d-flex justify-content-end mt-4">
-                                            <button type="submit" name="update_links" class="btn btn-primary">
-                                                <i class="fas fa-save"></i> Salvar Alterações
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">
+                                                    <i class="fas fa-save"></i> Salvar Alterações
+                                                </span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
                                             </button>
                                         </div>
                                     </form>
@@ -1946,40 +2074,49 @@ if (!$footerLinksData) {
                                         </div>
                                     <?php endif; ?>
 
-                                    <form method="POST" id="sobreForm">
+                                    <form id="sobre-form-ajax" onsubmit="return submitSobreAjax(event)">
+                                        <input type="hidden" name="update_sobre">
                                         <input type="hidden" name="active_section" value="sobre-section">
-                                        <div class="text-input-container">
-                                            <div class="form-group">
-                                                <label for="Texto1" class="form-label">Primeiro Texto</label>
-                                                <textarea class="form-control" id="Texto1" name="Texto1" rows="4" 
-                                                          placeholder="Digite o primeiro texto..."><?php echo htmlspecialchars($sobreNos['Texto1']); ?></textarea>
+                                        <div class="text-input-container" style="background: transparent !important; padding: 0 !important; border: none !important; margin: 0 !important; box-shadow: none !important; display: block !important; width: 100% !important;">
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="Texto1" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Primeiro Texto</label>
+                                                <textarea class="form-control" id="Texto1" name="Texto1" rows="6" 
+                                                          style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; min-height: 120px !important; resize: vertical !important; box-sizing: border-box !important; display: block !important;"
+                                                          placeholder="Digite o primeiro texto sobre a empresa..."><?php echo htmlspecialchars($sobreNos['Texto1']); ?></textarea>
                                             </div>
 
-                                            <div class="form-group">
-                                                <label for="Texto2" class="form-label">Segundo Texto</label>
-                                                <textarea class="form-control" id="Texto2" name="Texto2" rows="4" 
-                                                          placeholder="Digite o segundo texto..."><?php echo htmlspecialchars($sobreNos['Texto2']); ?></textarea>
+                                            <div class="form-group mb-4" style="margin-bottom: 1.5rem !important; width: 100% !important; display: block !important;">
+                                                <label for="Texto2" class="form-label" style="font-weight: 600 !important; color: #374151 !important; margin-bottom: 0.5rem !important; display: block !important; font-size: 0.875rem !important; width: 100% !important;">Segundo Texto</label>
+                                                <textarea class="form-control" id="Texto2" name="Texto2" rows="6" 
+                                                          style="width: 100% !important; border-radius: 0.375rem !important; border: 1px solid #d1d5db !important; padding: 0.75rem !important; font-size: 0.875rem !important; line-height: 1.5 !important; background-color: #f8f9fa !important; min-height: 120px !important; resize: vertical !important; box-sizing: border-box !important; display: block !important;"
+                                                          placeholder="Digite o segundo texto sobre a empresa..."><?php echo htmlspecialchars($sobreNos['Texto2']); ?></textarea>
                                             </div>
                                         </div>
 
-                                        <div class="mb-3">
+                                        <div class="form-group mb-4">
                                             <label for="Imagem" class="form-label">Imagem</label>
                                             <div class="image-upload-container">
                                                 <input type="text" class="form-control" id="Imagem" name="Imagem" 
+                                                       placeholder="URL da imagem ou carregue uma nova imagem..."
                                                        value="<?php echo htmlspecialchars($sobreNos['Imagem']); ?>">
                                                 <div class="image-preview" id="ImagemPreview">
                                                     <img src="<?php echo htmlspecialchars($sobreNos['Imagem']); ?>" alt="Imagem Preview" 
-                                                         onerror="this.style.display='none'" style="max-width: 200px; max-height: 150px;">
+                                                         onerror="this.style.display='none'" style="max-width: 250px; max-height: 200px; border-radius: 8px; margin-top: 10px;">
                                                 </div>
                                                 <div class="drop-zone" data-target="Imagem">
+                                                    <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 1.5rem; color: #6c757d;"></i><br>
                                                     Arraste uma imagem aqui ou clique para selecionar
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="d-flex justify-content-between">
-                                            <button type="submit" name="update_sobre" class="btn btn-primary">Salvar Alterações</button>
-                                            <button type="button" class="btn btn-danger" onclick="clearSobreFields()">Apagar tudo</button>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <span class="button-text">Salvar Alterações</span>
+                                                <span class="button-loading" style="display: none;">
+                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                                                </span>
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -2030,21 +2167,21 @@ if (!$footerLinksData) {
                                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                         </div>
                                     <?php endif; ?>
-                                    <form id="avaliacoes-form-ajax" onsubmit="return submitAvaliacoesAjax(event)">
+                                    <form id="avaliacoes-form-ajax">
                                         <input type="hidden" name="update_avaliacoes">
                                         <input type="hidden" name="active_section" value="avaliacoes-section">
                                         <div id="avaliacoesContainer" class="row" style="display: flex; flex-wrap: wrap; gap: 24px;">
                                             <?php foreach ($avaliacoesData as $index => $avaliacao): ?>
-                                            <div class="avaliacao-item" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
+                                            <div class="avaliacao-item" data-id="<?php echo $avaliacao['id']; ?>" style="background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 28px 24px 20px 24px; margin: 0; min-width: 270px; max-width: 340px; min-height: 370px; flex: 1 1 270px; position: relative; display: flex; flex-direction: column; transition: box-shadow 0.2s;">
                                                 <button type="button" class="remove-link-btn" onclick="removeAvaliacao(this)" title="Remover avaliação" style="position: absolute; top: 10px; right: 10px; background: #dc3545; border: none; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; opacity: 0.85; transition: background 0.2s, opacity 0.2s; z-index: 2;"><i class="fas fa-trash"></i></button>
                                                 <h4 class="mb-2" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; margin-top: 0; color: #0d6efd; padding-right: 36px;">Avaliação <?php echo $index + 1; ?></h4>
                                                 <div class="mb-2">
                                                     <label class="form-label">Nome</label>
-                                                    <input type="text" class="form-control" name="avaliacoes[<?php echo $index; ?>][Nome]" value="<?php echo htmlspecialchars($avaliacao['Nome']); ?>" required>
+                                                    <div class="name-text-display"><?php echo htmlspecialchars($avaliacao['Nome']); ?></div>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="form-label">Avaliação</label>
-                                                    <div class="star-rating" data-rating="<?php echo htmlspecialchars($avaliacao['Estrelas']); ?>">
+                                                    <div class="star-rating readonly" data-rating="<?php echo htmlspecialchars($avaliacao['Estrelas']); ?>">
                                                         <span class="star" data-value="1">★</span>
                                                         <span class="star" data-value="2">★</span>
                                                         <span class="star" data-value="3">★</span>
@@ -2056,21 +2193,12 @@ if (!$footerLinksData) {
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="form-label">Texto</label>
-                                                    <textarea class="form-control" name="avaliacoes[<?php echo $index; ?>][Texto]" rows="3" required><?php echo htmlspecialchars($avaliacao['Texto']); ?></textarea>
+                                                    <div class="comment-text-display"><?php echo htmlspecialchars($avaliacao['Texto']); ?></div>
                                                 </div>
                                             </div>
                                             <?php endforeach; ?>
                                         </div>
-                                        <div class="d-flex justify-content-end mt-4">
-                                            <button type="submit" class="btn btn-primary">
-                                                <span class="button-text">
-                                                    <i class="fas fa-save"></i> Salvar Alterações
-                                                </span>
-                                                <span class="button-loading" style="display: none;">
-                                                    <i class="fas fa-spinner fa-spin"></i> Salvando...
-                                                </span>
-                                            </button>
-                                        </div>
+
                                     </form>
                                 </div>
                             </div>
@@ -3288,16 +3416,27 @@ if (!$footerLinksData) {
     to { opacity: 0; }
 }
 
-@keyframes modalSlideOut {
-    from { 
-        transform: scale(1);
-        opacity: 1;
+    @keyframes modalSlideOut {
+        from { 
+            transform: scale(1);
+            opacity: 1;
+        }
+        to { 
+            transform: scale(0.9);
+            opacity: 0;
+        }
     }
-    to { 
-        transform: scale(0.9);
-        opacity: 0;
+
+    @keyframes fadeOut {
+        from { 
+            opacity: 1;
+            transform: scale(1);
+        }
+        to { 
+            opacity: 0;
+            transform: scale(0.95);
+        }
     }
-}
 
 /* Responsivo */
 @media (max-width: 480px) {
@@ -3535,6 +3674,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
+    
+    // Inicializar estrelas após carregar a página
+    setTimeout(() => {
+        // Inicializar estrelas readonly
+        if (typeof initReadonlyStars === 'function') {
+            initReadonlyStars();
+        }
+        // Inicializar estrelas editáveis
+        document.querySelectorAll('.star-rating:not(.readonly)').forEach(container => {
+            if (typeof initStarRating === 'function') {
+                initStarRating(container);
+            }
+        });
+    }, 100);
 
     // Função para mostrar/esconder seções
     function showSection(sectionId) {
@@ -3574,6 +3727,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (activeLink) {
                 activeLink.classList.add('active');
                 console.log('Link do menu ativado para:', sectionId);
+            }
+            
+            // Inicializar estrelas quando a seção de avaliações for mostrada
+            if (sectionId === 'avaliacoes-section') {
+                setTimeout(() => {
+                    // Inicializar estrelas readonly
+                    if (typeof initReadonlyStars === 'function') {
+                        initReadonlyStars();
+                        console.log('⭐ Estrelas readonly inicializadas na seção avaliações');
+                    }
+                    // Inicializar estrelas editáveis
+                    document.querySelectorAll('.star-rating:not(.readonly)').forEach(container => {
+                        if (typeof initStarRating === 'function') {
+                            initStarRating(container);
+                        }
+                    });
+                }, 100);
             }
         } else {
             console.error('Seção não encontrada:', sectionId);
@@ -3949,6 +4119,315 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
     });
 
+    // Função AJAX para enviar o formulário do sobre nós SEM redirecionamento
+    window.submitSobreAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 SOBRE NÓS AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('sobre-form-ajax');
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-block';
+        
+        // Envia para arquivo dedicado AJAX
+        fetch('update_sobre_ajax.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('📡 RESPOSTA RECEBIDA - Status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ RESPOSTA JSON RECEBIDA:', data);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Determina o tipo de alerta baseado no sucesso
+            const alertType = data.success ? 'success' : 'danger';
+            const iconClass = data.success ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            // Mostra mensagem
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${alertType} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas ${iconClass}"></i> ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção sobre nós
+            showSection('sobre-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO SOBRE NÓS - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar sobre nós:', error);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // Função AJAX para enviar o formulário das ligações rápidas SEM redirecionamento
+    window.submitLinksAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 LIGAÇÕES RÁPIDAS AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('links-form-ajax');
+        const formData = new FormData(form);
+        
+        // Debug: Mostrar dados que estão sendo enviados
+        console.log('📊 DADOS DO FORMULÁRIO:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-block';
+        
+        // Envia para arquivo dedicado AJAX
+        fetch('update_links.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            console.log('📡 RESPOSTA RECEBIDA - Status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ RESPOSTA JSON RECEBIDA:', data);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Determina o tipo de alerta baseado no sucesso
+            const alertType = data.success ? 'success' : 'danger';
+            const iconClass = data.success ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            // Mostra mensagem
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${alertType} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas ${iconClass}"></i> ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção ligações rápidas
+            showSection('links-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO LIGAÇÕES RÁPIDAS - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar ligações rápidas:', error);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // Função AJAX para enviar o formulário do início SEM redirecionamento
+    window.submitInicioAjax = function(event) {
+        event.preventDefault(); // IMPEDE o envio normal
+        console.log('🚨 INÍCIO AJAX SUBMIT INICIADO 🚨');
+        
+        const form = document.getElementById('inicio-form-ajax');
+        const formData = new FormData(form);
+        
+        // Debug: Mostrar dados que estão sendo enviados
+        console.log('📊 DADOS DO FORMULÁRIO INÍCIO:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const buttonText = submitBtn.querySelector('.button-text');
+        const buttonLoading = submitBtn.querySelector('.button-loading');
+        
+        // Desabilita o botão durante o envio
+        submitBtn.disabled = true;
+        buttonText.style.display = 'none';
+        buttonLoading.style.display = 'inline-block';
+        
+        // Envia para arquivo dedicado AJAX
+        fetch('update_inicio_ajax.php', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            console.log('📡 RESPOSTA RECEBIDA - Status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('✅ RESPOSTA JSON RECEBIDA:', data);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Determina o tipo de alerta baseado no sucesso
+            const alertType = data.success ? 'success' : 'danger';
+            const iconClass = data.success ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            // Mostra mensagem
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${alertType} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas ${iconClass}"></i> ${data.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Adiciona a mensagem no topo do formulário
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            // Remove a mensagem após 5 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+            
+            // GARANTE que permaneça na seção início
+            showSection('inicio-section');
+            console.log('🏠 PERMANECENDO NA SEÇÃO INÍCIO - SEM REDIRECIONAMENTO!');
+        })
+        .catch(error => {
+            console.error('❌ Erro ao salvar início:', error);
+            
+            // Remove qualquer mensagem anterior para evitar duplicações
+            const oldAlerts = form.parentNode.querySelectorAll('.alert');
+            oldAlerts.forEach(oldAlert => oldAlert.remove());
+            
+            // Mostra mensagem de erro
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i> Erro ao salvar: ${error.message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            form.parentNode.insertBefore(alert, form);
+            
+            // Reabilita o botão
+            submitBtn.disabled = false;
+            buttonText.style.display = 'inline-block';
+            buttonLoading.style.display = 'none';
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        });
+        
+        return false; // IMPEDE completamente o envio normal
+    };
+
+    // JavaScript para garantir que o sobre nós funcione via AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 SOBRE NÓS AJAX SYSTEM ATIVO!');
+        
+        // Força a exibição da seção sobre nós se necessário
+        <?php if (isset($activeSection) && $activeSection == 'sobre-section'): ?>
+            console.log('🔥 EXIBINDO SEÇÃO SOBRE NÓS 🔥');
+            showSection('sobre-section');
+        <?php endif; ?>
+    });
+
     // Função para fazer upload do arquivo
     async function handleFileUpload(file, inputId, customName = null) {
         console.log('handleFileUpload chamada com:', { fileName: file.name, inputId, customName });
@@ -4114,18 +4593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Função para limpar todos os campos
-    window.clearAllFields = function() {
-        if (confirm('Tem certeza que deseja apagar todos os campos?')) {
-            document.querySelectorAll('#inicioForm input[type="text"], #inicioForm textarea').forEach(input => {
-                input.value = '';
-            });
-            
-            document.querySelectorAll('.image-preview img').forEach(img => {
-                img.style.display = 'none';
-            });
-        }
-    }
+    // Função clearAllFields removida - botão "Apagar tudo" foi removido da seção início
 
     // ---------------------------- Funções para gerenciar ligações rápidas ----------------------------
     function addNewLink() {
@@ -4296,18 +4764,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Adicionar a função JavaScript para limpar os campos do formulário Sobre Nós
-    function clearSobreFields() {
-        if (confirm('Tem certeza que deseja apagar todos os campos?')) {
-            document.querySelectorAll('#sobreForm input[type="text"], #sobreForm textarea').forEach(input => {
-                input.value = '';
-            });
-            
-            document.querySelectorAll('#sobreForm .image-preview img').forEach(img => {
-                img.style.display = 'none';
-            });
-        }
-    }
+
 
     // ---------------------------- Funções para gerenciar avaliações ----------------------------
     function addNewAvaliacao() {
@@ -4332,9 +4789,66 @@ document.addEventListener('DOMContentLoaded', function() {
     async function removeAvaliacao(button) {
         const confirmed = await showCustomConfirm('Tem certeza que deseja remover esta avaliação? Esta ação não pode ser desfeita.');
         if (confirmed) {
-            button.closest('.avaliacao-item').remove();
-            updateAvaliacaoNumbers();
-            showAlert('Avaliação removida com sucesso!', 'success');
+            const avaliacaoCard = button.closest('.avaliacao-item');
+            const avaliacaoId = avaliacaoCard.getAttribute('data-id');
+            
+            if (!avaliacaoId) {
+                showAlert('Erro: ID da avaliação não encontrado!', 'danger');
+                return;
+            }
+
+            // Mostrar loading no botão
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.disabled = true;
+
+            try {
+                // Fazer chamada AJAX para apagar da BD
+                const formData = new FormData();
+                formData.append('id', avaliacaoId);
+
+                console.log('🚀 Enviando pedido para delete_avaliacao.php com ID:', avaliacaoId);
+                
+                const response = await fetch('delete_avaliacao.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', response.headers);
+                
+                const responseText = await response.text();
+                console.log('📄 Response text:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('❌ Erro ao fazer parse do JSON:', parseError);
+                    console.error('📄 Response original:', responseText);
+                    throw new Error('Resposta inválida do servidor: ' + responseText.substring(0, 100));
+                }
+
+                if (data.success) {
+                    // Remover o card visualmente com animação
+                    avaliacaoCard.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => {
+                        avaliacaoCard.remove();
+                        updateAvaliacaoNumbers();
+                        showAlert(data.message, 'success');
+                    }, 300);
+                } else {
+                    // Restaurar botão em caso de erro
+                    button.innerHTML = '<i class="fas fa-trash"></i>';
+                    button.disabled = false;
+                    showAlert('Erro ao apagar: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                // Restaurar botão em caso de erro
+                button.innerHTML = '<i class="fas fa-trash"></i>';
+                button.disabled = false;
+                console.error('Erro na requisição:', error);
+                showAlert('Erro de conexão: ' + error.message, 'danger');
+            }
         }
     }
     
@@ -4366,41 +4880,69 @@ document.addEventListener('DOMContentLoaded', function() {
         // Atualiza visual inicial
         stars.forEach((star, index) => {
             if (index < currentValue) {
-                star.classList.add('checked');
+                star.classList.add('active');
             } else {
-                star.classList.remove('checked');
+                star.classList.remove('active');
             }
         });
 
-        // Clique para selecionar
+        // Se for readonly, só mostra as estrelas, sem interação
+        if (container.classList.contains('readonly')) {
+            return; // Para por aqui, sem adicionar eventos de clique
+        }
+
+        // Clique para selecionar (apenas para não-readonly)
         stars.forEach((star, index) => {
             star.onclick = function() {
                 const value = index + 1;
                 hiddenInput.value = value;
                 currentValue = value;
                 stars.forEach((s, i) => {
-                    if (i < value) s.classList.add('checked');
-                    else s.classList.remove('checked');
+                    if (i < value) s.classList.add('active');
+                    else s.classList.remove('active');
                 });
+                // Atualizar o rating value
+                const ratingValue = container.querySelector('.rating-value');
+                if (ratingValue) ratingValue.textContent = `${value}/5`;
             };
-            // Hover visual
+            
+            // Hover visual (apenas para não-readonly)
             star.onmouseover = function() {
                 stars.forEach((s, i) => {
-                    if (i <= index) s.classList.add('checked');
-                    else s.classList.remove('checked');
+                    if (i <= index) s.classList.add('active');
+                    else s.classList.remove('active');
                 });
             };
             star.onmouseout = function() {
                 stars.forEach((s, i) => {
-                    if (i < currentValue) s.classList.add('checked');
-                    else s.classList.remove('checked');
+                    if (i < currentValue) s.classList.add('active');
+                    else s.classList.remove('active');
                 });
             };
         });
     }
 
-    // Inicializar rating em todos os cartões ao carregar
-    document.querySelectorAll('.star-rating').forEach(initStarRating);
+    // Função específica para inicializar estrelas readonly
+    function initReadonlyStars() {
+        document.querySelectorAll('.star-rating.readonly').forEach(container => {
+            const stars = container.querySelectorAll('.star');
+            const rating = parseInt(container.getAttribute('data-rating')) || 0;
+            
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        });
+    }
+
+    // Inicializar rating em todos os cartões ao carregar (exceto readonly)
+    document.querySelectorAll('.star-rating:not(.readonly)').forEach(initStarRating);
+    
+    // Inicializar estrelas readonly
+    initReadonlyStars();
 
     // Drag and drop para reordenar avaliações
     function initDragAndDrop() {
@@ -4426,7 +4968,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.parentNode.removeChild(dragSrcEl);
                     this.insertAdjacentHTML('beforebegin', e.dataTransfer.getData('text/html'));
                     updateAvaliacaoNumbers();
-                    document.querySelectorAll('.star-rating').forEach(initStarRating);
+                    document.querySelectorAll('.star-rating:not(.readonly)').forEach(initStarRating);
                     initDragAndDrop();
                 }
                 this.classList.remove('over');

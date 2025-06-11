@@ -1,5 +1,17 @@
 <?php
 require_once 'functions.php';
+session_start();
+
+// Buscar dados do utilizador logado, se houver
+$user = null;
+if (isset($_SESSION['user_id'])) {
+    require_once 'connection.php';
+    $stmt = $conn->prepare("SELECT Nome, Email FROM Utilizadores WHERE ID_Utilizador = ?");
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+}
 ?>
 
 <!DOCTYPE html>
@@ -400,181 +412,208 @@ require_once 'functions.php';
 			localStorage.removeItem('user');
 			localStorage.removeItem('loginOrigem');
 			
+			// Limpar os campos do formulário de avaliação
+			const nomeInput = document.getElementById('nome');
+			const emailInput = document.getElementById('avaliacao-email');
+			if (nomeInput) nomeInput.value = '';
+			if (emailInput) emailInput.value = '';
+			if (nomeInput) nomeInput.removeAttribute('readonly');
+			if (emailInput) emailInput.removeAttribute('readonly');
+			
 			// Remover o cookie
 			document.cookie = 'logout=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 			
 			// Recarregar a página para atualizar o estado
 			location.reload();
 		}
-	</script>
 
-	<?php include 'modals.php'; ?>
-	<script>
-	function topFunction() {
-	  window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
-
-	// Funções globais para o formulário de avaliação
-	function toggleAvaliacaoForm() {
-		const formArea = document.getElementById('avaliacao-form-area');
-		
-		if (formArea) {
-			if (formArea.style.display === 'none' || formArea.style.display === '') {
-				formArea.style.display = 'block';
-				// Scroll suave para o formulário
-				formArea.scrollIntoView({ behavior: 'smooth' });
-			} else {
-				formArea.style.display = 'none';
-			}
-		}
-	}
-
-	function cancelarAvaliacao() {
-		const formArea = document.getElementById('avaliacao-form-area');
-		
-		if (formArea) {
-			formArea.style.display = 'none';
-		}
-		limparFormularioAvaliacao();
-	}
-
-	function limparFormularioAvaliacao() {
-		const nomeInput = document.getElementById('nome');
-		const emailInput = document.getElementById('avaliacao-email');
-		const textoInput = document.getElementById('texto');
-		const formMessage = document.getElementById('form-message');
-		
-		if (nomeInput) nomeInput.value = '';
-		if (emailInput) emailInput.value = '';
-		if (textoInput) textoInput.value = '';
-		
-		// Limpar classificação de estrelas
-		clearStars();
-		
-		if (formMessage) formMessage.style.display = 'none';
-	}
-
-	function enviarAvaliacao() {
-		console.log('Função enviarAvaliacao() chamada');
-
-		// Coletar dados do formulário
-		const nome = document.getElementById('nome').value.trim();
-		const email = document.getElementById('avaliacao-email').value.trim();
-		const estrelas = document.getElementById('estrelas').value;
-		const texto = document.getElementById('texto').value.trim();
-
-		console.log('Dados do formulário:', {nome, email, estrelas, texto});
-
-		// Validações (email não é obrigatório)
-		if (!nome) {
-			showMessageAvaliacao('Por favor, preencha o seu nome.', 'error');
-			return;
-		}
-
-		if (!texto) {
-			showMessageAvaliacao('Por favor, escreva a sua avaliação.', 'error');
-			return;
-		}
-
-		if (!estrelas || estrelas === '0') {
-			showMessageAvaliacao('Por favor, selecione uma classificação de estrelas.', 'error');
-			return;
-		}
-
-		const formData = new FormData();
-		formData.append('nome', nome);
-		formData.append('email', email);
-		formData.append('estrelas', estrelas);
-		formData.append('texto', texto);
-
-		console.log('Enviando dados para process_avaliacao.php...');
-
-		fetch('process_avaliacao.php', {
-			method: 'POST',
-			body: formData
-		})
-		.then(response => {
-			console.log('Resposta recebida:', response);
-			if (!response.ok) {
-				throw new Error('Erro na resposta do servidor');
-			}
-			return response.json();
-		})
-		.then(data => {
-			console.log('Dados da resposta:', data);
-			if (data.success) {
-				showMessageAvaliacao(data.message, 'success');
-				limparFormularioAvaliacao();
-				
-				// Recarregar a página após alguns segundos para mostrar a nova avaliação
-				setTimeout(() => {
-					window.location.reload();
-				}, 2000);
-			} else {
-				showMessageAvaliacao(data.message || 'Erro desconhecido', 'error');
-			}
-		})
-		.catch(error => {
-			console.error('Erro completo:', error);
-			showMessageAvaliacao('Erro ao conectar com o servidor. Verifique sua conexão.', 'error');
-		});
-	}
-
-	function showMessageAvaliacao(message, type) {
-		const formMessage = document.getElementById('form-message');
-		if (formMessage) {
-			formMessage.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}">${message}</div>`;
-			formMessage.style.display = 'block';
-		}
-	}
-
-	function getCookie(name) {
-		const value = `; ${document.cookie}`;
-		const parts = value.split(`; ${name}=`);
-		if (parts.length === 2) return parts.pop().split(';').shift();
-	}
-
-	// Sistema de estrelas - versão simples e funcional
-	var selectedRating = 0;
-
-	function selectStar(rating) {
-		selectedRating = rating;
-		// Atualizar o input hidden
-		const starsInput = document.getElementById('estrelas');
-		if (starsInput) {
-			starsInput.value = rating;
-		}
-		
-		// Atualizar as estrelas visualmente
-		for (let i = 1; i <= 5; i++) {
-			const star = document.getElementById('star' + i);
-			if (star) {
-				if (i <= rating) {
-					star.style.color = '#FFD700'; // Amarelo
-				} else {
-					star.style.color = '#ddd'; // Cinzento
+		// Função para preencher os campos do formulário de avaliação
+		function preencherCamposAvaliacao() {
+			const nomeInput = document.getElementById('nome');
+			const emailInput = document.getElementById('avaliacao-email');
+			
+			if (!nomeInput || !emailInput) return;
+			
+			// Verificar se há dados do usuário no localStorage
+			const userData = localStorage.getItem('user');
+			if (userData) {
+				try {
+					const user = JSON.parse(userData);
+					nomeInput.value = user.nome || user.displayName || '';
+					emailInput.value = user.email || '';
+					nomeInput.setAttribute('readonly', 'readonly');
+					emailInput.setAttribute('readonly', 'readonly');
+				} catch (e) {
+					console.error('Erro ao processar dados do usuário:', e);
 				}
 			}
 		}
-		
-		console.log('Estrelas selecionadas:', rating);
-	}
 
-	// Função para limpar as estrelas
-	function clearStars() {
-		selectedRating = 0;
-		for (let i = 1; i <= 5; i++) {
-			const star = document.getElementById('star' + i);
-			if (star) {
-				star.style.color = '#ddd';
+		// Chamar a função quando o formulário for exibido
+		function toggleAvaliacaoForm() {
+			const formArea = document.getElementById('avaliacao-form-area');
+			
+			if (formArea) {
+				if (formArea.style.display === 'none' || formArea.style.display === '') {
+					formArea.style.display = 'block';
+					// Preencher os campos se o usuário estiver autenticado
+					preencherCamposAvaliacao();
+					// Scroll suave para o formulário
+					formArea.scrollIntoView({ behavior: 'smooth' });
+				} else {
+					formArea.style.display = 'none';
+				}
 			}
 		}
-		const starsInput = document.getElementById('estrelas');
-		if (starsInput) {
-			starsInput.value = '0';
+
+		function cancelarAvaliacao() {
+			const formArea = document.getElementById('avaliacao-form-area');
+			
+			if (formArea) {
+				formArea.style.display = 'none';
+			}
+			limparFormularioAvaliacao();
 		}
-	}
+
+		function limparFormularioAvaliacao() {
+			const nomeInput = document.getElementById('nome');
+			const emailInput = document.getElementById('avaliacao-email');
+			const textoInput = document.getElementById('texto');
+			const formMessage = document.getElementById('form-message');
+			
+			if (nomeInput) nomeInput.value = '';
+			if (emailInput) emailInput.value = '';
+			if (textoInput) textoInput.value = '';
+			
+			// Limpar classificação de estrelas
+			clearStars();
+			
+			if (formMessage) formMessage.style.display = 'none';
+		}
+
+		function enviarAvaliacao() {
+			console.log('Função enviarAvaliacao() chamada');
+
+			// Coletar dados do formulário
+			const nome = document.getElementById('nome').value.trim();
+			const email = document.getElementById('avaliacao-email').value.trim();
+			const estrelas = document.getElementById('estrelas').value;
+			const texto = document.getElementById('texto').value.trim();
+
+			console.log('Dados do formulário:', {nome, email, estrelas, texto});
+
+			// Validações (email não é obrigatório)
+			if (!nome) {
+				showMessageAvaliacao('Por favor, preencha o seu nome.', 'error');
+				return;
+			}
+
+			if (!texto) {
+				showMessageAvaliacao('Por favor, escreva a sua avaliação.', 'error');
+				return;
+			}
+
+			if (!estrelas || estrelas === '0') {
+				showMessageAvaliacao('Por favor, selecione uma classificação de estrelas.', 'error');
+				return;
+			}
+
+			const formData = new FormData();
+			formData.append('nome', nome);
+			formData.append('email', email);
+			formData.append('estrelas', estrelas);
+			formData.append('texto', texto);
+
+			console.log('Enviando dados para process_avaliacao.php...');
+
+			fetch('process_avaliacao.php', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => {
+				console.log('Resposta recebida:', response);
+				if (!response.ok) {
+					throw new Error('Erro na resposta do servidor');
+				}
+				return response.json();
+			})
+			.then(data => {
+				console.log('Dados da resposta:', data);
+				if (data.success) {
+					showMessageAvaliacao(data.message, 'success');
+					limparFormularioAvaliacao();
+					
+					// Recarregar a página após alguns segundos para mostrar a nova avaliação
+					setTimeout(() => {
+						window.location.reload();
+					}, 2000);
+				} else {
+					showMessageAvaliacao(data.message || 'Erro desconhecido', 'error');
+				}
+			})
+			.catch(error => {
+				console.error('Erro completo:', error);
+				showMessageAvaliacao('Erro ao conectar com o servidor. Verifique sua conexão.', 'error');
+			});
+		}
+
+		function showMessageAvaliacao(message, type) {
+			const formMessage = document.getElementById('form-message');
+			if (formMessage) {
+				formMessage.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}">${message}</div>`;
+				formMessage.style.display = 'block';
+			}
+		}
+
+		function getCookie(name) {
+			const value = `; ${document.cookie}`;
+			const parts = value.split(`; ${name}=`);
+			if (parts.length === 2) return parts.pop().split(';').shift();
+		}
+
+		// Sistema de estrelas - versão simples e funcional
+		var selectedRating = 0;
+
+		function selectStar(rating) {
+			selectedRating = rating;
+			// Atualizar o input hidden
+			const starsInput = document.getElementById('estrelas');
+			if (starsInput) {
+				starsInput.value = rating;
+			}
+			
+			// Atualizar as estrelas visualmente
+			for (let i = 1; i <= 5; i++) {
+				const star = document.getElementById('star' + i);
+				if (star) {
+					if (i <= rating) {
+						star.style.color = '#FFD700'; // Amarelo
+					} else {
+						star.style.color = '#ddd'; // Cinzento
+					}
+				}
+			}
+			
+			console.log('Estrelas selecionadas:', rating);
+		}
+
+		// Função para limpar as estrelas
+		function clearStars() {
+			selectedRating = 0;
+			for (let i = 1; i <= 5; i++) {
+				const star = document.getElementById('star' + i);
+				if (star) {
+					star.style.color = '#ddd';
+				}
+			}
+			const starsInput = document.getElementById('estrelas');
+			if (starsInput) {
+				starsInput.value = '0';
+			}
+		}
 	</script>
+
+	<?php include 'modals.php'; ?>
 </body>
 
 </html>

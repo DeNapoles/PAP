@@ -357,16 +357,17 @@ if (isset($_SESSION['user_id'])) {
 						</ul>
 					</div>
 				</div>
+				<?php if (isset($_SESSION['user_id'])): ?>
 				<div class="col-lg-2 col-md-6 col-sm-6">
 					<div class="single-footer-widget">
 						<h4>Tickets</h4>
 						<ul>
-							<?php foreach (getFooterLinks('Tickets') as $link): ?>
-								<li><a href="<?php echo $link['link']; ?>"><?php echo $link['nome']; ?></a></li>
-							<?php endforeach; ?>
+							<li><a href="view_tickets.php">Ver Reparações</a></li>
+							<li><a href="submit_ticket.php">Submeter Ticket</a></li>
 						</ul>
 					</div>
 				</div>
+				<?php endif; ?>
 			</div>
 			<div class="footer-bottom row align-items-center justify-content-between">
 				<div class="col-lg-8 col-md-12">

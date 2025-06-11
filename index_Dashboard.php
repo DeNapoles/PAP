@@ -3112,20 +3112,26 @@ if (!$footerLinksData) {
                                                     <?= nl2br(htmlspecialchars($ticket['Descricao'])) ?>
                                                 </div>
                                             </div>
-                                            <div class="admin-ticket-actions">
-                                                <button class="btn btn-success"
-                                                    onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Aceite')">
-                                                    <i class="fa fa-check"></i> Aceitar
-                                                </button>
-                                                <button class="btn btn-danger"
-                                                    onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Rejeitado')">
-                                                    <i class="fa fa-times"></i> Rejeitar
-                                                </button>
-                                                <button class="btn btn-primary"
-                                                    onclick="updateTicketStatus(<?= $ticket['ID_Ticket'] ?>, 'Concluído')">
-                                                    <i class="fa fa-check-circle"></i> Concluído
-                                                </button>
-                                            </div>
+                                                                        <div class="admin-ticket-actions">
+                                <button class="btn btn-success ticket-action-btn"
+                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
+                                    data-action="Aceite"
+                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Aceite', this)">
+                                    <i class="fa fa-check"></i> Aceitar
+                                </button>
+                                <button class="btn btn-danger ticket-action-btn"
+                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
+                                    data-action="Rejeitado"
+                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Rejeitado', this)">
+                                    <i class="fa fa-times"></i> Rejeitar
+                                </button>
+                                <button class="btn btn-primary ticket-action-btn"
+                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
+                                    data-action="Concluído"
+                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Concluído', this)">
+                                    <i class="fa fa-check-circle"></i> Concluído
+                                </button>
+                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3724,27 +3730,7 @@ if (!$footerLinksData) {
     }
     </style>
 
-    <!-- Modal de Confirmação Simples -->
-    <div id="customConfirmModal" class="custom-confirm-overlay" style="display: none;">
-        <div class="custom-confirm-modal">
-            <div class="custom-confirm-header">
-                <i class="fas fa-exclamation-triangle custom-confirm-icon"></i>
-                <h4 class="custom-confirm-title">Confirmar</h4>
-            </div>
-            <div class="custom-confirm-body">
-                <p id="customConfirmMessage">Tem certeza que deseja realizar esta ação?</p>
-            </div>
-            <div class="custom-confirm-footer">
-                <button type="button" class="btn btn-secondary custom-confirm-cancel"
-                    onclick="closeCustomConfirm(false)">
-                    Cancelar
-                </button>
-                <button type="button" class="btn btn-danger custom-confirm-ok" onclick="closeCustomConfirm(true)">
-                    Confirmar
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- jQuery primeiro -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -3803,64 +3789,7 @@ if (!$footerLinksData) {
         // Expõe a função globalmente
         window.showAlert = showAlert;
 
-        // Funções para o modal de confirmação customizado
-        let customConfirmResolve = null;
 
-        function showCustomConfirm(message) {
-            return new Promise((resolve) => {
-                customConfirmResolve = resolve;
-
-                // Define a mensagem
-                document.getElementById('customConfirmMessage').textContent = message;
-
-                // Mostra o modal
-                const modal = document.getElementById('customConfirmModal');
-                modal.style.display = 'flex';
-
-                // Foca no botão cancelar para acessibilidade
-                setTimeout(() => {
-                    document.querySelector('.custom-confirm-cancel').focus();
-                }, 150);
-            });
-        }
-
-        function closeCustomConfirm(result) {
-            const modal = document.getElementById('customConfirmModal');
-
-            // Adiciona animação de saída
-            modal.style.animation = 'fadeOut 0.2s ease forwards';
-            modal.querySelector('.custom-confirm-modal').style.animation = 'modalSlideOut 0.2s ease forwards';
-
-            setTimeout(() => {
-                modal.style.display = 'none';
-                modal.style.animation = '';
-                modal.querySelector('.custom-confirm-modal').style.animation = '';
-
-                if (customConfirmResolve) {
-                    customConfirmResolve(result);
-                    customConfirmResolve = null;
-                }
-            }, 150);
-        }
-
-        // Expõe as funções globalmente
-        window.showCustomConfirm = showCustomConfirm;
-        window.closeCustomConfirm = closeCustomConfirm;
-
-        // Fechar modal clicando no overlay
-        document.getElementById('customConfirmModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeCustomConfirm(false);
-            }
-        });
-
-        // Fechar modal com ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.getElementById('customConfirmModal').style.display ===
-                'flex') {
-                closeCustomConfirm(false);
-            }
-        });
 
 
 
@@ -6682,99 +6611,277 @@ if (!$footerLinksData) {
         console.log('- removeFooterLink:', typeof window.removeFooterLink);
     });
 
-    // Modal de confirmação customizado
-    let currentTicketId = null;
-    let currentTicketAction = null;
+    // FUNÇÃO SIMPLES E DIRETA PARA TICKETS - SEM COMPLEXIDADE
+    console.log('🔥 Carregando sistema de tickets simplificado...');
 
-    function showCustomConfirmModal(ticketId, novoEstado) {
-        currentTicketId = ticketId;
-        currentTicketAction = novoEstado;
+    // Variáveis globais para o modal de confirmação
+    let currentTicketData = null;
+
+    // Função para mostrar o modal de confirmação
+    window.showTicketConfirmModal = function(ticketId, action, buttonElement) {
+        const modal = document.getElementById('ticketConfirmModal');
+        const messageElement = document.getElementById('ticketConfirmMessage');
+        const confirmButton = modal.querySelector('.ticket-modal-confirm');
         
-        const modal = document.getElementById('customConfirmModal');
-        const modalMessage = document.getElementById('customConfirmMessage');
+        // Guardar dados para uso posterior
+        currentTicketData = { ticketId, action, buttonElement };
         
-        // Personalizar mensagem baseada na ação
+        // Definir mensagem personalizada
         let message = '';
-        switch(novoEstado.toLowerCase()) {
+        let buttonClass = '';
+        let buttonText = '';
+        
+        switch(action.toLowerCase()) {
             case 'aceite':
-                message = 'Tem certeza que deseja aceitar este pedido de reparação? Esta ação irá confirmar que o pedido foi aprovado.';
+                message = 'Tem certeza que deseja <strong>ACEITAR</strong> este pedido de reparação?<br><small>Esta ação irá aprovar o pedido e permitir que seja processado.</small>';
+                buttonClass = 'success';
+                buttonText = '<i class="fas fa-check"></i> Aceitar';
                 break;
             case 'rejeitado':
-                message = 'Tem certeza que deseja rejeitar este pedido de reparação? Esta ação não pode ser desfeita.';
+                message = 'Tem certeza que deseja <strong>REJEITAR</strong> este pedido de reparação?<br><small>Esta ação irá recusar o pedido permanentemente.</small>';
+                buttonClass = 'danger';
+                buttonText = '<i class="fas fa-times"></i> Rejeitar';
                 break;
             case 'concluído':
-                message = 'Tem certeza que deseja marcar este pedido como concluído? Esta ação finalizará o processo de reparação.';
+                message = 'Tem certeza que deseja marcar este pedido como <strong>CONCLUÍDO</strong>?<br><small>Esta ação finalizará o processo de reparação.</small>';
+                buttonClass = 'success';
+                buttonText = '<i class="fas fa-check-circle"></i> Concluir';
                 break;
             default:
-                message = `Tem certeza que deseja alterar o estado para "${novoEstado}"? Esta ação pode não ser desfeita.`;
+                message = `Tem certeza que deseja alterar o estado para "<strong>${action}</strong>"?`;
+                buttonClass = '';
+                buttonText = '<i class="fas fa-check"></i> Confirmar';
         }
         
-        modalMessage.textContent = message;
+        // Atualizar conteúdo do modal
+        messageElement.innerHTML = message;
+        confirmButton.className = `btn btn-primary ticket-modal-confirm ${buttonClass}`;
+        confirmButton.innerHTML = buttonText;
+        
+        // Mostrar modal com animação
         modal.style.display = 'flex';
+        
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+        
+        // Desabilitar scroll do body
         document.body.style.overflow = 'hidden';
-    }
+    };
 
-    function hideCustomConfirmModal() {
-        const modal = document.getElementById('customConfirmModal');
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        currentTicketId = null;
-        currentTicketAction = null;
-    }
-
-    function confirmTicketAction() {
-        if (currentTicketId && currentTicketAction) {
-            hideCustomConfirmModal();
-            
-            fetch('update_ticket_status.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `ticket_id=${currentTicketId}&novo_estado=${encodeURIComponent(currentTicketAction)}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert(`Ticket ${currentTicketAction.toLowerCase()} com sucesso!`, 'success');
-                        // Recarregar a página após 1 segundo para mostrar as mudanças
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    } else {
-                        showAlert('Erro ao atualizar ticket: ' + data.message, 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    showAlert('Erro ao atualizar ticket', 'danger');
-                });
+    // Função para esconder o modal
+    window.hideTicketConfirmModal = function() {
+        const modal = document.getElementById('ticketConfirmModal');
+        
+        modal.classList.remove('show');
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
+        
+        // Reabilitar botão se cancelado
+        if (currentTicketData && currentTicketData.buttonElement) {
+            currentTicketData.buttonElement.disabled = false;
+            currentTicketData.buttonElement.style.opacity = '1';
         }
-    }
+        
+        currentTicketData = null;
+    };
 
-    // Função para atualizar status dos tickets
-    function updateTicketStatus(ticketId, novoEstado) {
-        showCustomConfirmModal(ticketId, novoEstado);
-    }
+    // Função para confirmar a ação
+    window.confirmTicketAction = function() {
+        if (!currentTicketData) {
+            console.error('❌ Nenhum dado de ticket disponível');
+            return;
+        }
+        
+        const { ticketId, action, buttonElement } = currentTicketData;
+        
+        console.log('✅ Utilizador confirmou, enviando requisição...');
+        
+        // Esconder modal
+        window.hideTicketConfirmModal();
+        
+        // Mostrar loading no botão
+        if (buttonElement) {
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        }
+        
+        // Enviar requisição
+        fetch('update_ticket_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `ticket_id=${ticketId}&novo_estado=${encodeURIComponent(action)}`
+        })
+        .then(response => {
+            console.log('📡 Resposta HTTP recebida:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('📋 Dados da resposta:', data);
+            
+            if (data.success) {
+                // Mostrar sucesso no botão
+                if (buttonElement) {
+                    buttonElement.innerHTML = '<i class="fas fa-check"></i> Sucesso!';
+                    buttonElement.style.background = '#10b981';
+                }
+                
+                console.log('🔄 Recarregando página...');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                console.error('❌ Erro retornado pelo servidor:', data.message);
+                alert('❌ Erro ao atualizar ticket: ' + (data.message || 'Erro desconhecido'));
+                
+                // Restaurar botão
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.style.opacity = '1';
+                    // Restaurar texto original baseado na ação
+                    let originalText = '';
+                    switch(action.toLowerCase()) {
+                        case 'aceite':
+                            originalText = '<i class="fa fa-check"></i> Aceitar';
+                            break;
+                        case 'rejeitado':
+                            originalText = '<i class="fa fa-times"></i> Rejeitar';
+                            break;
+                        case 'concluído':
+                            originalText = '<i class="fa fa-check-circle"></i> Concluído';
+                            break;
+                    }
+                    buttonElement.innerHTML = originalText;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('❌ Erro na requisição:', error);
+            alert('❌ Erro ao comunicar com o servidor: ' + error.message);
+            
+            // Restaurar botão
+            if (buttonElement) {
+                buttonElement.disabled = false;
+                buttonElement.style.opacity = '1';
+                let originalText = '';
+                switch(action.toLowerCase()) {
+                    case 'aceite':
+                        originalText = '<i class="fa fa-check"></i> Aceitar';
+                        break;
+                    case 'rejeitado':
+                        originalText = '<i class="fa fa-times"></i> Rejeitar';
+                        break;
+                    case 'concluído':
+                        originalText = '<i class="fa fa-check-circle"></i> Concluído';
+                        break;
+                }
+                buttonElement.innerHTML = originalText;
+            }
+        });
+    };
+
+    // Função principal que será chamada pelos botões
+    window.handleTicketAction = function(ticketId, action, buttonElement) {
+        console.log('🎯 FUNÇÃO handleTicketAction CHAMADA:', { ticketId, action });
+        
+        // Verificar se os parâmetros são válidos
+        if (!ticketId || !action) {
+            console.error('❌ Parâmetros inválidos:', { ticketId, action });
+            alert('Erro: Dados do ticket inválidos');
+            return;
+        }
+
+        // Desabilitar o botão para evitar cliques múltiplos
+        if (buttonElement) {
+            buttonElement.disabled = true;
+            buttonElement.style.opacity = '0.6';
+        }
+
+        // Mostrar modal de confirmação customizado
+        window.showTicketConfirmModal(ticketId, action, buttonElement);
+    };
+
+    // Teste da função ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ DOM carregado - Sistema de tickets pronto!');
+        console.log('🔍 Função handleTicketAction disponível:', typeof window.handleTicketAction);
+        
+        // Verificar quantos botões de ticket existem
+        const buttons = document.querySelectorAll('.ticket-action-btn');
+        console.log(`🔍 Encontrados ${buttons.length} botões de tickets`);
+        
+        // Log dos botões encontrados
+        buttons.forEach((btn, index) => {
+            const ticketId = btn.getAttribute('data-ticket-id');
+            const action = btn.getAttribute('data-action');
+            console.log(`📋 Botão ${index + 1}: ID=${ticketId}, Ação=${action}, Texto="${btn.textContent.trim()}"`);
+        });
+
+        // Configurar event listeners para o modal de confirmação
+        const modal = document.getElementById('ticketConfirmModal');
+        const cancelButton = modal.querySelector('.ticket-modal-cancel');
+        const confirmButton = modal.querySelector('.ticket-modal-confirm');
+
+        // Botão Cancelar
+        cancelButton.addEventListener('click', function() {
+            console.log('⏭️ Utilizador cancelou a ação via modal');
+            window.hideTicketConfirmModal();
+        });
+
+        // Botão Confirmar
+        confirmButton.addEventListener('click', function() {
+            console.log('✅ Utilizador confirmou a ação via modal');
+            window.confirmTicketAction();
+        });
+
+        // Fechar modal clicando no overlay
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                console.log('⏭️ Modal fechado clicando no overlay');
+                window.hideTicketConfirmModal();
+            }
+        });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                console.log('⏭️ Modal fechado com tecla ESC');
+                window.hideTicketConfirmModal();
+            }
+        });
+
+        console.log('🎉 Modal de tickets configurado com sucesso!');
+    });
     </script>
 
-    <!-- Modal de Confirmação Customizado -->
-    <div id="customConfirmModal" class="custom-modal-overlay" style="display: none;">
-        <div class="custom-modal-container">
-            <div class="custom-modal-content">
-                <div class="custom-modal-icon">
-                    <i class="fa fa-exclamation-triangle"></i>
+    <!-- Modal de Confirmação para Tickets -->
+    <div id="ticketConfirmModal" class="ticket-modal-overlay" style="display: none;">
+        <div class="ticket-modal-container">
+            <div class="ticket-modal-content">
+                <div class="ticket-modal-header">
+                    <div class="ticket-modal-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="ticket-modal-title">Confirmar Ação</h3>
                 </div>
-                <h3 class="custom-modal-title">Confirmar</h3>
-                <p id="customConfirmMessage" class="custom-modal-message">
-                    Tem certeza que deseja realizar esta ação?
-                </p>
-                <div class="custom-modal-buttons">
-                    <button type="button" class="custom-btn custom-btn-cancel" onclick="hideCustomConfirmModal()">
-                        Cancelar
+                <div class="ticket-modal-body">
+                    <p id="ticketConfirmMessage">Tem certeza que deseja realizar esta ação?</p>
+                </div>
+                <div class="ticket-modal-footer">
+                    <button type="button" class="btn btn-secondary ticket-modal-cancel">
+                        <i class="fas fa-times"></i> Cancelar
                     </button>
-                    <button type="button" class="custom-btn custom-btn-confirm" onclick="confirmTicketAction()">
-                        Confirmar
+                    <button type="button" class="btn btn-primary ticket-modal-confirm">
+                        <i class="fas fa-check"></i> Confirmar
                     </button>
                 </div>
             </div>
@@ -6782,145 +6889,171 @@ if (!$footerLinksData) {
     </div>
 
     <style>
-    .custom-modal-overlay {
+    .ticket-modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(3px);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 9999;
-        animation: fadeIn 0.3s ease-out;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
-    .custom-modal-container {
-        max-width: 480px;
+    .ticket-modal-overlay.show {
+        opacity: 1;
+    }
+
+    .ticket-modal-container {
+        max-width: 500px;
         width: 90%;
         max-height: 90vh;
         overflow-y: auto;
     }
 
-    .custom-modal-content {
+    .ticket-modal-content {
         background: #ffffff;
-        border-radius: 16px;
-        padding: 40px 32px 32px;
-        text-align: center;
+        border-radius: 12px;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        animation: modalSlideIn 0.3s ease-out;
-        position: relative;
+        transform: translateY(-20px) scale(0.95);
+        transition: transform 0.3s ease;
     }
 
-    .custom-modal-icon {
+    .ticket-modal-overlay.show .ticket-modal-content {
+        transform: translateY(0) scale(1);
+    }
+
+    .ticket-modal-header {
+        padding: 30px 30px 20px;
+        text-align: center;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .ticket-modal-icon {
         width: 64px;
         height: 64px;
-        margin: 0 auto 24px;
-        background: #fef3c7;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #f59e0b;
         font-size: 28px;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
     }
 
-    .custom-modal-title {
-        font-size: 24px;
+    .ticket-modal-title {
+        font-size: 22px;
         font-weight: 600;
         color: #111827;
-        margin: 0 0 16px;
+        margin: 0;
         line-height: 1.2;
     }
 
-    .custom-modal-message {
-        font-size: 16px;
-        color: #6b7280;
-        line-height: 1.5;
-        margin: 0 0 32px;
+    .ticket-modal-body {
+        padding: 20px 30px;
+        text-align: center;
     }
 
-    .custom-modal-buttons {
+    .ticket-modal-body p {
+        font-size: 16px;
+        color: #6b7280;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .ticket-modal-footer {
+        padding: 20px 30px 30px;
         display: flex;
         gap: 12px;
         justify-content: center;
         flex-wrap: wrap;
     }
 
-    .custom-btn {
-        padding: 12px 24px;
-        border-radius: 8px;
-        border: none;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
+    .ticket-modal-footer .btn {
         min-width: 120px;
-        outline: none;
+        padding: 12px 24px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
-    .custom-btn-cancel {
+    .ticket-modal-cancel {
         background: #f3f4f6;
         color: #374151;
         border: 1px solid #d1d5db;
     }
 
-    .custom-btn-cancel:hover {
+    .ticket-modal-cancel:hover {
         background: #e5e7eb;
+        color: #1f2937;
         transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    .custom-btn-confirm {
-        background: #dc2626;
+    .ticket-modal-confirm {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
+        border: none;
     }
 
-    .custom-btn-confirm:hover {
-        background: #b91c1c;
+    .ticket-modal-confirm:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+    .ticket-modal-confirm.danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     }
 
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
+    .ticket-modal-confirm.danger:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .ticket-modal-confirm.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .ticket-modal-confirm.success:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
 
     /* Responsivo */
     @media (max-width: 640px) {
-        .custom-modal-content {
-            padding: 32px 24px 24px;
+        .ticket-modal-content {
+            margin: 20px;
         }
         
-        .custom-modal-buttons {
+        .ticket-modal-header,
+        .ticket-modal-body,
+        .ticket-modal-footer {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        .ticket-modal-footer {
             flex-direction: column;
         }
         
-        .custom-btn {
+        .ticket-modal-footer .btn {
             width: 100%;
         }
     }
     </style>
 
 </body>
-
-</html>
 
 </html>

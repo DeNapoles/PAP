@@ -985,8 +985,8 @@ function loadContent(section) { ... }
 // Função para atualizar o estado do ticket
 window.updateTicketStatus = function(ticketId, newStatus) {
     // Usar a função do modal customizado se estiver disponível
-    if (typeof showCustomConfirmModal === 'function') {
-        showCustomConfirmModal(ticketId, newStatus);
+    if (typeof window.showCustomConfirmModal === 'function') {
+        window.showCustomConfirmModal(ticketId, newStatus);
         return;
     }
     
@@ -994,20 +994,4 @@ window.updateTicketStatus = function(ticketId, newStatus) {
     console.log('⚠️ Modal customizado não está disponível, cancelando ação');
     showAlert('Modal de confirmação não disponível', 'warning');
     return;
-    
-    fetch('manage_ticket.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'action=update_status&id=' + ticketId + '&status=' + encodeURIComponent(newStatus)
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showAlert('Estado atualizado com sucesso!', 'success');
-            setTimeout(() => location.reload(), 700);
-        } else {
-            showAlert('Erro: ' + data.message, 'danger');
-        }
-    })
-    .catch(() => showAlert('Erro ao comunicar com o servidor.', 'danger'));
 };

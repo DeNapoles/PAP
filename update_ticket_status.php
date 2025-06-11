@@ -2,9 +2,20 @@
 session_start();
 require_once 'connection.php';
 
-// Verificar se o usuário está logado e é admin
-$tiposPermitidos = ['admin', 'tecnico'];
-if (!isset($_SESSION['user_id']) || !in_array(strtolower($_SESSION['user_type']), $tiposPermitidos)) {
+// Verificar se o usuário está logado
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+    exit;
+}
+
+// Verificar se o usuário é admin
+$stmt = $conn->prepare("SELECT Tipo_Utilizador FROM Utilizadores WHERE ID_Utilizador = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+
+if (!$user || $user['Tipo_Utilizador'] !== 'Admin') {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Acesso negado']);
     exit;

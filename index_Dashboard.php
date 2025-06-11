@@ -1677,15 +1677,11 @@ if (!$footerLinksData) {
     }
     </style>
 </head>
-
 <body>
     <div class="layer"></div>
     <!-- ! Body -->
     <a class="skip-link sr-only" href="#skip-target">Skip to content</a>
     <div class="page-flex">
-
-
-
         <!-- ============================================ Start Sidebar ============================================ -->
         <aside class="sidebar">
             <div class="sidebar-start">
@@ -1804,22 +1800,13 @@ if (!$footerLinksData) {
                         </li>
                     </ul>
                 </li> -->
+
                         <li>
-                            <a class="show-cat-btn" href="##">
-                                <span class="icon user-3" aria-hidden="true"></span>Utilizadores
-                                <span class="category__btn transparent-btn" title="Open list">
-                                    <span class="sr-only">Open list</span>
-                                    <span class="icon arrow-down" aria-hidden="true"></span>
-                                </span>
+                            <a href="#" onclick="showSection('users-section')">
+                                <i class="fas fa-users"></i> Gerir Utilizadores
                             </a>
-                            <ul class="cat-sub-menu">
-                                <li>
-                                    <a href="#" onclick="showSection('users-section')">
-                                        <i class="fas fa-users"></i> Gerir Utilizadores
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
+
                         <!--
                 <li>
                     <a href="##"><span class="icon setting" aria-hidden="true"></span>Settings</a>
@@ -3115,26 +3102,23 @@ if (!$footerLinksData) {
                                                     <?= nl2br(htmlspecialchars($ticket['Descricao'])) ?>
                                                 </div>
                                             </div>
-                                                                        <div class="admin-ticket-actions">
-                                <button class="btn btn-success ticket-action-btn"
-                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
-                                    data-action="Aceite"
-                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Aceite', this)">
-                                    <i class="fa fa-check"></i> Aceitar
-                                </button>
-                                <button class="btn btn-danger ticket-action-btn"
-                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
-                                    data-action="Rejeitado"
-                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Rejeitado', this)">
-                                    <i class="fa fa-times"></i> Rejeitar
-                                </button>
-                                <button class="btn btn-primary ticket-action-btn"
-                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>"
-                                    data-action="Concluído"
-                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Concluído', this)">
-                                    <i class="fa fa-check-circle"></i> Concluído
-                                </button>
-                            </div>
+                                            <div class="admin-ticket-actions">
+                                                <button class="btn btn-success ticket-action-btn"
+                                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>" data-action="Aceite"
+                                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Aceite', this)">
+                                                    <i class="fa fa-check"></i> Aceitar
+                                                </button>
+                                                <button class="btn btn-danger ticket-action-btn"
+                                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>" data-action="Rejeitado"
+                                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Rejeitado', this)">
+                                                    <i class="fa fa-times"></i> Rejeitar
+                                                </button>
+                                                <button class="btn btn-primary ticket-action-btn"
+                                                    data-ticket-id="<?= $ticket['ID_Ticket'] ?>" data-action="Concluído"
+                                                    onclick="handleTicketAction(<?= $ticket['ID_Ticket'] ?>, 'Concluído', this)">
+                                                    <i class="fa fa-check-circle"></i> Concluído
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3686,10 +3670,12 @@ if (!$footerLinksData) {
     @keyframes fadeOut {
         from {
             opacity: 1;
+            transform: scale(1);
         }
 
         to {
             opacity: 0;
+            transform: scale(0.95);
         }
     }
 
@@ -5844,7 +5830,8 @@ if (!$footerLinksData) {
         // Função para carregar sugestões
         function loadSuggestions(page = 1, search = '', status = '', priority = '') {
             fetch(
-                    `get_suggestions.php?page=${page}&search=${encodeURIComponent(search)}&status=${status}&priority=${priority}`)
+                    `get_suggestions.php?page=${page}&search=${encodeURIComponent(search)}&status=${status}&priority=${priority}`
+                    )
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -6286,7 +6273,7 @@ if (!$footerLinksData) {
 
         } catch (error) {
             console.error('❌ Erro em showNewPostForm:', error);
-                            showAlert('Erro ao abrir formulário de post: ' + error.message, 'danger');
+            showAlert('Erro ao abrir formulário de post: ' + error.message, 'danger');
         }
     };
 
@@ -6326,7 +6313,7 @@ if (!$footerLinksData) {
                     document.getElementById('post-editor-title').textContent = 'Editar Post';
                     document.getElementById('savePostBtn').textContent = 'Salvar';
                 } else {
-                                                showAlert('Erro ao carregar dados do post', 'danger');
+                    showAlert('Erro ao carregar dados do post', 'danger');
                 }
             })
             .catch(error => {
@@ -6342,32 +6329,32 @@ if (!$footerLinksData) {
             showAlert('Erro: ID do post inválido', 'danger');
             return false;
         }
-        
+
         console.log('🗑️ INICIANDO EXCLUSÃO DE POST - ID:', postId);
         console.log('🎯 FORÇANDO USO DO MODAL CUSTOMIZADO APENAS!');
-        
+
         // Verificar se showCustomConfirm existe
         if (typeof window.showCustomConfirm !== 'function') {
             console.error('❌ CRÍTICO: showCustomConfirm não encontrada para posts!');
             showAlert('ERRO: Modal de confirmação não está disponível', 'danger');
             return;
         }
-        
+
         // Mensagem personalizada para posts
         const confirmMessage = 'Tem certeza que deseja apagar este post? Esta ação não pode ser desfeita.';
-        
+
         console.log('✅ Chamando showCustomConfirm para post...');
-        
+
         // USAR APENAS O MODAL
         window.showCustomConfirm(confirmMessage)
             .then(confirmed => {
                 console.log('📝 Resposta do modal para post:', confirmed);
-                
+
                 if (!confirmed) {
                     console.log('❌ Usuário cancelou a exclusão do post');
                     return;
                 }
-                
+
                 console.log('✅ Usuário confirmou - prosseguindo com exclusão do post');
                 proceedWithPostDeletion(postId);
             })
@@ -6376,11 +6363,11 @@ if (!$footerLinksData) {
                 showAlert('Erro no modal: ' + error.message, 'danger');
             });
     };
-    
+
     // Função auxiliar para processar a exclusão de post após confirmação
     function proceedWithPostDeletion(postId) {
         console.log('🗑️ PROCESSANDO EXCLUSÃO DE POST - ID:', postId);
-        
+
         // Encontra o card do post para mostrar loading
         const postCard = document.querySelector(`[data-post-id="${postId}"]`);
         if (postCard) {
@@ -6620,33 +6607,42 @@ if (!$footerLinksData) {
     // Variáveis globais para o modal de confirmação
     let currentTicketData = null;
 
+
+
     // Função para mostrar o modal de confirmação
     window.showTicketConfirmModal = function(ticketId, action, buttonElement) {
         const modal = document.getElementById('ticketConfirmModal');
         const messageElement = document.getElementById('ticketConfirmMessage');
         const confirmButton = modal.querySelector('.ticket-modal-confirm');
-        
+
         // Guardar dados para uso posterior
-        currentTicketData = { ticketId, action, buttonElement };
-        
+        currentTicketData = {
+            ticketId,
+            action,
+            buttonElement
+        };
+
         // Definir mensagem personalizada
         let message = '';
         let buttonClass = '';
         let buttonText = '';
-        
-        switch(action.toLowerCase()) {
+
+        switch (action.toLowerCase()) {
             case 'aceite':
-                message = 'Tem certeza que deseja <strong>ACEITAR</strong> este pedido de reparação?<br><small>Esta ação irá aprovar o pedido e permitir que seja processado.</small>';
+                message =
+                    'Tem certeza que deseja <strong>ACEITAR</strong> este pedido de reparação?<br><small>Esta ação irá aprovar o pedido e permitir que seja processado.</small>';
                 buttonClass = 'success';
                 buttonText = '<i class="fas fa-check"></i> Aceitar';
                 break;
             case 'rejeitado':
-                message = 'Tem certeza que deseja <strong>REJEITAR</strong> este pedido de reparação?<br><small>Esta ação irá recusar o pedido permanentemente.</small>';
+                message =
+                    'Tem certeza que deseja <strong>REJEITAR</strong> este pedido de reparação?<br><small>Esta ação irá recusar o pedido permanentemente.</small>';
                 buttonClass = 'danger';
                 buttonText = '<i class="fas fa-times"></i> Rejeitar';
                 break;
             case 'concluído':
-                message = 'Tem certeza que deseja marcar este pedido como <strong>CONCLUÍDO</strong>?<br><small>Esta ação finalizará o processo de reparação.</small>';
+                message =
+                    'Tem certeza que deseja marcar este pedido como <strong>CONCLUÍDO</strong>?<br><small>Esta ação finalizará o processo de reparação.</small>';
                 buttonClass = 'success';
                 buttonText = '<i class="fas fa-check-circle"></i> Concluir';
                 break;
@@ -6655,19 +6651,19 @@ if (!$footerLinksData) {
                 buttonClass = '';
                 buttonText = '<i class="fas fa-check"></i> Confirmar';
         }
-        
+
         // Atualizar conteúdo do modal
         messageElement.innerHTML = message;
         confirmButton.className = `btn btn-primary ticket-modal-confirm ${buttonClass}`;
         confirmButton.innerHTML = buttonText;
-        
+
         // Mostrar modal com animação
         modal.style.display = 'flex';
-        
+
         setTimeout(() => {
             modal.classList.add('show');
         }, 10);
-        
+
         // Desabilitar scroll do body
         document.body.style.overflow = 'hidden';
     };
@@ -6675,20 +6671,20 @@ if (!$footerLinksData) {
     // Função para esconder o modal
     window.hideTicketConfirmModal = function() {
         const modal = document.getElementById('ticketConfirmModal');
-        
+
         modal.classList.remove('show');
-        
+
         setTimeout(() => {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }, 300);
-        
+
         // Reabilitar botão se cancelado
         if (currentTicketData && currentTicketData.buttonElement) {
             currentTicketData.buttonElement.disabled = false;
             currentTicketData.buttonElement.style.opacity = '1';
         }
-        
+
         currentTicketData = null;
     };
 
@@ -6698,61 +6694,97 @@ if (!$footerLinksData) {
             console.error('❌ Nenhum dado de ticket disponível');
             return;
         }
-        
-        const { ticketId, action, buttonElement } = currentTicketData;
-        
+
+        const {
+            ticketId,
+            action,
+            buttonElement
+        } = currentTicketData;
+
         console.log('✅ Utilizador confirmou, enviando requisição...');
-        
+
         // Esconder modal
         window.hideTicketConfirmModal();
-        
+
         // Mostrar loading no botão
         if (buttonElement) {
             buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
         }
-        
+
         // Enviar requisição
         fetch('update_ticket_status.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `ticket_id=${ticketId}&novo_estado=${encodeURIComponent(action)}`
-        })
-        .then(response => {
-            console.log('📡 Resposta HTTP recebida:', response.status);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
-            }
-            
-            return response.json();
-        })
-        .then(data => {
-            console.log('📋 Dados da resposta:', data);
-            
-            if (data.success) {
-                // Mostrar sucesso no botão
-                if (buttonElement) {
-                    buttonElement.innerHTML = '<i class="fas fa-check"></i> Sucesso!';
-                    buttonElement.style.background = '#10b981';
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `ticket_id=${ticketId}&novo_estado=${encodeURIComponent(action)}`
+            })
+            .then(response => {
+                console.log('📡 Resposta HTTP recebida:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
-                
-                console.log('🔄 Recarregando página...');
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            } else {
-                console.error('❌ Erro retornado pelo servidor:', data.message);
-                alert('❌ Erro ao atualizar ticket: ' + (data.message || 'Erro desconhecido'));
-                
+
+                return response.json();
+            })
+            .then(data => {
+                console.log('📋 Dados da resposta:', data);
+
+                if (data.success) {
+                    console.log('✅ Ticket atualizado com sucesso!');
+
+                    // Mostrar feedback visual temporário
+                    if (buttonElement) {
+                        buttonElement.innerHTML = '<i class="fas fa-check"></i> Sucesso!';
+                        buttonElement.style.background = '#10b981';
+                        buttonElement.disabled = true;
+                    }
+
+                    // APENAS para tickets: guardar que estamos na seção de tickets
+                    sessionStorage.setItem('keepInTickets', 'true');
+
+                    console.log('🔄 Fazendo refresh na seção de tickets...');
+
+                    // Fazer refresh após 1 segundo - sem parâmetros URL complexos
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    console.error('❌ Erro retornado pelo servidor:', data.message);
+                    alert('❌ Erro ao atualizar ticket: ' + (data.message || 'Erro desconhecido'));
+
+                    // Restaurar botão
+                    if (buttonElement) {
+                        buttonElement.disabled = false;
+                        buttonElement.style.opacity = '1';
+                        // Restaurar texto original baseado na ação
+                        let originalText = '';
+                        switch (action.toLowerCase()) {
+                            case 'aceite':
+                                originalText = '<i class="fa fa-check"></i> Aceitar';
+                                break;
+                            case 'rejeitado':
+                                originalText = '<i class="fa fa-times"></i> Rejeitar';
+                                break;
+                            case 'concluído':
+                                originalText = '<i class="fa fa-check-circle"></i> Concluído';
+                                break;
+                        }
+                        buttonElement.innerHTML = originalText;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erro na requisição:', error);
+                alert('❌ Erro ao comunicar com o servidor: ' + error.message);
+
                 // Restaurar botão
                 if (buttonElement) {
                     buttonElement.disabled = false;
                     buttonElement.style.opacity = '1';
-                    // Restaurar texto original baseado na ação
                     let originalText = '';
-                    switch(action.toLowerCase()) {
+                    switch (action.toLowerCase()) {
                         case 'aceite':
                             originalText = '<i class="fa fa-check"></i> Aceitar';
                             break;
@@ -6765,40 +6797,22 @@ if (!$footerLinksData) {
                     }
                     buttonElement.innerHTML = originalText;
                 }
-            }
-        })
-        .catch(error => {
-            console.error('❌ Erro na requisição:', error);
-            alert('❌ Erro ao comunicar com o servidor: ' + error.message);
-            
-            // Restaurar botão
-            if (buttonElement) {
-                buttonElement.disabled = false;
-                buttonElement.style.opacity = '1';
-                let originalText = '';
-                switch(action.toLowerCase()) {
-                    case 'aceite':
-                        originalText = '<i class="fa fa-check"></i> Aceitar';
-                        break;
-                    case 'rejeitado':
-                        originalText = '<i class="fa fa-times"></i> Rejeitar';
-                        break;
-                    case 'concluído':
-                        originalText = '<i class="fa fa-check-circle"></i> Concluído';
-                        break;
-                }
-                buttonElement.innerHTML = originalText;
-            }
-        });
+            });
     };
 
     // Função principal que será chamada pelos botões
     window.handleTicketAction = function(ticketId, action, buttonElement) {
-        console.log('🎯 FUNÇÃO handleTicketAction CHAMADA:', { ticketId, action });
-        
+        console.log('🎯 FUNÇÃO handleTicketAction CHAMADA:', {
+            ticketId,
+            action
+        });
+
         // Verificar se os parâmetros são válidos
         if (!ticketId || !action) {
-            console.error('❌ Parâmetros inválidos:', { ticketId, action });
+            console.error('❌ Parâmetros inválidos:', {
+                ticketId,
+                action
+            });
             alert('Erro: Dados do ticket inválidos');
             return;
         }
@@ -6817,16 +6831,48 @@ if (!$footerLinksData) {
     document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ DOM carregado - Sistema de tickets pronto!');
         console.log('🔍 Função handleTicketAction disponível:', typeof window.handleTicketAction);
-        
+
+        // APENAS verificar se processamos um ticket (sem interferir com o resto)
+        const keepInTickets = sessionStorage.getItem('keepInTickets');
+        if (keepInTickets === 'true') {
+            console.log('🎯 Mantendo utilizador na seção de tickets...');
+
+            // Limpar flag
+            sessionStorage.removeItem('keepInTickets');
+
+            // Simples: apenas mostrar a seção de tickets sem tocar no resto
+            setTimeout(() => {
+                const ticketsSection = document.getElementById('tickets-section');
+                if (ticketsSection && ticketsSection.style.display !== 'block') {
+                    // Só atua se a seção de tickets não estiver já visível
+                    const allSections = document.querySelectorAll('.content-section');
+                    allSections.forEach(section => section.style.display = 'none');
+
+                    ticketsSection.style.display = 'block';
+
+                    // Mostrar notificação discreta
+                    setTimeout(() => {
+                        if (typeof showAlert === 'function') {
+                            showAlert('✅ Ticket processado!', 'success');
+                        }
+                    }, 300);
+
+                    console.log('✅ Seção de tickets mantida ativa!');
+                }
+            }, 100);
+        }
+
         // Verificar quantos botões de ticket existem
         const buttons = document.querySelectorAll('.ticket-action-btn');
         console.log(`🔍 Encontrados ${buttons.length} botões de tickets`);
-        
+
         // Log dos botões encontrados
         buttons.forEach((btn, index) => {
             const ticketId = btn.getAttribute('data-ticket-id');
             const action = btn.getAttribute('data-action');
-            console.log(`📋 Botão ${index + 1}: ID=${ticketId}, Ação=${action}, Texto="${btn.textContent.trim()}"`);
+            console.log(
+                `📋 Botão ${index + 1}: ID=${ticketId}, Ação=${action}, Texto="${btn.textContent.trim()}"`
+                );
         });
 
         // Configurar event listeners para o modal de confirmação
@@ -6864,6 +6910,109 @@ if (!$footerLinksData) {
 
         console.log('🎉 Modal de tickets configurado com sucesso!');
     });
+
+    // ***** FUNÇÃO SHOWCUSTOMCONFIRM GENÉRICA *****
+    // Função genérica para mostrar modal de confirmação customizado
+    window.showCustomConfirm = function(message) {
+        return new Promise((resolve, reject) => {
+            // Verificar se já existe um modal de confirmação genérico
+            let existingModal = document.getElementById('genericConfirmModal');
+            
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Criar o modal dinamicamente
+            const modalHTML = `
+                <div id="genericConfirmModal" class="custom-confirm-overlay">
+                    <div class="custom-confirm-modal">
+                        <div class="custom-confirm-header">
+                            <i class="fas fa-exclamation-triangle custom-confirm-icon"></i>
+                            <h4 class="custom-confirm-title">Confirmar Ação</h4>
+                        </div>
+                        <div class="custom-confirm-body">
+                            <p>${message}</p>
+                        </div>
+                        <div class="custom-confirm-footer">
+                            <button type="button" class="btn custom-confirm-cancel">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn custom-confirm-ok">
+                                <i class="fas fa-check"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Adicionar modal ao body
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            const modal = document.getElementById('genericConfirmModal');
+            const cancelBtn = modal.querySelector('.custom-confirm-cancel');
+            const confirmBtn = modal.querySelector('.custom-confirm-ok');
+
+            // Função para limpar o modal
+            const cleanup = () => {
+                if (modal && modal.parentNode) {
+                    modal.remove();
+                }
+                document.body.style.overflow = 'auto';
+            };
+
+            // Event listeners
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(false);
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(true);
+            });
+
+            // Fechar com ESC
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    document.removeEventListener('keydown', escapeHandler);
+                    cleanup();
+                    resolve(false);
+                }
+            };
+
+            document.addEventListener('keydown', escapeHandler);
+
+            // Fechar clicando no overlay
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    cleanup();
+                    resolve(false);
+                }
+            });
+
+            // Mostrar modal
+            document.body.style.overflow = 'hidden';
+            modal.style.display = 'flex';
+            
+            // Animar entrada
+            requestAnimationFrame(() => {
+                modal.style.opacity = '1';
+                const modalContent = modal.querySelector('.custom-confirm-modal');
+                modalContent.style.transform = 'scale(1)';
+            });
+        });
+    };
+
+    console.log('✅ Função showCustomConfirm criada e disponível globalmente');
+    
+    // Teste rápido da função showCustomConfirm
+    setTimeout(() => {
+        if (typeof window.showCustomConfirm === 'function') {
+            console.log('🎉 showCustomConfirm está funcionando perfeitamente!');
+        } else {
+            console.error('❌ CRÍTICO: showCustomConfirm não está disponível!');
+        }
+    }, 100);
     </script>
 
     <!-- Modal de Confirmação para Tickets -->
@@ -7039,18 +7188,18 @@ if (!$footerLinksData) {
         .ticket-modal-content {
             margin: 20px;
         }
-        
+
         .ticket-modal-header,
         .ticket-modal-body,
         .ticket-modal-footer {
             padding-left: 20px;
             padding-right: 20px;
         }
-        
+
         .ticket-modal-footer {
             flex-direction: column;
         }
-        
+
         .ticket-modal-footer .btn {
             width: 100%;
         }

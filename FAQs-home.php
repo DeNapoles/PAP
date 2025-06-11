@@ -260,6 +260,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                                 <button type="submit"><i class="fa fa-search"></i></button>
                             </form>
                         </div>
+                        <!--
                         <div class="single-sidebar-widget user-info-widget">
                             <img src="img/blog/user-info.png" alt="">
                             <a href="#">
@@ -279,7 +280,7 @@ $total_pages = ceil($total_posts / $posts_per_page);
                                 should have to spend money on boot camp when you can get. Boot camps have itssuppor ters
                                 andits detractors.
                             </p>
-                        </div>
+                        </div>-->
                         <div class="single-sidebar-widget popular-post-widget">
                             <h4 class="popular-title">Popular Posts</h4>
                             <div class="popular-post-list">

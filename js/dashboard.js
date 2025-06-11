@@ -259,133 +259,7 @@ window.saveUser = function() {
         });
 };
 
-window.deleteUser = function(id) {
-    console.log(`🚀 INÍCIO - deleteUser chamado para ID: ${id}`);
-    console.log(`🔍 Tipo do ID: ${typeof id}, Valor: ${id}, É NaN: ${isNaN(id)}`);
-    
-    if (!id || isNaN(id)) {
-        console.error('❌ ID inválido para delete:', id);
-        showAlert('Erro: ID de utilizador inválido', 'danger');
-        return;
-    }
-    
-    const confirmDelete = confirm('Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.');
-    console.log(`🤔 Confirmação do utilizador: ${confirmDelete}`);
-    
-    if (confirmDelete) {
-        console.log(`✅ Prosseguindo com delete do ID: ${id}`);
-        
-        // Encontrar o botão específico
-        const deleteBtn = document.querySelector(`#usersTableBody .delete-user-btn[data-id="${id}"]`);
-        console.log(`🔍 Botão encontrado:`, deleteBtn);
-        
-        let originalContent = '';
-        
-        if (deleteBtn) {
-            originalContent = deleteBtn.innerHTML;
-            deleteBtn.disabled = true;
-            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            console.log('🔄 Estado de loading aplicado ao botão');
-        } else {
-            console.warn('⚠️ Botão de delete não encontrado no DOM');
-        }
-        
-        console.log('📡 Iniciando requisição fetch...');
-        
-        const requestBody = `action=delete&id=${encodeURIComponent(id)}`;
-        console.log(`📤 Body da requisição: ${requestBody}`);
-        
-        fetch('manage_user.php', { 
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }, 
-            body: requestBody
-        })
-        .then(response => { 
-            console.log('📡 Resposta recebida:', {
-                ok: response.ok,
-                status: response.status,
-                statusText: response.statusText,
-                contentType: response.headers.get("content-type"),
-                url: response.url
-            });
-            
-            const contentType = response.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                return response.text().then(text => { 
-                    console.error('❌ Resposta não é JSON:', text);
-                    throw new Error(`Expected JSON, received ${contentType}. Content: ${text.substring(0, 500)}`); 
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('📊 JSON de resposta recebido:', data);
-            
-            // Restaurar botão independentemente do resultado
-            if (deleteBtn && deleteBtn.parentNode) {
-                deleteBtn.disabled = false;
-                deleteBtn.innerHTML = originalContent;
-                console.log('🔄 Estado original do botão restaurado');
-            }
-            
-            if (data && data.success === true) {
-                console.log('✅ Delete bem-sucedido!');
-                
-                const successMessage = data.message || 'Utilizador excluído com sucesso!';
-                showAlert(successMessage, 'success');
-                
-                // Encontrar e remover a linha da tabela
-                const userRow = document.querySelector(`tr[data-user-id="${id}"]`);
-                console.log(`🔍 Linha do utilizador encontrada:`, userRow);
-                
-                if (userRow) {
-                    console.log('🎭 Aplicando animação de remoção...');
-                    userRow.classList.add('removing');
-                    
-                    setTimeout(() => {
-                        if (userRow.parentNode) {
-                            userRow.remove();
-                            console.log('❌ Linha removida da tabela');
-                        }
-                        
-                        // Recarregar a tabela após pequeno delay
-                        console.log('🔄 Iniciando recarga da tabela...');
-                        setTimeout(() => {
-                            window.loadUsers(currentPage, currentSearch);
-                        }, 100);
-                        
-                    }, 400);
-                } else {
-                    console.warn('⚠️ Linha do utilizador não encontrada, recarregando tabela imediatamente');
-                    window.loadUsers(currentPage, currentSearch);
-                }
-                
-            } else { 
-                console.error('❌ Erro no delete:', data);
-                const errorMsg = (data && data.message) ? data.message : 'Erro desconhecido ao excluir usuário';
-                showAlert(errorMsg, 'danger'); 
-            }
-        })
-        .catch(error => {
-            console.error('❌ Erro na requisição fetch:', error);
-            
-            // Restaurar botão em caso de erro
-            if (deleteBtn && deleteBtn.parentNode) {
-                deleteBtn.disabled = false;
-                deleteBtn.innerHTML = originalContent;
-                console.log('🔄 Estado do botão restaurado após erro');
-            }
-            
-            showAlert('Erro ao excluir usuário. Por favor, tente novamente. Detalhes: ' + error.message, 'danger');
-        });
-    } else {
-        console.log('❌ Delete cancelado pelo utilizador');
-    }
-    
-    console.log(`🏁 FIM - deleteUser para ID: ${id}`);
-};
+// Esta função foi removida - usando apenas a versão com modal customizado
 
 // Função updateUserStatus removida - agora usa toggleUserStatus exclusivamente
 
@@ -599,21 +473,69 @@ window.toggleUserStatus = function(userId, currentStatus, element) {
 
 console.log('✅ Função toggleUserStatus definida globalmente!');
 
-// Função global para apagar utilizador (VERSÃO SIMPLIFICADA E EFICAZ)
+// FUNÇÃO PARA APAGAR UTILIZADOR - SÓ COM MODAL CUSTOMIZADO!
 window.deleteUser = function(userId) {
+    // Bloquear QUALQUER confirm() nativo
+    const originalConfirm = window.confirm;
+    window.confirm = function() {
+        console.error('🚫 BLOQUEADO: Tentativa de usar confirm() nativo!');
+        return false;
+    };
+    
     if (!userId) {
         console.error('❌ ID do utilizador inválido para exclusão');
         showAlert('Erro: ID do utilizador inválido', 'danger');
+        // Restaurar confirm original
+        window.confirm = originalConfirm;
         return false;
     }
     
     console.log('🗑️ INICIANDO EXCLUSÃO - ID:', userId);
+    console.log('🎯 FORÇANDO USO DO MODAL CUSTOMIZADO APENAS!');
     
-    // Mostrar confirmação
-    if (!confirm('Tem certeza que deseja apagar este utilizador? Esta ação não pode ser desfeita.')) {
-        console.log('❌ Exclusão cancelada pelo utilizador');
-        return false;
+    // Verificar se showCustomConfirm existe
+    if (typeof window.showCustomConfirm !== 'function') {
+        console.error('❌ CRÍTICO: showCustomConfirm não encontrada!');
+        console.log('🔍 window.showCustomConfirm:', window.showCustomConfirm);
+        console.log('🔍 Todas as funções confirm:', Object.keys(window).filter(k => k.includes('onfirm')));
+        showAlert('ERRO: Modal de confirmação não está disponível', 'danger');
+        // Restaurar confirm original
+        window.confirm = originalConfirm;
+        return;
     }
+    
+    // Mensagem personalizada
+    const confirmMessage = 'Tem certeza que deseja remover este utilizador? Esta ação não pode ser desfeita.';
+    
+    console.log('✅ Chamando showCustomConfirm...');
+    
+    // USAR APENAS O MODAL
+    window.showCustomConfirm(confirmMessage)
+        .then(confirmed => {
+            console.log('📝 Resposta do modal recebida:', confirmed);
+            
+            // Restaurar confirm original
+            window.confirm = originalConfirm;
+            
+            if (!confirmed) {
+                console.log('❌ Usuário cancelou a exclusão');
+                return;
+            }
+            
+            console.log('✅ Usuário confirmou - prosseguindo com exclusão');
+            proceedWithUserDeletion(userId);
+        })
+        .catch(error => {
+            console.error('❌ Erro no modal:', error);
+            // Restaurar confirm original
+            window.confirm = originalConfirm;
+            showAlert('Erro no modal: ' + error.message, 'danger');
+        });
+};
+
+// Função auxiliar para processar a exclusão após confirmação
+function proceedWithUserDeletion(userId) {
+    console.log('🗑️ PROCESSANDO EXCLUSÃO - ID:', userId);
     
     // PRIMEIRA COISA: Encontrar e marcar a linha IMEDIATAMENTE
     console.log('🔍 PROCURANDO LINHA DO UTILIZADOR...');
@@ -783,11 +705,11 @@ window.deleteUser = function(userId) {
             userRow.style.opacity = '';
         }
         
-                 showAlert('Erro de conexão ao apagar utilizador', 'danger');
+        showAlert('Erro de conexão ao apagar utilizador', 'danger');
     });
     
     return false;
-};
+}
 
 console.log('✅ Função deleteUser definida globalmente!');
 
@@ -930,6 +852,18 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🧪 Função toggleUserStatus disponível:', typeof window.toggleUserStatus);
     console.log('🧪 Função deleteUser disponível:', typeof window.deleteUser);
     console.log('🧪 Função loadUsers disponível:', typeof window.loadUsers);
+    console.log('🧪 Função showCustomConfirm disponível:', typeof window.showCustomConfirm);
+    
+    // Aguardar um pouco e verificar novamente
+    setTimeout(() => {
+        console.log('⏰ VERIFICAÇÃO APÓS 1 SEGUNDO:');
+        console.log('🧪 showCustomConfirm ainda disponível:', typeof window.showCustomConfirm);
+        if (typeof window.showCustomConfirm === 'function') {
+            console.log('✅ Modal está funcionando!');
+        } else {
+            console.error('❌ Modal NÃO está disponível após 1 segundo!');
+        }
+    }, 1000);
     
     // Event delegation para botões de delete - VERSÃO ROBUSTA
     document.addEventListener('click', function(e) {
@@ -1056,8 +990,10 @@ window.updateTicketStatus = function(ticketId, newStatus) {
         return;
     }
     
-    // Fallback para confirm() se o modal não estiver disponível
-    if (!confirm('Tem certeza que deseja alterar o estado deste pedido para "' + newStatus + '"?')) return;
+    // REMOVIDO: Não usar confirm() padrão
+    console.log('⚠️ Modal customizado não está disponível, cancelando ação');
+    showAlert('Modal de confirmação não disponível', 'warning');
+    return;
     
     fetch('manage_ticket.php', {
         method: 'POST',

@@ -31,6 +31,31 @@ function getPostById($id) {
     $result = $stmt->get_result();
     $post = $result->fetch_assoc();
     
+    if ($post) {
+        // Processar as tags como array
+        $post['tags'] = array_map('trim', explode(',', $post['tags']));
+    }
+    
+    return $post;
+}
+
+/**
+ * Obtém um post específico pelo ID com tags como string (para edição)
+ */
+function getPostByIdForEdit($id) {
+    global $conn;
+    $id = (int)$id;
+    $sql = "SELECT p.*, u.Nome as autor_nome, 
+            (SELECT COUNT(*) FROM comentarios WHERE post_id = p.id) as num_comentarios 
+            FROM posts p 
+            LEFT JOIN Utilizadores u ON p.autor_id = u.ID_Utilizador 
+            WHERE p.id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $post = $result->fetch_assoc();
+    
     // As tags ficam como string para o formulário de edição
     return $post;
 }

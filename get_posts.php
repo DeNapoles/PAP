@@ -7,7 +7,13 @@ header('Content-Type: application/json');
 // Se for uma requisição para buscar um post específico
 if (isset($_GET['id'])) {
     $post_id = (int)$_GET['id'];
-    $post = getPostById($post_id);
+    
+    // Se for para edição, usar função que retorna tags como string
+    if (isset($_GET['for_edit']) && $_GET['for_edit'] == 'true') {
+        $post = getPostByIdForEdit($post_id);
+    } else {
+        $post = getPostById($post_id);
+    }
     
     if ($post) {
         // Formatar a data para exibição

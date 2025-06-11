@@ -3627,15 +3627,17 @@ if (!$footerLinksData) {
     }
 
     .custom-confirm-cancel {
-        background: #f8f9fa !important;
-        border-color: #dee2e6 !important;
-        color: #6c757d !important;
+        background: #6c757d !important;
+        border-color: #6c757d !important;
+        color: white !important;
+        opacity: 0.8;
     }
 
     .custom-confirm-cancel:hover {
-        background: #e9ecef !important;
-        border-color: #adb5bd !important;
-        color: #495057 !important;
+        background: #5a6268 !important;
+        border-color: #545b62 !important;
+        color: white !important;
+        opacity: 1;
     }
 
     .custom-confirm-ok {
@@ -6352,12 +6354,12 @@ if (!$footerLinksData) {
 
         } catch (error) {
             console.error('❌ Erro em showNewPostForm:', error);
-            alert('Erro ao abrir formulário de post: ' + error.message);
+                            showAlert('Erro ao abrir formulário de post: ' + error.message, 'danger');
         }
     };
 
     window.editPost = function(postId) {
-        fetch(`get_posts.php?id=${postId}`)
+        fetch(`get_posts.php?id=${postId}&for_edit=true`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.post) {
@@ -6392,64 +6394,111 @@ if (!$footerLinksData) {
                     document.getElementById('post-editor-title').textContent = 'Editar Post';
                     document.getElementById('savePostBtn').textContent = 'Salvar';
                 } else {
-                    alert('Erro ao carregar dados do post');
+                                                showAlert('Erro ao carregar dados do post', 'danger');
                 }
             })
             .catch(error => {
                 console.error('Erro:', error);
-                alert('Erro ao carregar post: ' + error.message);
+                showAlert('Erro ao carregar post: ' + error.message, 'danger');
             });
     };
 
+    // FUNÇÃO PARA APAGAR POST - SÓ COM MODAL CUSTOMIZADO!
     window.deletePost = function(postId) {
-        if (confirm('Tem certeza que deseja apagar este post? Esta ação não pode ser desfeita.')) {
-            // Encontra o card do post para mostrar loading
-            const postCard = document.querySelector(`[data-post-id="${postId}"]`);
-            if (postCard) {
-                postCard.style.opacity = '0.5';
-                postCard.style.pointerEvents = 'none';
-            }
+        if (!postId) {
+            console.error('❌ ID do post inválido para exclusão');
+            showAlert('Erro: ID do post inválido', 'danger');
+            return false;
+        }
+        
+        console.log('🗑️ INICIANDO EXCLUSÃO DE POST - ID:', postId);
+        console.log('🎯 FORÇANDO USO DO MODAL CUSTOMIZADO APENAS!');
+        
+        // Verificar se showCustomConfirm existe
+        if (typeof window.showCustomConfirm !== 'function') {
+            console.error('❌ CRÍTICO: showCustomConfirm não encontrada para posts!');
+            showAlert('ERRO: Modal de confirmação não está disponível', 'danger');
+            return;
+        }
+        
+        // Mensagem personalizada para posts
+        const confirmMessage = 'Tem certeza que deseja apagar este post? Esta ação não pode ser desfeita.';
+        
+        console.log('✅ Chamando showCustomConfirm para post...');
+        
+        // USAR APENAS O MODAL
+        window.showCustomConfirm(confirmMessage)
+            .then(confirmed => {
+                console.log('📝 Resposta do modal para post:', confirmed);
+                
+                if (!confirmed) {
+                    console.log('❌ Usuário cancelou a exclusão do post');
+                    return;
+                }
+                
+                console.log('✅ Usuário confirmou - prosseguindo com exclusão do post');
+                proceedWithPostDeletion(postId);
+            })
+            .catch(error => {
+                console.error('❌ Erro no modal para post:', error);
+                showAlert('Erro no modal: ' + error.message, 'danger');
+            });
+    };
+    
+    // Função auxiliar para processar a exclusão de post após confirmação
+    function proceedWithPostDeletion(postId) {
+        console.log('🗑️ PROCESSANDO EXCLUSÃO DE POST - ID:', postId);
+        
+        // Encontra o card do post para mostrar loading
+        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+        if (postCard) {
+            postCard.style.opacity = '0.5';
+            postCard.style.pointerEvents = 'none';
+            postCard.style.backgroundColor = '#ffebee';
+        }
 
-            fetch('delete_post.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `post_id=${postId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
+        fetch('delete_post.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `post_id=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('🎉 Post excluído com sucesso!');
+                    showAlert(data.message, 'success');
 
-                        // Recarregar a página atual de posts após apagar
-                        // Isso garantirá que outros posts venham preencher o espaço
-                        setTimeout(() => {
-                            if (typeof window.loadPosts === 'function') {
-                                window.loadPosts(currentPostsPage);
-                            }
-                        }, 500);
-
-                    } else {
-                        alert(data.message);
-                        // Restaura o estado do card em caso de erro
-                        if (postCard) {
-                            postCard.style.opacity = '1';
-                            postCard.style.pointerEvents = 'auto';
+                    // Recarregar a página atual de posts após apagar
+                    setTimeout(() => {
+                        if (typeof window.loadPosts === 'function') {
+                            window.loadPosts(currentPostsPage);
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro ao apagar post: ' + error.message);
+                    }, 500);
+
+                } else {
+                    console.error('❌ Erro ao excluir post:', data);
+                    showAlert(data.message, 'danger');
                     // Restaura o estado do card em caso de erro
                     if (postCard) {
                         postCard.style.opacity = '1';
                         postCard.style.pointerEvents = 'auto';
+                        postCard.style.backgroundColor = '';
                     }
-                });
-        }
-    };
+                }
+            })
+            .catch(error => {
+                console.error('❌ Erro na requisição para apagar post:', error);
+                showAlert('Erro ao apagar post: ' + error.message, 'danger');
+                // Restaura o estado do card em caso de erro
+                if (postCard) {
+                    postCard.style.opacity = '1';
+                    postCard.style.pointerEvents = 'auto';
+                    postCard.style.backgroundColor = '';
+                }
+            });
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🔵 Posts JavaScript carregado');
@@ -6628,6 +6677,7 @@ if (!$footerLinksData) {
         console.log('- showNewPostForm:', typeof window.showNewPostForm);
         console.log('- editPost:', typeof window.editPost);
         console.log('- deletePost:', typeof window.deletePost);
+        console.log('- showCustomConfirm para posts:', typeof window.showCustomConfirm);
         console.log('- addFooterLink:', typeof window.addFooterLink);
         console.log('- removeFooterLink:', typeof window.removeFooterLink);
     });

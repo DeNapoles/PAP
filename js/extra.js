@@ -11,9 +11,12 @@ function scrollFunction() {
 }
 
 // Função para voltar ao topo da página
-function topFunction() {
+export function topFunction() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Tornar a função acessível globalmente
+window.topFunction = topFunction;
 
 // Função utilitária para fechar modais Bootstrap 5 de forma robusta
 function closeModal(modalId) {

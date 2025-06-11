@@ -3050,14 +3050,17 @@ if (!$footerLinksData) {
                             }
                         ?>
                                 <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex align-items-stretch">
-                                    <div class="card shadow-sm h-100 border-0 admin-ticket-card">
-                                        <div class="card-header">
+                                    <div class="card shadow-sm h-100 border-0 admin-ticket-card" data-ticket-id="<?= $ticket['ID_Ticket'] ?>">
+                                        <div class="card-header position-relative">
                                             <span class="badge-estado <?= $estadoClass ?>">
                                                 <i class="fa <?= $estadoIcon ?> me-1"></i>
                                                 <?= htmlspecialchars($estado) ?>
                                             </span>
                                             <span class="text-muted small"><i class="fa fa-calendar me-1"></i>
                                                 <?= $dataSub ?></span>
+                                            <span class="delete-ticket-btn position-absolute top-0 end-0 m-2" title="Apagar Ticket" style="cursor:pointer; color:#dc3545; font-size:1.3em;">
+                                                <i class="fa fa-trash"></i>
+                                            </span>
                                         </div>
                                         <div class="card-body pt-2">
                                             <!-- Bloco: Dados do Utilizador -->

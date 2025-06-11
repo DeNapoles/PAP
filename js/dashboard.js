@@ -974,7 +974,94 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Delegação de evento para apagar ticket
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-ticket-btn');
+        if (btn) {
+            const card = btn.closest('.admin-ticket-card');
+            const ticketId = card.getAttribute('data-ticket-id');
+            if (!ticketId) return;
+
+            // Usar o modal de confirmação estilizado
+            window.showTicketDeleteConfirmModal(ticketId, btn);
+        }
+    });
 });
+
+// Função específica para confirmação de delete de ticket
+window.showTicketDeleteConfirmModal = function(ticketId, btn) {
+    const card = btn.closest('.admin-ticket-card');
+    window.showTicketConfirmModal(ticketId, 'delete', btn);
+    
+    // Atualizar o modal para mensagem de delete
+    const messageElement = document.getElementById('ticketConfirmMessage');
+    const confirmButton = document.querySelector('.ticket-modal-confirm');
+    
+    messageElement.innerHTML = 'Tem certeza que deseja <strong>APAGAR</strong> este pedido de reparação?<br><small>Esta ação é irreversível e todos os dados serão perdidos.</small>';
+    confirmButton.className = 'btn btn-primary ticket-modal-confirm danger';
+    confirmButton.innerHTML = '<i class="fas fa-trash"></i> Apagar';
+    
+    // Substituir a função de confirmação
+    window.confirmTicketAction = function() {
+        window.hideTicketConfirmModal();
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.style.pointerEvents = 'none';
+        
+        fetch('delete_ticket.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'ID_Ticket=' + encodeURIComponent(ticketId)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Primeiro, encontrar a coluna pai
+                const column = card.closest('.col-12.col-md-6.col-lg-4');
+                if (column) {
+                    // Aplicar animação de fade out na coluna inteira
+                    column.style.opacity = '0';
+                    column.style.transform = 'scale(0.95)';
+                    column.style.transition = 'all 0.3s ease';
+                    
+                    setTimeout(() => {
+                        // Remover a coluna
+                        column.remove();
+                        
+                        // Verificar se ainda existem tickets
+                        const ticketsContainer = document.getElementById('admin-tickets-cards');
+                        const remainingCards = ticketsContainer.querySelectorAll('.col-12.col-md-6.col-lg-4');
+                        
+                        if (remainingCards.length === 0) {
+                            // Se não houver mais tickets, mostrar mensagem
+                            ticketsContainer.innerHTML = `
+                                <div class="col-12">
+                                    <div class="alert alert-info d-flex align-items-center">
+                                        <i class="fa fa-info-circle me-3 fs-4"></i>
+                                        <div>
+                                            <h5 class="alert-heading mb-1">Nenhum pedido de reparação encontrado</h5>
+                                            <p class="mb-0">Ainda não existem tickets submetidos por alunos.</p>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        }
+                        
+                        showAlert('Ticket apagado com sucesso!', 'success');
+                    }, 300);
+                }
+            } else {
+                showAlert('Erro ao apagar o ticket: ' + (data.error || ''), 'danger');
+                btn.innerHTML = '<i class="fa fa-trash"></i>';
+                btn.style.pointerEvents = '';
+            }
+        })
+        .catch(() => {
+            showAlert('Erro ao comunicar com o servidor.', 'danger');
+            btn.innerHTML = '<i class="fa fa-trash"></i>';
+            btn.style.pointerEvents = '';
+        });
+    };
+};
 
 // Remove a função loadContent antiga se não for mais usada
 /*

@@ -210,8 +210,18 @@ $total_pages = ceil($total_posts / $posts_per_page);
                             <a class="posts-title" href="blog-single.php?id=<?php echo $post['id']; ?>">
                                 <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
                             </a>
-                            <p class="excert">
-                                <?php echo htmlspecialchars($post['texto']); ?>
+                            <p class="excert post-excerpt-clamp">
+                                <?php
+                                    $texto = strip_tags($post['texto']);
+                                    $texto = trim($texto);
+                                    if (empty($texto)) {
+                                        echo 'Sem conteúdo disponível.';
+                                    } else if (strlen($texto) > 250) {
+                                        echo htmlspecialchars(substr($texto, 0, 250)) . '...';
+                                    } else {
+                                        echo htmlspecialchars($texto);
+                                    }
+                                ?>
                             </p>
                             <a href="blog-single.php?id=<?php echo $post['id']; ?>" class="primary-btn">View More</a>
                         </div>

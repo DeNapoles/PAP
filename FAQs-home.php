@@ -211,7 +211,14 @@ $total_pages = ceil($total_posts / $posts_per_page);
                                 <h3><?php echo htmlspecialchars($post['titulo']); ?></h3>
                             </a>
                             <p class="excert">
-                                <?php echo htmlspecialchars($post['texto']); ?>
+                                <?php
+                                    $texto = strip_tags($post['texto']); // Remove HTML
+                                    $resumo = mb_substr($texto, 0, 250); // Limita a 250 caracteres
+                                    if (mb_strlen($texto) > 250) {
+                                        $resumo .= '...';
+                                    }
+                                    echo htmlspecialchars($resumo);
+                                ?>
                             </p>
                             <a href="blog-single.php?id=<?php echo $post['id']; ?>" class="primary-btn">View More</a>
                         </div>
